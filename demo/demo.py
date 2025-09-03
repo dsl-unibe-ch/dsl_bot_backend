@@ -1,0 +1,1 @@
+"""Demo script of kioskbot."""
