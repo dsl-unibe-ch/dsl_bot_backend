@@ -28,20 +28,19 @@ handler.setFormatter(logging.Formatter("%(levelname)s: %(message)s"))
 logger.addHandler(handler)
 
 load_dotenv()
-AZURE_SEARCH_ENDPOINT = os.getenv("AZURE_SEARCH_ENDPOINT")
-AZURE_AI_SEARCH_INDEX_NAME = os.getenv("AZURE_AI_SEARCH_INDEX_NAME")
-AZURE_OPENAI_CHAT_DEPLOYMENT = os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT")
-AZURE_OPENAI_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT")
-AZURE_OPENAI_SEARCH_EMBEDDING_DEPLOYMENT = os.getenv(
+AZURE_SEARCH_ENDPOINT = os.environ.get("AZURE_SEARCH_ENDPOINT")
+AZURE_AI_SEARCH_INDEX_NAME = os.environ.get("AZURE_AI_SEARCH_INDEX_NAME")
+AZURE_OPENAI_CHAT_DEPLOYMENT = os.environ.get("AZURE_OPENAI_CHAT_DEPLOYMENT")
+AZURE_OPENAI_ENDPOINT = os.environ.get("AZURE_OPENAI_ENDPOINT")
+AZURE_OPENAI_SEARCH_EMBEDDING_DEPLOYMENT = os.environ.get(
     "AZURE_OPENAI_SEARCH_EMBEDDING_DEPLOYMENT"
 )
-AZURE_AI_SEARCH_API_KEY = os.getenv("AZURE_AI_SEARCH_API_KEY")
-AZURE_OPENAI_SEARCH_EMBEDDING_API_VERSION = os.getenv(
+AZURE_AI_SEARCH_API_KEY = os.environ.get("AZURE_AI_SEARCH_API_KEY")
+AZURE_OPENAI_SEARCH_EMBEDDING_API_VERSION = os.environ.get(
     "AZURE_OPENAI_SEARCH_EMBEDDING_API_VERSION"
 )
-AZURE_OPENAI_CHAT_API_VERSION = os.getenv("AZURE_OPENAI_CHAT_API_VERSION")
+AZURE_OPENAI_CHAT_API_VERSION = os.environ.get("AZURE_OPENAI_CHAT_API_VERSION")
 
-# Use DefaultAzureCredential for managed identity or service principal
 credential = DefaultAzureCredential()
 search_credential = AzureKeyCredential(AZURE_AI_SEARCH_API_KEY)
 token_provider = get_bearer_token_provider(
@@ -249,7 +248,7 @@ class ChatBot:
                 AIMessage(content=response, metadata={"sources": retrieved_docs}),
             ]
         )
-        self.interaction_count += 1  # Increment counter
+        self.interaction_count += 1
         max_pairs = 3
         while (len(self.chat_history) - 1) // 2 > max_pairs:
             del self.chat_history[1:3]
