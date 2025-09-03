@@ -83,3 +83,17 @@ make demo
 ```
 
 </details>
+
+
+## Others
+<details>
+<summary>Click to expand</summary>
+
+- Name the branch with the name of the ticket you are working on. For instance, if you are working on the `KB-3` ticket, name the branch `KB-3`:
+
+```bash 
+git checkout -b KB-3
+```
+
+
+</details>
