@@ -13,10 +13,10 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.integration.chatbot_azure import chatbot_test
-from app.integration.feedback import Feedback
-from app.integration.query import QueryInput, QueryOutput
-from app.integration.utils import truncate_for_table_storage
+from app.agent.chatbot_azure import chatbot_test
+from app.agent.feedback import Feedback
+from app.agent.query import QueryInput, QueryOutput
+from app.agent.utils import truncate_for_table_storage
 
 load_dotenv()
 logger = logging.getLogger("Kioskbot")

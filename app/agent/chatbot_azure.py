@@ -16,8 +16,8 @@ from langchain_core.messages import AIMessage, HumanMessage
 from langchain_openai import AzureChatOpenAI
 from openai import AzureOpenAI
 
-from app.integration.prompt_templates import qa_prompt, translation_prompt
-from app.integration.query import Source
+from app.agent.prompt_templates import qa_prompt, translation_prompt
+from app.agent.query import Source
 
 logger = logging.getLogger("Kioskbot")
 logger.setLevel(logging.DEBUG)
