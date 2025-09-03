@@ -102,7 +102,7 @@ class ChatBot:
             vector_queries=[vectorized_query],
             search_text=query_text,
             top=k,
-            search_fields=["chunk"],
+            search_fields=["chunk", "Title"],
             select=[
                 "chunk",
                 "DocumentID",
