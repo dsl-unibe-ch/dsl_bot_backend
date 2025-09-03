@@ -61,11 +61,12 @@ def main() -> None:
 
     chatbot_test = ChatBot()
 
-    query = "What is Azure OpenAI?"
-    query_response = chatbot_test.get_response_from_vectordb(query)
-    logger.debug("Output: %s", query_response["output"])
-    translated_text = german2english(query_response["output"])
-    logger.debug("Translated output: %s", translated_text)
+    while True:
+        query = input("\nYou: ")
+        query_response = chatbot_test.get_response_from_vectordb(query)
+        logger.debug("Output: %s", query_response["output"])
+        translated_text = german2english(query_response["output"])
+        logger.debug("Translated output: %s", translated_text)
 
 
 if __name__ == "__main__":
