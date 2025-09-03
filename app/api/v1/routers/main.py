@@ -96,7 +96,7 @@ def send_feedback(feedback: Feedback) -> dict:
             "RowKey": timestamp,
             "Timestamp": timestamp,
             "Feedback": feedback.rating,
-            "Comments": feedback.comments,  # if feedback.rating == 0 else "None",
+            "Comments": feedback.comments,
             "UserGroup": "Unknown    ",
         }
         feedback_table_client.upsert_entity(entity)
@@ -134,7 +134,6 @@ def ask_chatbot(query: QueryInput) -> QueryOutput:
         logger.info("Query processed successfully")
         utc_timestamp = datetime.datetime.now(datetime.UTC)
         timestamp = str(utc_timestamp.isoformat())
-        # Fix the sources handling
         sources = query_response.get("sources", [])
         sources_json = json.dumps([str(s) for s in sources]) if sources else "[]"
 
@@ -144,9 +143,7 @@ def ask_chatbot(query: QueryInput) -> QueryOutput:
             "Timestamp": timestamp,
             "UserMessage": query.text,
             "AIResponse": query_response.get("output"),
-            "Sources": truncate_for_table_storage(
-                sources_json
-            ),  # Store as JSON string, not a list
+            "Sources": truncate_for_table_storage(sources_json),
             "UserGroup": "Unknown",
         }
         table_client.upsert_entity(entity)
