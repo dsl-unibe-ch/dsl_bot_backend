@@ -9,7 +9,6 @@ from azure.core.credentials import AzureKeyCredential
 from azure.identity import DefaultAzureCredential, get_bearer_token_provider
 from azure.search.documents import SearchClient
 from azure.search.documents.models import VectorizedQuery
-from dotenv import load_dotenv
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_core.documents import Document
 from langchain_core.messages import AIMessage, HumanMessage
@@ -27,26 +26,6 @@ handler.setLevel(logging.ERROR)
 handler.setFormatter(logging.Formatter("%(levelname)s: %(message)s"))
 logger.addHandler(handler)
 
-load_dotenv()
-AZURE_SEARCH_ENDPOINT = os.environ.get("AZURE_SEARCH_ENDPOINT")
-AZURE_AI_SEARCH_INDEX_NAME = os.environ.get("AZURE_AI_SEARCH_INDEX_NAME")
-AZURE_OPENAI_CHAT_DEPLOYMENT = os.environ.get("AZURE_OPENAI_CHAT_DEPLOYMENT")
-AZURE_OPENAI_ENDPOINT = os.environ.get("AZURE_OPENAI_ENDPOINT")
-AZURE_OPENAI_SEARCH_EMBEDDING_DEPLOYMENT = os.environ.get(
-    "AZURE_OPENAI_SEARCH_EMBEDDING_DEPLOYMENT"
-)
-AZURE_AI_SEARCH_API_KEY = os.environ.get("AZURE_AI_SEARCH_API_KEY")
-AZURE_OPENAI_SEARCH_EMBEDDING_API_VERSION = os.environ.get(
-    "AZURE_OPENAI_SEARCH_EMBEDDING_API_VERSION"
-)
-AZURE_OPENAI_CHAT_API_VERSION = os.environ.get("AZURE_OPENAI_CHAT_API_VERSION")
-
-credential = DefaultAzureCredential()
-search_credential = AzureKeyCredential(AZURE_AI_SEARCH_API_KEY)
-token_provider = get_bearer_token_provider(
-    DefaultAzureCredential(), "https://cognitiveservices.azure.com/.default"
-)
-
 
 class ChatBot:
     """ChatBot class to interact with Azure OpenAI and Azure AI Search."""
@@ -54,21 +33,29 @@ class ChatBot:
     def __init__(self) -> None:
         """Initialize the ChatBot with Azure clients and prompt chains."""
         logger.info("Initializing ChatBot and Azure clients")
+
+        search_credential = AzureKeyCredential(
+            os.environ.get("AZURE_AI_SEARCH_API_KEY")
+        )
+        token_provider = get_bearer_token_provider(
+            DefaultAzureCredential(), "https://cognitiveservices.azure.com/.default"
+        )
+
         self.search_client = SearchClient(
-            endpoint=AZURE_SEARCH_ENDPOINT,
-            index_name=AZURE_AI_SEARCH_INDEX_NAME,
+            endpoint=os.environ.get("AZURE_SEARCH_ENDPOINT"),
+            index_name=os.environ.get("AZURE_AI_SEARCH_INDEX_NAME"),
             credential=search_credential,
         )
         self.embedding_client = AzureOpenAI(
-            azure_endpoint=AZURE_OPENAI_ENDPOINT,
-            azure_deployment=AZURE_OPENAI_SEARCH_EMBEDDING_DEPLOYMENT,
-            api_version=AZURE_OPENAI_SEARCH_EMBEDDING_API_VERSION,
+            azure_endpoint=os.environ.get("AZURE_OPENAI_ENDPOINT"),
+            azure_deployment=os.environ.get("AZURE_OPENAI_SEARCH_EMBEDDING_DEPLOYMENT"),
+            api_version=os.environ.get("AZURE_OPENAI_SEARCH_EMBEDDING_API_VERSION"),
             azure_ad_token_provider=token_provider,
         )
         self.chat_client = AzureChatOpenAI(
-            azure_deployment=AZURE_OPENAI_CHAT_DEPLOYMENT,
-            api_version=AZURE_OPENAI_CHAT_API_VERSION,
-            azure_endpoint=AZURE_OPENAI_ENDPOINT,
+            azure_deployment=os.environ.get("AZURE_OPENAI_CHAT_DEPLOYMENT"),
+            api_version=os.environ.get("AZURE_OPENAI_CHAT_API_VERSION"),
+            azure_endpoint=os.environ.get("AZURE_OPENAI_ENDPOINT"),
             azure_ad_token_provider=token_provider,
         )
         self.qa_chain = create_stuff_documents_chain(
@@ -98,7 +85,8 @@ class ChatBot:
             list: The embedding of the query text.
         """
         resp = self.embedding_client.embeddings.create(
-            input=[query_text], model=AZURE_OPENAI_SEARCH_EMBEDDING_DEPLOYMENT
+            input=[query_text],
+            model=os.environ.get("AZURE_OPENAI_SEARCH_EMBEDDING_DEPLOYMENT"),
         )
         return resp.data[0].embedding
 
@@ -256,6 +244,3 @@ class ChatBot:
             "Chat history updated. Interaction count: %s", self.interaction_count
         )
         return self.chat_history
-
-
-chatbot_test = ChatBot()

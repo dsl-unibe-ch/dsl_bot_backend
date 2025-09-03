@@ -66,7 +66,7 @@ Input:
 {input}
 
 Output:
-{output}
+{{output}}
 """  # noqa: E501
 
 
