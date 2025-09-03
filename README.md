@@ -18,7 +18,7 @@ pip install uv==0.8.14
 
 - Create virtual environment: 
 ```bash
-uv venv .venv
+uv venv .venv --python 3.12.11
 ```
 
 - Activate with: 
