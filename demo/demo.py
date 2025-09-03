@@ -5,9 +5,7 @@ import os
 
 from azure.identity import DefaultAzureCredential, get_bearer_token_provider
 from dotenv import load_dotenv
-from langchain_core.prompts import (
-    ChatPromptTemplate,
-)
+from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import AzureChatOpenAI
 
 from app.agent.chatbot_azure import ChatBot
