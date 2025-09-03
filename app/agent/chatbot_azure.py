@@ -1,5 +1,6 @@
 """Kioskbot class definition and methods."""
 
+import inspect
 import logging
 import os
 import re
@@ -19,12 +20,6 @@ from app.agent.prompt_templates import qa_prompt, translation_prompt
 from app.agent.query import Source
 
 logger = logging.getLogger("Kioskbot")
-logger.setLevel(logging.DEBUG)
-logger.propagate = False
-handler = logging.StreamHandler()
-handler.setLevel(logging.ERROR)
-handler.setFormatter(logging.Formatter("%(levelname)s: %(message)s"))
-logger.addHandler(handler)
 
 
 class ChatBot:
@@ -32,8 +27,6 @@ class ChatBot:
 
     def __init__(self) -> None:
         """Initialize the ChatBot with Azure clients and prompt chains."""
-        logger.info("Initializing ChatBot and Azure clients")
-
         search_credential = AzureKeyCredential(
             os.environ.get("AZURE_AI_SEARCH_API_KEY")
         )
@@ -62,17 +55,16 @@ class ChatBot:
             llm=self.chat_client, prompt=qa_prompt, document_variable_name="context"
         )
         self.translation_chain = translation_prompt | self.chat_client
-        self.chat_history = [AIMessage(content="Hi")]
+        self.chat_history = []
         self.interaction_count = 0
-        logger.info("ChatBot initialization complete")
 
-    def clean_and_truncate_query(self: "ChatBot", query_text: str) -> str:
+    def truncate_query(self: "ChatBot", query_text: str) -> str:
         """Truncates the query text to a maximum of 100 terms."""
+        logger.debug("%s", inspect.currentframe().f_code.co_name)
         max_terms = 100
         query_terms = re.findall(r"\w+", query_text)
         if len(query_terms) > max_terms:
             query_text = " ".join(query_terms[:max_terms])
-
         return query_text
 
     def embed_query(self: "ChatBot", query_text: str) -> list[float]:
@@ -84,6 +76,7 @@ class ChatBot:
         Returns:
             list: The embedding of the query text.
         """
+        logger.debug("%s", inspect.currentframe().f_code.co_name)
         resp = self.embedding_client.embeddings.create(
             input=[query_text],
             model=os.environ.get("AZURE_OPENAI_SEARCH_EMBEDDING_DEPLOYMENT"),
@@ -100,6 +93,7 @@ class ChatBot:
         Returns:
             list: The top k vector results.
         """
+        logger.debug("%s", inspect.currentframe().f_code.co_name)
         query_embedding = self.embed_query(query_text)
         vectorized_query = VectorizedQuery(
             vector=query_embedding, kind="vector", fields="text_vector"
@@ -130,6 +124,7 @@ class ChatBot:
         Returns:
             list: The formatted results as a list of Document objects.
         """
+        logger.debug("%s", inspect.currentframe().f_code.co_name)
         docs = []
         for document in results:
             page_content = ftfy.fix_text(document.get("chunk"))
@@ -159,6 +154,7 @@ class ChatBot:
         Returns:
             list: The formatted results as a list of Source objects.
         """
+        logger.debug("%s", inspect.currentframe().f_code.co_name)
         page_content_list = []
         for document in results:
             page_content = ftfy.fix_text(document.get("chunk"))
@@ -188,9 +184,13 @@ class ChatBot:
     def get_response_from_vectordb(self: "ChatBot", query_text: str) -> dict:
         """Retrieve respose from the vectordb and generate a response using the chain.
 
-        The user query is first translated to german and
-        responses from the Azure AI Search is retrieved and
-        formatted for the frontend as well as for the QA chain.
+        1) Translate the query to German if needed.
+        2) Trunkate the query.
+        3) Retrieve the top k vector results from the Azure AI Search index.
+        4) Format the results for the chain.
+        5) Format the results for the frontend.
+        6) Generate a response using the qa_chain.
+        7) Add the interaction to the chat history.
 
         Args:
             query_text (str): The text to search for.
@@ -198,18 +198,15 @@ class ChatBot:
         Returns:
             dict: The response from the vectordb as a list of dict or json objects.
         """
-        logger.info("Processing query: %s", query_text)
+        logger.debug("%s", inspect.currentframe().f_code.co_name)
         try:
             translated_query = self.translation_chain.invoke({"input": query_text})
             if hasattr(translated_query, "content"):
                 translated_query = translated_query.content
-            query_text_cleaned = self.clean_and_truncate_query(translated_query)
-            logger.info("translated query: %s", translated_query)
-            logger.info("cleaned query: %s", query_text_cleaned)
+            query_text_cleaned = self.truncate_query(translated_query)
             retrieved_docs = self.get_top_k_vector_results(query_text_cleaned)
             docs_for_chain = self.format_results_for_chain(retrieved_docs)
             docs_for_frontend = self.format_results_for_frontend(retrieved_docs)
-            logger.info("Invoking QA chain for query: %s", query_text)
             response = self.qa_chain.invoke(
                 {
                     "context": docs_for_chain,
@@ -220,7 +217,6 @@ class ChatBot:
             if hasattr(response, "content"):
                 response = response.content
             self.add_to_chat_history(query_text, response, docs_for_chain)
-            logger.info("Response generated for query: %s", query_text)
             return {"output": ftfy.fix_text(response), "sources": docs_for_frontend}
         except Exception:
             logger.exception("Error in get_response_from_vectordb:")
@@ -230,6 +226,7 @@ class ChatBot:
         self: "ChatBot", query_text: str, response: str, retrieved_docs: list
     ) -> list:
         """Add the latest interaction to the chat history."""
+        logger.debug("%s", inspect.currentframe().f_code.co_name)
         self.chat_history.extend(
             [
                 HumanMessage(content=query_text),
@@ -240,7 +237,4 @@ class ChatBot:
         max_pairs = 3
         while (len(self.chat_history) - 1) // 2 > max_pairs:
             del self.chat_history[1:3]
-        logger.debug(
-            "Chat history updated. Interaction count: %s", self.interaction_count
-        )
         return self.chat_history

@@ -128,10 +128,8 @@ def ask_chatbot(query: QueryInput) -> QueryOutput:
         raise HTTPException(status_code=400, detail="Session ID is required")
 
     try:
-        logger.info("Received query: %s", query.text)
         query_response = chatbot_test.get_response_from_vectordb(query.text)
         query_response["session_id"] = query.session_id
-        logger.info("Query processed successfully")
         utc_timestamp = datetime.datetime.now(datetime.UTC)
         timestamp = str(utc_timestamp.isoformat())
         sources = query_response.get("sources", [])
@@ -147,7 +145,6 @@ def ask_chatbot(query: QueryInput) -> QueryOutput:
             "UserGroup": "Unknown",
         }
         table_client.upsert_entity(entity)
-        logger.info("Chat history saved successfully")
 
     except Exception as e:
         error_msg = f"Error in rag-agent: {type(e).__name__}: {e!s}"
@@ -166,7 +163,6 @@ def generate_session_id() -> dict:
         A dictionary with a new session_id
     """
     session_id = str(uuid.uuid4())
-    logger.info("Generated session ID: %s", session_id)
     return {"session_id": session_id}
 
 

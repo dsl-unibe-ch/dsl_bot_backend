@@ -57,19 +57,15 @@ def german2english(text: str) -> str:
 
 def main() -> None:
     """Main function."""
-    logger.info("This is a demo script of kioskbot.")
-
     load_dotenv()
 
     chatbot_test = ChatBot()
 
-    logger.info("ChatBot initialized: %s", chatbot_test)
-
     query = "What is Azure OpenAI?"
     query_response = chatbot_test.get_response_from_vectordb(query)
-    logger.info("Output: %s", query_response["output"])
+    logger.debug("Output: %s", query_response["output"])
     translated_text = german2english(query_response["output"])
-    logger.info("Translated output: %s", translated_text)
+    logger.debug("Translated output: %s", translated_text)
 
 
 if __name__ == "__main__":
