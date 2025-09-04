@@ -42,8 +42,7 @@ pre-commit install
 <details>
 <summary>Click to expand</summary>
 
-Create `.env` file in the root of this repo and set the following variables (see `.env_template` for the template):
-- `VAR_A`: Description of var_a
+Create `.env` file in the root of this repo and set the variables (see `.env.example` for the template).
 </details>
 
 
