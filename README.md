@@ -63,15 +63,8 @@ make test
 <details>
 <summary>Click to expand</summary>
 
-- Start Docker
 
-- Go to the root of this project and run:
-
-```bash 
-make docker_up
-```
-
-- Activate the virtual environment:
+- Go to the root of this project and activate the virtual environment:
 
 ```bash 
 source .venv/bin/activate
@@ -79,7 +72,7 @@ source .venv/bin/activate
 
 - Run the demo:
 ```bash 
-make demo
+make run_demo
 ```
 
 </details>
