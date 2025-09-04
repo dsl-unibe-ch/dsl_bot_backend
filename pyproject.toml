@@ -1,12 +1,22 @@
 [project]
-name = "my_project"
+name = "kioskbot"
 version = "0.1.0"
-description = "Description of my project"
+description = "Kioskbot project"
 readme = "README.md"
 requires-python = "==3.12.11"
 
 dependencies = [
-    "langchain==0.3.27"
+    "langchain==0.3.27",
+    "azure-search-documents==11.5.3",
+    "azure-identity==1.24.0",
+    "openai==1.104.2",
+    "langchain_core==0.3.75",
+    "dotenv==0.9.9",
+    "langchain_openai==0.3.32",
+    "ftfy==6.3.1",
+    "fastapi==0.116.1",
+    "azure-data-tables==12.7.0",
+    "uvicorn==0.35.0"
 ]
 
 [project.optional-dependencies]
