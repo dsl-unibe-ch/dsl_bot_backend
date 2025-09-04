@@ -1,1 +1,1 @@
-"""Configuration file of tests."""
+"""Kioskbot test."""
