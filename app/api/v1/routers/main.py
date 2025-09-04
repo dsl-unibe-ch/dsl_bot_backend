@@ -4,16 +4,15 @@ import datetime
 import json
 import logging
 import os
-import signal
-import sys
 import uuid
 
 from azure.data.tables import TableServiceClient
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 
-from app.agent.chatbot_azure import chatbot_test
+from app.agent.chatbot_azure import ChatBot
 from app.agent.feedback import Feedback
 from app.agent.query import QueryInput, QueryOutput
 from app.agent.utils import truncate_for_table_storage
@@ -29,20 +28,23 @@ if DOCS_URL in [None, "", "None"]:
 REDOC_URL = os.environ.get("REDOC_URL")
 if REDOC_URL in [None, "", "None"]:
     REDOC_URL = None
-APP_TITLE = "Information Kiosk Bot"
-APP_DESCRIPTION = "Endpoints for the Information Kiosk Bot"
+APP_TITLE = os.environ.get("APP_TITLE")
+APP_DESCRIPTION = os.environ.get("APP_DESCRIPTION")
 ALLOWED_ORIGINS = os.environ.get("ALLOWED_ORIGINS")
-ALLOWED_METHODS = ["GET", "POST", "PUT", "DELETE"]
-ALLOWED_HEADERS = ["*"]
-ALLOWED_CREDENTIALS = True
+ALLOWED_METHODS = os.environ.get("ALLOWED_METHODS").split(",")
+ALLOWED_HEADERS = os.environ.get("ALLOWED_HEADERS").split(",")
+ALLOWED_CREDENTIALS = os.environ.get("ALLOWED_CREDENTIALS").lower() == "true"
 
-AZURE_CONNECTION_STRING = os.environ.get("AZURE_STORAGE_CONNECTION_STRING")
-TABLE_NAME = os.environ.get("CHAT_HISTORY_TABLE_NAME")
-table_service = TableServiceClient.from_connection_string(AZURE_CONNECTION_STRING)
-table_client = table_service.get_table_client(TABLE_NAME)
+AZURE_STORAGE_CONNECTION_STRING = os.environ.get("AZURE_STORAGE_CONNECTION_STRING")
+CHAT_HISTORY_TABLE_NAME = os.environ.get("CHAT_HISTORY_TABLE_NAME")
+table_service = TableServiceClient.from_connection_string(
+    AZURE_STORAGE_CONNECTION_STRING
+)
+table_client = table_service.get_table_client(CHAT_HISTORY_TABLE_NAME)
 FEEDBACK_TABLE_NAME = os.environ.get("FEEDBACK_TABLE_NAME")
 feedback_table_client = table_service.get_table_client(FEEDBACK_TABLE_NAME)
 
+sessions = {}
 
 app = FastAPI(
     title=APP_TITLE,
@@ -55,70 +57,83 @@ app.add_middleware(
     allow_origins=[
         BASE_URL,
         "*",
-    ],
-    allow_credentials=ALLOWED_CREDENTIALS,
-    allow_methods=ALLOWED_METHODS,
-    allow_headers=ALLOWED_HEADERS,
+    ],  # any website can send requests to the API. Improvement: only allow the frontend domain, i.e., BASE_URL # noqa: E501
+    allow_credentials=ALLOWED_CREDENTIALS,  # requests can include credentials (cookies, auth headers). Improvement: True only if you need cookies/auth, TBD # noqa: E501
+    allow_methods=ALLOWED_METHODS,  #  HTTP methods GET, POST, PUT, DELETE are allowed. Improvement: only allow necessary HTTP methods, i.e., GET, POST. TBD # noqa: E501
+    allow_headers=ALLOWED_HEADERS,  #  the API will accept requests with any HTTP headers. Improvement: only allow needed header, i.e., Authorization, Content-Type # noqa: E501
 )
 
 
-@app.get("/check_status")
-def get_status() -> dict:
-    """Check status of the chatbot.
+class StartSessionResponse(BaseModel):
+    """Response model for the start session endpoint."""
+
+    session_id: str
+
+
+class CheckStatusResponse(BaseModel):
+    """Response model for the check_status endpoint."""
+
+    chatbot_status: str
+    message: str
+
+
+class FeedbackResponse(BaseModel):
+    """Response model for the send_feedback endpoint."""
+
+    message: str
+    session_id: str
+
+
+@app.get("/")
+def generate_session_id() -> StartSessionResponse:
+    """Create a new chatbot session and return its unique session ID.
+
+    This endpoint initializes a new ChatBot instance and stores it in the session dictionary.
+    Call this when starting a new conversation.
 
     Returns:
-        A dictionary with the chatbot status and a message
-    """
-    if chatbot_test is None:
-        return {
-            "chatbot_status": "failed",
-            "message": "Chatbot initialization failed - check server logs",
-        }
-    return {
-        "chatbot_status": "ready",
-        "message": "Chatbot is initialized and ready",
-    }
+        StartSessionResponse: An object containing the generated session_id.
+    """  # noqa: E501
+    session_id = str(uuid.uuid4())
+    sessions[session_id] = ChatBot()
+    return StartSessionResponse(session_id=session_id)
 
 
-@app.post("/send_feedback")
-def send_feedback(feedback: Feedback) -> dict:
-    """Send feedback to the chatbot.
+@app.get("/check_status")
+def get_status(session_id: str) -> CheckStatusResponse:
+    """Check if the chatbot for the given session is initialized and ready.
 
     Args:
-        feedback: The feedback to send. It is an object of Feedback class
-        authorized: Whether the request is authorized. It is a boolean value.
+        session_id (str): The session ID to check.
+
+    Returns:
+        CheckStatusResponse: Status and message about chatbot initialization.
     """
-    if feedback.session_id:
-        utc_timestamp = datetime.datetime.now(datetime.UTC)
-        timestamp = str(utc_timestamp.isoformat())
-        entity = {
-            "PartitionKey": feedback.session_id,
-            "RowKey": timestamp,
-            "Timestamp": timestamp,
-            "Feedback": feedback.rating,
-            "Comments": feedback.comments,
-            "UserGroup": "Unknown    ",
-        }
-        feedback_table_client.upsert_entity(entity)
-        return {
-            "message": "Feedback received successfully",
-            "session_id": feedback.session_id,
-        }
-    raise HTTPException(status_code=400, detail="Session ID is required")
+    chatbot = sessions.get(session_id)
+    if chatbot is None:
+        return CheckStatusResponse(
+            chatbot_status="failed",
+            message="Chatbot initialization failed - check server logs",
+        )
+    return CheckStatusResponse(
+        chatbot_status="ready",
+        message="Chatbot is initialized and ready",
+    )
 
 
 @app.post("/rag-agent")
-def ask_chatbot(query: QueryInput) -> QueryOutput:
-    """Ask the chatbot for a response.
+def ask_chatbot(query: QueryInput, session_id: str) -> QueryOutput:
+    """Query the chatbot for an answer using the provided session and user input.
 
     Args:
-        query: The user query to ask the chatbot. It is an object of QueryInput class
-        authorized: Whether the request is authorized. It is a boolean value.
+        query (QueryInput): The user's question and session information.
+        session_id (str): The session ID to retrieve the ChatBot instance.
 
     Returns:
-        The response from the chatbot. It is an object of QueryOutput class
+        QueryOutput: The chatbot's response, including sources and session ID.
     """
-    if chatbot_test is None:
+    chatbot = sessions.get(session_id)
+    if chatbot is None:
         error_message = (
             "Chatbot not initialized - check server logs for initialization errors"
         )
@@ -128,7 +143,7 @@ def ask_chatbot(query: QueryInput) -> QueryOutput:
         raise HTTPException(status_code=400, detail="Session ID is required")
 
     try:
-        query_response = chatbot_test.get_response_from_vectordb(query.text)
+        query_response = chatbot.get_response_from_vectordb(query.text)
         query_response["session_id"] = query.session_id
         utc_timestamp = datetime.datetime.now(datetime.UTC)
         timestamp = str(utc_timestamp.isoformat())
@@ -155,21 +170,30 @@ def ask_chatbot(query: QueryInput) -> QueryOutput:
         return query_response
 
 
-@app.get("/")
-def generate_session_id() -> dict:
-    """Generate a new session ID using uuid4. Call this when the first request comes in.
+@app.post("/send_feedback")
+def send_feedback(feedback: Feedback) -> FeedbackResponse:
+    """Submit user feedback for a chatbot session.
+
+    Args:
+        feedback (Feedback): The feedback object containing session ID, rating, and comments.
 
     Returns:
-        A dictionary with a new session_id
-    """
-    session_id = str(uuid.uuid4())
-    return {"session_id": session_id}
-
-
-def handle_exit_signal() -> None:
-    """Handle exit signals for graceful shutdown."""
-    sys.exit(0)
-
-
-signal.signal(signal.SIGINT, handle_exit_signal)
-signal.signal(signal.SIGTERM, handle_exit_signal)
+        FeedbackResponse: Confirmation message and session ID if feedback is stored successfully.
+    """  # noqa: E501
+    if feedback.session_id:
+        utc_timestamp = datetime.datetime.now(datetime.UTC)
+        timestamp = str(utc_timestamp.isoformat())
+        entity = {
+            "PartitionKey": feedback.session_id,
+            "RowKey": timestamp,
+            "Timestamp": timestamp,
+            "Feedback": feedback.rating,
+            "Comments": feedback.comments,
+            "UserGroup": "Unknown    ",
+        }
+        feedback_table_client.upsert_entity(entity)
+        return FeedbackResponse(
+            message="Feedback received successfully",
+            session_id=feedback.session_id,
+        )
+    raise HTTPException(status_code=400, detail="Session ID is required")

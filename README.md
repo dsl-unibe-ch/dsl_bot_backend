@@ -77,6 +77,47 @@ make run_demo
 </details>
 
 
+## Interact with the API
+<details>
+<summary>Click to expand</summary>
+
+- Start the uvicorn server: 
+```bash
+uvicorn app.api.v1.routers.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+- Start a session:
+```bash
+curl -s http://127.0.0.1:8000/ | jq .
+```
+
+- Alternativly, start the session and save its session id in a shell variable:
+```bash
+session=$(curl -s http://127.0.0.1:8000/ | jq -r .session_id)
+echo $session
+```
+
+- Check the status of the chatbot:
+```bash
+curl -s "http://127.0.0.1:8000/check_status?session_id=$session" | jq .
+```
+
+- Interact with the Agent:
+```bash
+curl -s -X POST "http://127.0.0.1:8000/rag-agent?session_id=$session" -H "Content-Type: application/json" -d '{"session_id":"'"$session"'","text":"What is the email address of the QSE Department?"}' | jq .
+```
+
+```bash
+curl -s -X POST "http://127.0.0.1:8000/rag-agent?session_id=$session" -H "Content-Type: application/json" -d '{"session_id":"'"$session"'","text":"Where it is located?"}' | jq .
+```
+
+- Send feedback:
+```bash
+curl -s -X POST "http://127.0.0.1:8000/send_feedback" -H "Content-Type: application/json" -d '{"session_id":"'"$session"'","rating":5,"comments":"Works well"}' | jq .
+```
+
+</details>
+
 ## Others
 <details>
 <summary>Click to expand</summary>
