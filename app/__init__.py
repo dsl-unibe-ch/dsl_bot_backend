@@ -2,6 +2,6 @@
 
 Provides sub-packages:
 
-* core: configuration, logging, shared utilities.
+* agent: agent implementation and utils.
 * api: FastAPI endpoints.
 """
