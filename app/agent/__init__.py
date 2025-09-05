@@ -1,1 +1,1 @@
-"""Kioskbot class definition and methods."""
+"""Kioskbot Agent."""

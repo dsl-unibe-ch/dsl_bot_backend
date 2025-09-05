@@ -1,1 +1,1 @@
-"""Invoke endpoint for the Kioskbot."""
+"""V1 endpoints for the Kioskbot."""
