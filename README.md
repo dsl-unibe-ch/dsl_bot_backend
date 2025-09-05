@@ -2,6 +2,8 @@
 <details>
 <summary>Click to expand</summary>
 
+- Docker
+
 - Install Python 3.12.11
 
 </details>
@@ -45,6 +47,29 @@ pre-commit install
 Create `.env` file in the root of this repo and set the variables (see `.env.example` for the template).
 </details>
 
+## Docker
+
+<details>
+<summary>Click to expand</summary>
+
+- Before building the docker image, update the image version in `pyproject.toml` under the `[project]` section as `version = "x.y.z"`.  
+
+- Build the docker image:
+```bash 
+make build-image
+```
+
+- Run the Docker Compose service with the image version specified in `pyproject.toml`:
+```bash 
+make compose-up
+```
+
+- Stop the Docker Compose service with the image version specified in `pyproject.toml`:
+```bash 
+make compose-down
+```
+
+</details>
 
 ## Run the tests
 
@@ -71,7 +96,7 @@ source .venv/bin/activate
 
 - Run the demo:
 ```bash 
-make run_demo
+make run-demo
 ```
 
 </details>
