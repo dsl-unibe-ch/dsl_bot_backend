@@ -2,7 +2,6 @@
 
 import inspect
 import logging
-import os
 import re
 
 import ftfy
@@ -18,6 +17,7 @@ from openai import AzureOpenAI
 
 from app.agent.prompt_templates import qa_prompt, translation_prompt
 from app.agent.query import Source
+from app.config import settings
 
 logger = logging.getLogger("Kioskbot")
 
@@ -27,28 +27,26 @@ class ChatBot:
 
     def __init__(self) -> None:
         """Initialize the ChatBot with Azure clients and prompt chains."""
-        search_credential = AzureKeyCredential(
-            os.environ.get("AZURE_AI_SEARCH_API_KEY")
-        )
+        search_credential = AzureKeyCredential(settings.AZURE_AI_SEARCH_API_KEY)
         token_provider = get_bearer_token_provider(
             DefaultAzureCredential(), "https://cognitiveservices.azure.com/.default"
         )
 
         self.search_client = SearchClient(
-            endpoint=os.environ.get("AZURE_SEARCH_ENDPOINT"),
-            index_name=os.environ.get("AZURE_AI_SEARCH_INDEX_NAME"),
+            endpoint=settings.AZURE_SEARCH_ENDPOINT,
+            index_name=settings.AZURE_AI_SEARCH_INDEX_NAME,
             credential=search_credential,
         )
         self.embedding_client = AzureOpenAI(
-            azure_endpoint=os.environ.get("AZURE_OPENAI_ENDPOINT"),
-            azure_deployment=os.environ.get("AZURE_OPENAI_SEARCH_EMBEDDING_DEPLOYMENT"),
-            api_version=os.environ.get("AZURE_OPENAI_SEARCH_EMBEDDING_API_VERSION"),
+            azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
+            azure_deployment=settings.AZURE_OPENAI_SEARCH_EMBEDDING_DEPLOYMENT,
+            api_version=settings.AZURE_OPENAI_SEARCH_EMBEDDING_API_VERSION,
             azure_ad_token_provider=token_provider,
         )
         self.chat_client = AzureChatOpenAI(
-            azure_deployment=os.environ.get("AZURE_OPENAI_CHAT_DEPLOYMENT"),
-            api_version=os.environ.get("AZURE_OPENAI_CHAT_API_VERSION"),
-            azure_endpoint=os.environ.get("AZURE_OPENAI_ENDPOINT"),
+            azure_deployment=settings.AZURE_OPENAI_CHAT_DEPLOYMENT,
+            api_version=settings.AZURE_OPENAI_CHAT_API_VERSION,
+            azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
             azure_ad_token_provider=token_provider,
         )
         self.qa_chain = create_stuff_documents_chain(
@@ -79,7 +77,7 @@ class ChatBot:
         logger.debug("%s", inspect.currentframe().f_code.co_name)
         resp = self.embedding_client.embeddings.create(
             input=[query_text],
-            model=os.environ.get("AZURE_OPENAI_SEARCH_EMBEDDING_DEPLOYMENT"),
+            model=settings.AZURE_OPENAI_SEARCH_EMBEDDING_DEPLOYMENT,
         )
         return resp.data[0].embedding
 

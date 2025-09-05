@@ -3,11 +3,9 @@
 import datetime
 import json
 import logging
-import os
 import uuid
 
 from azure.data.tables import TableServiceClient
-from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -16,31 +14,31 @@ from app.agent.chatbot_azure import ChatBot
 from app.agent.feedback import Feedback
 from app.agent.query import QueryInput, QueryOutput
 from app.agent.utils import truncate_for_table_storage
+from app.config import settings
 
-load_dotenv()
 logger = logging.getLogger("Kioskbot")
 
 
-BASE_URL = os.environ.get("BASE_URL")
-DOCS_URL = os.environ.get("DOCS_URL")
+BASE_URL = settings.BASE_URL
+DOCS_URL = settings.DOCS_URL
 if DOCS_URL in [None, "", "None"]:
     DOCS_URL = None
-REDOC_URL = os.environ.get("REDOC_URL")
+REDOC_URL = settings.REDOC_URL
 if REDOC_URL in [None, "", "None"]:
     REDOC_URL = None
-APP_TITLE = os.environ.get("APP_TITLE")
-APP_DESCRIPTION = os.environ.get("APP_DESCRIPTION")
-ALLOWED_METHODS = os.environ.get("ALLOWED_METHODS").split(",")
-ALLOWED_HEADERS = os.environ.get("ALLOWED_HEADERS").split(",")
-ALLOWED_CREDENTIALS = os.environ.get("ALLOWED_CREDENTIALS").lower() == "true"
+APP_TITLE = settings.APP_TITLE
+APP_DESCRIPTION = settings.APP_DESCRIPTION
+ALLOWED_METHODS = settings.ALLOWED_METHODS.split(",")
+ALLOWED_HEADERS = settings.ALLOWED_HEADERS.split(",")
+ALLOWED_CREDENTIALS = settings.ALLOWED_CREDENTIALS
 
-AZURE_STORAGE_CONNECTION_STRING = os.environ.get("AZURE_STORAGE_CONNECTION_STRING")
-CHAT_HISTORY_TABLE_NAME = os.environ.get("CHAT_HISTORY_TABLE_NAME")
+AZURE_STORAGE_CONNECTION_STRING = settings.AZURE_STORAGE_CONNECTION_STRING
+CHAT_HISTORY_TABLE_NAME = settings.CHAT_HISTORY_TABLE_NAME
 table_service = TableServiceClient.from_connection_string(
     AZURE_STORAGE_CONNECTION_STRING
 )
 table_client = table_service.get_table_client(CHAT_HISTORY_TABLE_NAME)
-FEEDBACK_TABLE_NAME = os.environ.get("FEEDBACK_TABLE_NAME")
+FEEDBACK_TABLE_NAME = settings.FEEDBACK_TABLE_NAME
 feedback_table_client = table_service.get_table_client(FEEDBACK_TABLE_NAME)
 
 sessions = {}
