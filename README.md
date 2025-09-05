@@ -91,7 +91,7 @@ uvicorn app.api.v1.routers.main:app --reload --host 0.0.0.0 --port 8000
 curl -s http://127.0.0.1:8000/ | jq .
 ```
 
-- Alternativly, start the session and save its session id in a shell variable:
+- Alternatively, start the session and save its session id in a shell variable:
 ```bash
 session=$(curl -s http://127.0.0.1:8000/ | jq -r .session_id)
 echo $session

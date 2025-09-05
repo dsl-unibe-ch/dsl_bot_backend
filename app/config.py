@@ -11,8 +11,8 @@ class Settings(BaseSettings):
     REDOC_URL: str = None
     APP_TITLE: str
     APP_DESCRIPTION: str
-    ALLOWED_METHODS: str
-    ALLOWED_HEADERS: str
+    ALLOWED_METHODS: list[str]
+    ALLOWED_HEADERS: list[str]
     ALLOWED_CREDENTIALS: bool
     AZURE_STORAGE_CONNECTION_STRING: str
     CHAT_HISTORY_TABLE_NAME: str
