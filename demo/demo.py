@@ -1,14 +1,13 @@
 """Demo script of kioskbot."""
 
 import logging
-import os
 
 from azure.identity import DefaultAzureCredential, get_bearer_token_provider
-from dotenv import load_dotenv
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import AzureChatOpenAI
 
 from app.agent.chatbot_azure import ChatBot
+from app.config import settings
 
 logger = logging.getLogger("Kioskbot")
 logger.setLevel(logging.DEBUG)
@@ -42,9 +41,9 @@ def german2english(text: str) -> str:
     )
 
     chat_client = AzureChatOpenAI(
-        azure_deployment=os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT"),
-        api_version=os.getenv("AZURE_OPENAI_CHAT_API_VERSION"),
-        azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
+        azure_deployment=settings.AZURE_OPENAI_CHAT_DEPLOYMENT,
+        api_version=settings.AZURE_OPENAI_CHAT_API_VERSION,
+        azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
         azure_ad_token_provider=token_provider,
     )
 
@@ -55,8 +54,6 @@ def german2english(text: str) -> str:
 
 def main() -> None:
     """Main function."""
-    load_dotenv()
-
     chatbot_test = ChatBot()
 
     while True:
