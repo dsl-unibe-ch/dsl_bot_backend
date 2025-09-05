@@ -30,7 +30,6 @@ if REDOC_URL in [None, "", "None"]:
     REDOC_URL = None
 APP_TITLE = os.environ.get("APP_TITLE")
 APP_DESCRIPTION = os.environ.get("APP_DESCRIPTION")
-ALLOWED_ORIGINS = os.environ.get("ALLOWED_ORIGINS")
 ALLOWED_METHODS = os.environ.get("ALLOWED_METHODS").split(",")
 ALLOWED_HEADERS = os.environ.get("ALLOWED_HEADERS").split(",")
 ALLOWED_CREDENTIALS = os.environ.get("ALLOWED_CREDENTIALS").lower() == "true"
