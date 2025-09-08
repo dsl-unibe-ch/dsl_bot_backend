@@ -153,5 +153,11 @@ curl -s -X POST "http://127.0.0.1:8000/send_feedback" -H "Content-Type: applicat
 git checkout -b KB-3
 ```
 
+- When committing changes to your branch, use the key in your commit message to link those commits to the development panel in your Jira work item. For example: 
+
+```bash
+git commit -m "KB-3 <summary of commit>"
+```
+
 
 </details>
