@@ -19,10 +19,13 @@ jobs:
           "https://dslnlp.atlassian.net/rest/api/3/search?jql=fixVersion='${{ github.event.release.tag_name }}'" \
           > issues.json
 
+      - name: Debug Jira response
+        run: cat issues.json
+
       - name: Build changelog
         run: |
           echo "## Changes in ${{ github.event.release.tag_name }}" > CHANGELOG.md
-          jq -r '.issues[] | "- [" + .key + "](" + "https://dslnlp.atlassian.net/browse/" + .key + "): " + .fields.summary' issues.json >> CHANGELOG.md
+          jq -r '.issues? // [] | .[] | "- [" + .key + "](" + "https://dslnlp.atlassian.net/browse/" + .key + "): " + .fields.summary' issues.json >> CHANGELOG.md
       
       - name: Update GitHub Release Notes
         run: |
