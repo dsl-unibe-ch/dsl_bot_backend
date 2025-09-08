@@ -1,0 +1,33 @@
+name: Generate Changelog
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  changelog:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Fetch Jira issues
+        run: |
+          curl -u $JIRA_USER:$JIRA_TOKEN \
+          -X GET \
+          -H "Accept: application/json" \
+          "https://dslnlp.atlassian.net/rest/api/3/search?jql=fixVersion='${{ github.event.release.tag_name }}'" \
+          > issues.json
+
+      - name: Build changelog
+        run: |
+          echo "## Changes in ${{ github.event.release.tag_name }}" > CHANGELOG.md
+          jq -r '.issues[] | "- [" + .key + "](" + "https://dslnlp.atlassian.net/browse/" + .key + "): " + .fields.summary' issues.json >> CHANGELOG.md
+
+      - name: Commit changelog
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add CHANGELOG.md
+          git commit -m "Update changelog for ${{ github.event.release.tag_name }}"
+          git push
