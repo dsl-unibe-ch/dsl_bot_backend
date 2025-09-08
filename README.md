@@ -2,6 +2,8 @@
 <details>
 <summary>Click to expand</summary>
 
+- Docker
+
 - Install Python 3.12.11
 
 </details>
@@ -45,6 +47,29 @@ pre-commit install
 Create `.env` file in the root of this repo and set the variables (see `.env.example` for the template).
 </details>
 
+## Docker
+
+<details>
+<summary>Click to expand</summary>
+
+- Before building the docker image, update the image version in `pyproject.toml` under the `[project]` section as `version = "x.y.z"`.  
+
+- Build the docker image:
+```bash 
+make build-image
+```
+
+- Run the Docker Compose service with the image version specified in `pyproject.toml`:
+```bash 
+make compose-up
+```
+
+- Stop the Docker Compose service with the image version specified in `pyproject.toml`:
+```bash 
+make compose-down
+```
+
+</details>
 
 ## Run the tests
 
@@ -71,7 +96,7 @@ source .venv/bin/activate
 
 - Run the demo:
 ```bash 
-make run_demo
+make run-demo
 ```
 
 </details>
@@ -91,7 +116,7 @@ uvicorn app.api.v1.routers.main:app --reload --host 0.0.0.0 --port 8000
 curl -s http://127.0.0.1:8000/ | jq .
 ```
 
-- Alternativly, start the session and save its session id in a shell variable:
+- Alternatively, start the session and save its session id in a shell variable:
 ```bash
 session=$(curl -s http://127.0.0.1:8000/ | jq -r .session_id)
 echo $session
@@ -126,6 +151,12 @@ curl -s -X POST "http://127.0.0.1:8000/send_feedback" -H "Content-Type: applicat
 
 ```bash 
 git checkout -b KB-3
+```
+
+- When committing changes to your branch, use the key in your commit message to link those commits to the development panel in your Jira work item. For example: 
+
+```bash
+git commit -m "KB-3 <summary of commit>"
 ```
 
 
