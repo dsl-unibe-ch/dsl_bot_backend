@@ -159,5 +159,4 @@ git checkout -b KB-3
 git commit -m "KB-3 <summary of commit>"
 ```
 
-
 </details>
