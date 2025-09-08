@@ -52,7 +52,9 @@ Create `.env` file in the root of this repo and set the variables (see `.env.exa
 <details>
 <summary>Click to expand</summary>
 
-- Before building the docker image, update the image version in `pyproject.toml` under the `[project]` section as `version = "x.y.z"`.  
+- Before building the docker image: 
+    - update the image version in `pyproject.toml` under the `[project]` section as `version = "x.y.z"`.  
+    - update the enviroment value `ENV` with either `dev` or `prod`.
 
 - Build the docker image:
 ```bash 

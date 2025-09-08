@@ -1,6 +1,6 @@
 services:
   kioskbot-backend-api:
-    image: kioskbot-backend-api:${VERSION}
+    image: kioskbot-backend-api:${VERSION}-${ENV}
     build:
       context: .
       dockerfile: Dockerfile
