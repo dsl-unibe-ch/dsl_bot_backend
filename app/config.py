@@ -7,6 +7,8 @@ from pydantic_settings import BaseSettings
 class Settings(BaseSettings):
     """Configuration settings for the chatbot and RESTAPI."""
 
+    ENV: str
+
     BASE_URL: str
     DOCS_URL: str | None = None
     REDOC_URL: str | None = None
