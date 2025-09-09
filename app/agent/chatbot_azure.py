@@ -1,14 +1,20 @@
 """Kioskbot class definition and methods."""
 
 import inspect
+import json
 import logging
 import re
+import uuid
+from datetime import UTC, datetime
+from typing import ClassVar
 
 import ftfy
 from azure.core.credentials import AzureKeyCredential
+from azure.data.tables import TableServiceClient
 from azure.identity import DefaultAzureCredential, get_bearer_token_provider
 from azure.search.documents import SearchClient
 from azure.search.documents.models import VectorizedQuery
+from fastapi import HTTPException
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_core.documents import Document
 from langchain_core.messages import AIMessage, HumanMessage
@@ -16,14 +22,22 @@ from langchain_openai import AzureChatOpenAI
 from openai import AzureOpenAI
 
 from app.agent.prompt_templates import qa_prompt, translation_prompt
-from app.agent.query import Source
+from app.agent.query import QueryInput, QueryOutput, Source
+from app.agent.schemas import CheckStatusResponse, StartSessionResponse
+from app.agent.utils import truncate_for_table_storage
 from app.config import settings
 
 logger = logging.getLogger("Kioskbot")
+table_service = TableServiceClient.from_connection_string(
+    settings.AZURE_STORAGE_CONNECTION_STRING
+)
+chat_history_table = table_service.get_table_client(settings.CHAT_HISTORY_TABLE_NAME)
 
 
 class ChatBot:
     """ChatBot class to interact with Azure OpenAI and Azure AI Search."""
+
+    sessions: ClassVar[dict] = {}
 
     def __init__(self) -> None:
         """Initialize the ChatBot with Azure clients and prompt chains."""
@@ -236,3 +250,59 @@ class ChatBot:
         while (len(self.chat_history) - 1) // 2 > max_pairs:
             del self.chat_history[1:3]
         return self.chat_history
+
+    def ask_chatbot_wrapper(self, query: QueryInput) -> QueryOutput:
+        """Process a chatbot query and optionally store chat history."""
+        if self is None:
+            error_message = (
+                "Chatbot not initialized - check server logs for initialization errors"
+            )
+            raise RuntimeError(error_message)
+
+        if not query.session_id:
+            raise HTTPException(status_code=400, detail="Session ID is required")
+
+        try:
+            query_response = self.get_response_from_vectordb(query.text)
+            query_response["session_id"] = query.session_id
+            utc_timestamp = datetime.now(UTC)
+            timestamp = str(utc_timestamp.isoformat())
+            sources = query_response.get("sources", [])
+            sources_json = json.dumps([str(s) for s in sources]) if sources else "[]"
+
+            entity = {
+                "PartitionKey": query.session_id,
+                "RowKey": timestamp,
+                "Timestamp": timestamp,
+                "UserMessage": query.text,
+                "AIResponse": query_response.get("output"),
+                "Sources": truncate_for_table_storage(sources_json),
+                "UserGroup": "Unknown",
+            }
+            chat_history_table.upsert_entity(entity)
+
+        except Exception as e:
+            error_msg = f"Error in rag-agent: {type(e).__name__}: {e!s}"
+            logger.exception(error_msg)
+            raise HTTPException(status_code=500, detail=error_msg) from e
+
+        else:
+            return query_response
+
+    def generate_session_id_wrapper(self, sessions: dict) -> str:
+        """Create a new chatbot session and return the session ID."""
+        session_id = str(uuid.uuid4())
+        sessions[session_id] = self
+        return StartSessionResponse(session_id=session_id)
+
+    def get_status_wrapper(self) -> CheckStatusResponse:
+        """Check the status of the chatbot initialization for a given session ID."""
+        if self is None:
+            return CheckStatusResponse(
+                chatbot_status="failed",
+                message="Chatbot initialization failed - check server logs",
+            )
+        return CheckStatusResponse(
+            chatbot_status="ready",
+            message="Chatbot is initialized and ready",
+        )
