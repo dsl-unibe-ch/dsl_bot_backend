@@ -17,13 +17,14 @@ dependencies = [
     "fastapi==0.116.1",
     "azure-data-tables==12.7.0",
     "uvicorn==0.35.0",
-    "pydantic_settings==2.10.1"
+    "pydantic_settings==2.10.1",
+    "pandas==2.3.2",
 ]
 
 [project.optional-dependencies]
 dev = [
     "ruff==0.12.11",
-    "pre-commit==4.3.0"
+    "pre-commit==4.3.0",
 ]
 
 [tool.ruff.lint]

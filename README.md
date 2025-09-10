@@ -47,6 +47,18 @@ pre-commit install
 Create `.env` file in the root of this repo and set the variables (see `.env.example` for the template).
 </details>
 
+## ETL pipeline
+<details>
+<summary>Click to expand</summary>
+
+The ETL pipeline reads the raw input data, translates text into English, and generates a dataset of question–answer pairs plus open-ended follow-up questions. This dataset is intended to evaluate and benchmark the RAG agent's performance.
+
+```bash 
+make etl-pipeline-rag
+```
+
+</details>
+
 ## Docker
 
 <details>
