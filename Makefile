@@ -4,6 +4,10 @@ lint:
 	@echo $@
 	.venv/bin/python -m ruff check --fix app demo tests
 
+etl-pipeline-rag:
+	@echo $@
+	@PYTHONPATH=$(shell pwd) python scripts/etl_pipeline_rag.py
+
 run-demo:
 	@echo $@
 	@PYTHONPATH=$(shell pwd) python demo/demo.py
