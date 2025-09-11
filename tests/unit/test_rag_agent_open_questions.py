@@ -1,5 +1,6 @@
 """Test RAG agent."""
 
+import json
 from collections.abc import Callable
 from typing import Any
 
@@ -36,10 +37,14 @@ def test_correctness_of_open_questions(
     output = invoke_agent(input_)
 
     result = correctness_evaluator(
-        inputs=input_, outputs=output, reference_outputs=reference_output
+        inputs=input_, outputs=output["output"], reference_outputs=reference_output
     )
 
-    t.log_outputs({"answer": output})
+    sources = output["sources"]
+    sources_json = json.dumps([str(s) for s in sources]) if sources else "[]"
+
+    t.log_outputs({"answer": output["output"]})
+    t.log_outputs({"sources": sources_json})
     t.log_outputs({"correctness_explanation": result.get("comment")})
     if not result["score"]:
         pytest.fail("RAG agent failed to handle open question correctly", pytrace=False)

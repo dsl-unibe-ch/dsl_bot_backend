@@ -51,9 +51,9 @@ def correctness_evaluator(
     )
 
 
-def invoke_agent(input_: str) -> str:
+def invoke_agent(input_: str) -> dict:
     """Invoke the RAG agent with the given input and return the output."""
     chatbot = ChatBot()
     query_input = QueryInput(text=input_, session_id="test_session")
     query_response = chatbot.ask_chatbot_wrapper(query_input)
-    return query_response["output"]
+    return {"output": query_response["output"], "sources": query_response["sources"]}
