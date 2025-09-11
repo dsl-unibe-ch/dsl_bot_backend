@@ -4,9 +4,9 @@ lint:
 	@echo $@
 	.venv/bin/python -m ruff check --fix app demo tests
 
-etl-pipeline-rag:
+generate-assessment-dataset:
 	@echo $@
-	@PYTHONPATH=$(shell pwd) python scripts/etl_pipeline_rag.py
+	@PYTHONPATH=$(shell pwd) python scripts/generate_assessment_dataset.py
 
 run-demo:
 	@echo $@
@@ -26,3 +26,7 @@ compose-up:
 compose-down:
 	@echo $@
 	VERSION=$(VERSION) docker compose down
+
+unit-tests:
+	@echo $@
+	@PYTHONPATH=$(shell pwd) pytest -v tests/unit/

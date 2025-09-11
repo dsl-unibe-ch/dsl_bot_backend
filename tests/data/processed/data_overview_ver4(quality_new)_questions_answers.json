@@ -1,754 +1,826 @@
-﻿[
+[
   {
-    "question": "What does QSE stand for at the University of Bern?",
-    "answer": "QSE stands for Quality Assurance and Development (Qualitätssicherung und -entwicklung)."
+    "question": "What is the main responsibility of the Department for Quality Assurance and Development (QSE) at the University of Bern?",
+    "groundtruth_answer": "The main responsibility of the QSE Department is to ensure the coordination and implementation of the quality strategy in all areas of the university, in cooperation with vice-rectorates, university management, and all university units."
   },
   {
-    "question": "What is the main responsibility of the Department for Quality Assurance and Development (Dept. QSE)?",
-    "answer": "The Dept. QSE ensures the coordination and implementation of the quality strategy throughout all areas of the university."
+    "question": "What process is the QSE Department responsible for regarding accreditation?",
+    "groundtruth_answer": "The QSE Department is responsible for the process of institutional accreditation of the University of Bern."
   },
   {
-    "question": "Who does Dept. QSE cooperate with to fulfill its role?",
-    "answer": "It cooperates with the Vice-Rectorships, University Executive Staff, and all university units."
+    "question": "How are course evaluations conducted at the University of Bern?",
+    "groundtruth_answer": "Course evaluations are conducted using standardized online surveys, gathering feedback from students to improve teaching quality and meet accountability requirements."
   },
   {
-    "question": "What is institutional accreditation, and why is it important?",
-    "answer": "Institutional accreditation is a formal process through which a university's quality assurance system is evaluated and approved, allowing it to call itself a university and receive federal funding."
+    "question": "Who can you contact for questions about course evaluations at UniBE?",
+    "groundtruth_answer": "You can contact the Office for Course Evaluation via the email address lehrevaluation@unibe.ch."
   },
   {
-    "question": "How frequently must every course be formally evaluated at the University of Bern?",
-    "answer": "Every course must be evaluated at least once every three years."
+    "question": "What minimum participation is required for automatic reporting of course evaluation results?",
+    "groundtruth_answer": "At least 5 students must participate in the survey for the results to be sent out automatically; for assessment evaluations, at least 5 participants are also required."
   },
   {
-    "question": "What percentage of performance assessments must be evaluated at least once every three years?",
-    "answer": "50% of all performance assessments must be evaluated at least once every three years."
+    "question": "In which languages are the course evaluation questionnaires available?",
+    "groundtruth_answer": "German, English, and French."
   },
   {
-    "question": "What is a final evaluation in the course evaluation process?",
-    "answer": "A final evaluation is student feedback collected using a standardized questionnaire, usually conducted toward the end of a course."
+    "question": "Are course evaluations at UniBE anonymous?",
+    "groundtruth_answer": "Yes, all surveys are anonymous and it is not possible to trace individual responses."
+  },
+  {
+    "question": "What is the purpose of conducting course evaluations at UniBE?",
+    "groundtruth_answer": "To provide concrete indications for the improvement of teaching and learning situations, maintain high teaching quality, support continuous development, and provide proof of quality to legislators and the public."
+  },
+  {
+    "question": "How often must each course be evaluated at minimum at UniBE?",
+    "groundtruth_answer": "Each course must be evaluated at least once every three years."
+  },
+  {
+    "question": "What are the evaluation cycles for performance assessments (exams)?",
+    "groundtruth_answer": "At least 50% of all performance assessments must be evaluated at least once every three years."
+  },
+  {
+    "question": "Can lecturers customize the standardized evaluation questionnaire?",
+    "groundtruth_answer": "Individual customization is not possible, but optional additional modules can be added to the standard core questionnaire."
   },
   {
     "question": "What is an interim evaluation?",
-    "answer": "An interim evaluation is student feedback gathered in the early or middle part of a course, focused on formative, improvement-oriented feedback for instructors."
+    "groundtruth_answer": "An interim evaluation is a formative, voluntary feedback collected from students mid-semester to help instructors identify areas for improvement."
   },
   {
-    "question": "Who can register a course for evaluation?",
-    "answer": "Typically, a central office at the faculty/institute registers courses, but in exceptional cases, instructors may register themselves."
+    "question": "What is the final evaluation?",
+    "groundtruth_answer": "The final evaluation is a summative student survey conducted towards the end of a course to assess overall teaching quality and identify strengths and weaknesses."
   },
   {
-    "question": "What system is used for registering courses for evaluation?",
-    "answer": "Courses are registered via KSL (Kernsystem Lehre)."
+    "question": "For which types of performance assessments is the standard questionnaire primarily used?",
+    "groundtruth_answer": "It is used primarily for written and oral exams with at least 5 participants directly linked to a course."
   },
   {
-    "question": "How is student anonymity preserved in course evaluations?",
-    "answer": "Survey results are only automatically sent if at least 5 students have participated; with smaller groups, results are only available on request and not included in faculty averages."
+    "question": "Can students see the results of course evaluations?",
+    "groundtruth_answer": "The results are not generally accessible to students but are discussed by instructors with students and may be published in aggregated form by faculties."
   },
   {
-    "question": "Who receives the results of a course evaluation?",
-    "answer": "Detailed results are usually sent to the evaluated instructors and, in some cases, to the person responsible for the evaluation at the institute; aggregated faculty results go to quality representatives."
+    "question": "How can students participate in course evaluation surveys?",
+    "groundtruth_answer": "Students participate by accessing a QR code or survey link provided by their instructor, typically during class, or via email/ILIAS for performance assessment evaluations."
   },
   {
-    "question": "Are survey results shared with students?",
-    "answer": "Direct sharing by the Course Evaluation Office does not occur, but instructors are encouraged to discuss results and planned improvements with students."
+    "question": "Why might a student have to fill out many course evaluation surveys in a semester?",
+    "groundtruth_answer": "Because some faculties evaluate a large number or all their courses and assessments each semester, leading to multiple surveys for students."
   },
   {
-    "question": "Are the course evaluation surveys anonymous?",
-    "answer": "Yes, all course evaluation surveys are anonymous and do not identify respondents."
+    "question": "What happens if fewer than 5 students participate in a survey?",
+    "groundtruth_answer": "Results are not sent automatically. If more than 2 students participated, the instructor may request the results. For assessment evaluations, results are only sent if 5 or more students participated."
   },
   {
-    "question": "What languages are the questionnaires for evaluation available in?",
-    "answer": "German, English, and French."
+    "question": "What survey methods are used for course evaluation?",
+    "groundtruth_answer": "There are surveys with personalized links (TAN) and non-personalized links (Losung), with personalized links always used for assessments."
   },
   {
-    "question": "What is the minimum number of student responses needed for automatic reporting of results?",
-    "answer": "At least 5 student responses."
+    "question": "Should evaluation surveys be done online or on paper?",
+    "groundtruth_answer": "Since spring semester 2022, all course and assessment evaluations are conducted online; paper questionnaires are no longer used."
   },
   {
-    "question": "Why is student participation in surveys important?",
-    "answer": "High participation ensures representativity and meaningful data, and enables the continuous improvement of teaching."
+    "question": "Who receives the detailed results of a course evaluation survey?",
+    "groundtruth_answer": "Normally, only the instructors evaluated receive the detailed results. Sometimes, a responsible person from the institute also receives the report."
   },
   {
-    "question": "How can students access the evaluation surveys?",
-    "answer": "Via a QR code provided by instructors, email link, or through ILIAS platform links."
+    "question": "When do instructors receive their evaluation results?",
+    "groundtruth_answer": "Immediately after the survey closes for interim or final evaluations, and after grade release is confirmed for performance assessment evaluations."
   },
   {
-    "question": "Can instructors customize the standard questionnaires used for evaluation?",
-    "answer": "No, individual customization is not possible, but optional add-on modules can be used for the final evaluation."
+    "question": "How are students informed about participation and their feedback’s impact?",
+    "groundtruth_answer": "Students are informed that their feedback not only improves teaching and learning but is also considered in faculty and university-level quality improvements."
   },
   {
-    "question": "What are add-on modules in final evaluation?",
-    "answer": "They are optional extra question blocks on topics like eLearning, team teaching, application orientation, etc., added to the core final evaluation questionnaire."
+    "question": "Are the results of interim or final evaluations used for grading students?",
+    "groundtruth_answer": "No, course evaluations are opinion surveys and not used as part of student grading."
   },
   {
-    "question": "How often are mid-term evaluations required?",
-    "answer": "There is no prescribed schedule for mid-term evaluations; they are usually voluntary except as follow-ups after an insufficient previous final evaluation."
+    "question": "What is the minimum scale used in the course evaluation questionnaires?",
+    "groundtruth_answer": "A 6-point Likert scale is used."
   },
   {
-    "question": "How are evaluation results interpreted by instructors?",
-    "answer": "Reports include overall results, individual item statistics, and comparison with faculty averages; the office provides support for interpretation."
+    "question": "How do instructors indicate which supplementary modules they want for a final evaluation?",
+    "groundtruth_answer": "By ordering them via a registration form or reporting by email to the LVE office."
   },
   {
-    "question": "What happens if a course receives an \"insufficient\" result in evaluation?",
-    "answer": "A renewed interim and final evaluation is mandatory next time the course is offered; additional actions may be required such as self-reporting or didactics training."
+    "question": "Which supplementary modules are available for final evaluations?",
+    "groundtruth_answer": "eLearning, Student contributions, Team teaching, Application orientation, Interdisciplinarity, e-Coach Products/ILIAS Room, and Course Format."
   },
   {
-    "question": "What happens if a course receives an \"outstanding\" evaluation?",
-    "answer": "Courses evaluated as \"outstanding\" are nominated for the ALL Award (recognition of outstanding teaching performance)."
+    "question": "What is the ALL Award at UniBE?",
+    "groundtruth_answer": "It is an award for recognition of outstanding achievements in teaching, given to courses with 'Outstanding' evaluation results."
   },
   {
-    "question": "What are the success levels for final evaluation results?",
-    "answer": "Outstanding (≥5.7), Very Good (≥5.5 <5.7), Good (≥4.5 <5.5), Sufficient (≥4.0 <4.5), Insufficient (<4.0), based on mean scores of key questions."
+    "question": "What threshold is used for classification as 'Outstanding' in final evaluations?",
+    "groundtruth_answer": "A score of ≥ 5.7 in the relevant categories."
   },
   {
-    "question": "Are paper surveys used for course evaluations?",
-    "answer": "Since Spring Semester 2022, all evaluations use online surveys; paper is no longer used."
+    "question": "What happens if a course is rated 'Insufficient'?",
+    "groundtruth_answer": "Measures are taken as determined by the framework concept and faculty guidelines, such as a mandatory interim evaluation next semester and possible didactics support or reporting."
   },
   {
-    "question": "When does the evaluation of performance assessments (exams) occur?",
-    "answer": "After the performance assessment is conducted, starting from week 12 of the semester."
+    "question": "Are newly appointed instructors subject to mandatory evaluation?",
+    "groundtruth_answer": "Yes, final evaluation is mandatory for new teaching staff and those in qualification positions."
   },
   {
-    "question": "How do instructors obtain their evaluation report if fewer than 5 students participate?",
-    "answer": "Instructors receive an automated message and can request reports or at least responses to open questions from the LVE office, depending on the response rate."
+    "question": "Where can examples of the standard questionnaires be found?",
+    "groundtruth_answer": "On the university’s website; links are provided to sample questionnaires and reports."
   },
   {
-    "question": "What additional evaluation methods, besides standardized surveys, are recognized?",
-    "answer": "Methods include peer observation, interim feedback (Ampelfeedback, Blitzlicht, Zielscheibe, muddiest point), and self-reports."
+    "question": "What does the Model of Teaching Quality at UniBE emphasize?",
+    "groundtruth_answer": "Good teaching is understood as constructive alignment between learning outcomes, teaching/learning activities, and assessment of learning outcomes."
   },
   {
-    "question": "What is peer observation?",
-    "answer": "Peer observation is a structured, non-evaluative exchange where instructors visit each other's classes to reflect and improve teaching."
+    "question": "What is traffic light feedback?",
+    "groundtruth_answer": "A quick feedback method where students indicate their agreement with statements by showing green, yellow, or red cards."
   },
   {
-    "question": "What is the \"muddiest point\" method?",
-    "answer": "It is a feedback technique where students indicate what aspects of a session remain unclear, allowing instructors to address these directly."
+    "question": "What is a 'blitzlicht' method in feedback?",
+    "groundtruth_answer": "It is a short, written feedback where students answer a targeted question posed by the instructor, with responses discussed in the group."
   },
   {
-    "question": "What is the role of the QSE Commission?",
-    "answer": "The QSE Commission advises the university management on all matters related to quality assurance and development."
+    "question": "What is 'muddiest point' in interim feedback?",
+    "groundtruth_answer": "A method where students note the aspect of a session that is least clear to them, allowing the instructor to clarify misunderstandings."
   },
   {
-    "question": "How are evaluation cycles planned for study programs?",
-    "answer": "Faculties plan medium- and long-term rolling evaluation schedules to ensure regular review, aiming for a 7-8 year cycle per program."
+    "question": "How is the control cycle (PDCA) incorporated in UniBE’s QSE system?",
+    "groundtruth_answer": "Planning (define objectives), Do (implement measures), Check (evaluate outcomes), Act (improve and update plans) form the basis for continual quality development."
   },
   {
-    "question": "What data sources are used in study program evaluations?",
-    "answer": "They include course/assessment evaluations, graduate survey data, statistical indicators, internal reports, and written/oral feedback."
+    "question": "Who manages the action plans for quality assurance at UniBE?",
+    "groundtruth_answer": "AKKRED (the Accreditation Task Force) manages the University Action Plan and supports faculties and centers in their action plans."
   },
   {
-    "question": "What is the function of the AKKRED working group?",
-    "answer": "It supports the planning and review of the implementation of the university strategy, maintaining and updating the University Action Plan."
+    "question": "What is the minimum interval for updating Faculty Action Plans?",
+    "groundtruth_answer": "They are updated regularly, at least every four years, in connection with faculty strategies and the university action plan."
   },
   {
-    "question": "What does ALL stand for regarding teaching recognition?",
-    "answer": "ALL stands for \"Anerkennung für Herausragende Leistungen in der Lehre\" – Recognition for Outstanding Performances in Teaching."
+    "question": "How are external perspectives included in study program evaluations?",
+    "groundtruth_answer": "External reviewers or peer reports are included in the evaluation panels for study program evaluations."
   },
   {
-    "question": "How are ALL Award winners selected?",
-    "answer": "The LVE office nominates courses that meet the outstanding threshold; faculties confirm and present the award to individual instructors."
+    "question": "What is the recommended evaluation cycle for study programs at UniBE?",
+    "groundtruth_answer": "A seven-to-eight-year cycle is recommended per national and international standards."
   },
   {
-    "question": "What are the core university tasks covered by QSE guidelines?",
-    "answer": "Teaching, research, continuing education, and services."
+    "question": "What types of data are typically used in study program evaluation?",
+    "groundtruth_answer": "Quantitative data (statistics, student numbers, graduate data) and qualitative data (surveys, interviews, focus groups, peer reviews)."
   },
   {
-    "question": "What international principles support QSE at the University of Bern?",
-    "answer": "The standards and guidelines for quality assurance in the European Higher Education Area (ESG) and Swiss federal laws (HFKG)."
+    "question": "What is the role of the SUB graduate survey?",
+    "groundtruth_answer": "It surveys graduates about satisfaction, career entry, and the adequacy of study programs, providing input for ongoing internal quality assurance."
   },
   {
-    "question": "What is the Plan-Do-Check-Act (PDCA) cycle?",
-    "answer": "It is a management framework for continuous improvement: goals are planned, measures implemented, outcomes checked, and improvements acted upon and documented."
+    "question": "What are some quality assurance processes for university service units?",
+    "groundtruth_answer": "Service units are integrated into faculty QSE, and may be externally certified or accredited as part of their quality management."
   },
   {
-    "question": "Which commission oversees gender equality at the University of Bern?",
-    "answer": "The Commission for Gender Equality."
+    "question": "Who is responsible for the self-evaluation report in peer reviews of central units?",
+    "groundtruth_answer": "The responsible person for QSE in the organizational unit prepares the report with department heads."
   },
   {
-    "question": "What is the role of the Research Commission?",
-    "answer": "It evaluates funding proposals, advises on research funding policy, and provides guidance to university management regarding research funding instruments."
+    "question": "What is the primary focus of peer review in central administration?",
+    "groundtruth_answer": "Assessing organizational structure, processes, quality management, resource management, stakeholder involvement, legal and ethical standards, and identifying strengths, weaknesses, and development potentials."
   },
   {
-    "question": "How does the university guarantee the quality of research?",
-    "answer": "Through internal and external evaluation (including peer review), compliance with good scientific practice, and regular collection of research indicators."
+    "question": "Which office is responsible for coordinating QSE in central university administration?",
+    "groundtruth_answer": "The quality officer (Q-Beauftragte) of the central area coordinates QSE measures and reporting."
   },
   {
-    "question": "What is the function of the Lifelong Learning Center LLC?",
-    "answer": "It supports and advises those responsible for continuing education programs, provides tools/templates, and ensures program quality standards are met."
+    "question": "What cycle does the university use for peer review/external evaluation of central units?",
+    "groundtruth_answer": "An eight-year cycle."
   },
   {
-    "question": "What instruments support quality in continuing education?",
-    "answer": "Faculty study regulations, study plans, evaluation guidelines, ongoing LL Center oversight, external evaluation reports, and continuous quality development measures."
+    "question": "What is the Commission for Quality Assurance and Quality Development (QSE Commission)?",
+    "groundtruth_answer": "It is the main advisory committee for all QSE matters at UniBE, comprising representatives from faculties, students, staff, and central administration."
   },
   {
-    "question": "What is the process for self-evaluation in central administration?",
-    "answer": "Units prepare self-evaluation reports based on service description, followed by peer review, and develop action plans for improvement."
+    "question": "Who is the current head of the QSE Department?",
+    "groundtruth_answer": "Rana Öztürk."
   },
   {
-    "question": "How does the QSE system encourage stakeholder participation?",
-    "answer": "Through regular surveys, committees, commissions, and direct involvement in evaluation and quality development processes."
+    "question": "To whom should emergencies or major losses (e.g., fire, disaster) be reported at UniBE?",
+    "groundtruth_answer": "To the crisis team, contactable at +41 31 684 55 55."
   },
   {
-    "question": "What is the role of the Vice-Rectorate for Quality and Sustainable Development?",
-    "answer": "It supports university members in promoting equal opportunities, embedding sustainability, and assuring/developing quality."
+    "question": "What is the email address for general QSE inquiries at UniBE?",
+    "groundtruth_answer": "info.qualitaet@unibe.ch"
   },
   {
-    "question": "How are QSE activities communicated to staff and students?",
-    "answer": "Through public documents, reports, workshops, internal and external web pages, and designated contact persons."
+    "question": "What services does the Vice-Rectorate for Quality and Sustainable Development provide?",
+    "groundtruth_answer": "It supports equal opportunities, promotes sustainability, oversees quality assurance and development, and manages projects like Kompass UniBE (refugee student preparation)."
   },
   {
-    "question": "Why is external review included in evaluations?",
-    "answer": "To complement the internal perspective, ensure objectivity, and benchmark against external standards."
+    "question": "Which courses require a mandatory final evaluation at UniBE?",
+    "groundtruth_answer": "New forms of courses, courses by newly appointed teaching staff, those in qualification positions, and courses previously rated 'insufficient'."
   },
   {
-    "question": "How are university services (e.g., clinics, institutes) integrated into QSE?",
-    "answer": "Service units have their own QSE mechanisms, are often externally certified/accredited, and are part of faculty QSE systems."
+    "question": "How are assessment evaluations conducted at UniBE?",
+    "groundtruth_answer": "Via standardized online student surveys administered after the assessment/exam, with personalized links sent to participants."
   },
   {
-    "question": "Who manages the process of updating the University Action Plan?",
-    "answer": "The AKKRED working group, in coordination with organizational units and faculties."
+    "question": "What are the steps in registering a course for evaluation?",
+    "groundtruth_answer": "Courses are registered via the KSL system, typically by a central office in the faculty/institute, or by instructors for voluntary evaluations."
   },
   {
-    "question": "How are action plans at the faculty level developed and updated?",
-    "answer": "Faculties update their action plans based on rolling planning, incorporating university-wide measures and faculty strategy objectives."
+    "question": "Are there deadlines for registering courses for evaluation?",
+    "groundtruth_answer": "Yes, recommended registration deadlines apply for each semester and evaluation type."
   },
   {
-    "question": "Why does the University of Bern emphasize both uniformity and respect for disciplinary cultures in QSE?",
-    "answer": "To ensure comparability across the university, while also respecting specific traditions and needs of individual disciplines/faculties."
+    "question": "What happens if a course is not registered for evaluation in KSL?",
+    "groundtruth_answer": "No survey is set up automatically; instructors must contact the evaluation office to request retrospective evaluation if possible."
   },
   {
-    "question": "What status groups are represented on evaluation committees for study programs?",
-    "answer": "Typically, teaching staff, academic staff, students, administration/technical staff, and sometimes external reviewers."
+    "question": "How can the language for the survey be selected?",
+    "groundtruth_answer": "Students select their preferred language (German, English, French) by clicking a national flag in the survey."
   },
   {
-    "question": "What is the purpose of the graduate survey?",
-    "answer": "To evaluate graduates' satisfaction, entry into the job market, and compare acquired skills to professional requirements."
+    "question": "Can courses with multiple instructors be evaluated individually?",
+    "groundtruth_answer": "Yes, if instructors teach independently, up to three can be evaluated individually per course; otherwise, a team evaluation can be chosen."
   },
   {
-    "question": "Who can apply for financial support from the Evaluations Pool?",
-    "answer": "All evaluating departments and institutes (not centers) for external review costs in study program and research evaluations."
+    "question": "What happens to courses rated 'excellent'?",
+    "groundtruth_answer": "They are nominated for the ALL Award (Recognition of Outstanding Achievements in Teaching)."
   },
   {
-    "question": "How is quality managed in research?",
-    "answer": "Through quantitative monitoring (e.g., publications, third-party funds) and regular peer review by external experts."
+    "question": "What support is available for instructors wanting to improve their teaching?",
+    "groundtruth_answer": "University didactic training, interim evaluations, and consultation from the Learning & Development department."
   },
   {
-    "question": "What is a SWOT analysis in the evaluation process?",
-    "answer": "A strategic tool used to categorize strengths, weaknesses, opportunities, and threats, helping to derive actionable measures."
+    "question": "What is a SWOT analysis used for in self-evaluation?",
+    "groundtruth_answer": "To summarize strengths, weaknesses, opportunities, and threats, forming the basis for strategic decision-making and improvement measures."
   },
   {
-    "question": "How do students contribute to improving teaching quality?",
-    "answer": "By participating in feedback surveys and making constructive suggestions, which are used by instructors and faculties for improvements."
+    "question": "What are the main elements of the self-evaluation report structure for central units?",
+    "groundtruth_answer": "Organizational structure, objectives and planning, performance assessment, quality management, resource management, stakeholder involvement, legal and ethical standards, and (optionally) innovation, achievements, challenges, balanced scorecard."
   },
   {
-    "question": "What happens if the response rate in a performance assessment evaluation is too low?",
-    "answer": "No report is generated; the instructor is informed and data are not used for quality assurance decisions."
+    "question": "How are evaluation results disseminated within central administration?",
+    "groundtruth_answer": "Internally, through appropriate communication channels and reporting to the QSE Department and University Management."
   },
   {
-    "question": "How do faculties use evaluation results for improvement?",
-    "answer": "Faculties receive aggregated results, plan/implement measures, discuss in quality committees, and conduct follow-up evaluations if needed."
+    "question": "What is the Balanced Scorecard used for in quality management?",
+    "groundtruth_answer": "To support the display of self-evaluation results and derived measures in relation to strategic objectives."
   },
   {
-    "question": "How are external evaluations initiated at the University?",
-    "answer": "At the university level by the management, at faculty/organizational level by their respective management, with commissions established for oversight."
+    "question": "Where are guidelines and regulations for evaluations at UniBE published?",
+    "groundtruth_answer": "On the university's website, with links to documents like the Evaluation Regulations and QSE Guidelines."
   },
   {
-    "question": "Who are some of the main contacts in the QSE Department?",
-    "answer": "Rana Öztürk (Head), Stephan Bösiger, Magdalena Dampz, My-Yen Ngo, and Nik Hunziker."
+    "question": "What is the maximum time allowed for submitting a self-evaluation report by a central unit before peer review?",
+    "groundtruth_answer": "By the end of March of the evaluation year."
   },
   {
-    "question": "What is the process of peer review in central administration?",
-    "answer": "It involves preparing a self-evaluation report, forming a peer group, site visit, and generating a peer report with recommendations."
+    "question": "How are peer reviewers selected for central unit reviews?",
+    "groundtruth_answer": "The unit searches for suitable peers and submits their selection to the QSE Commission for confirmation."
   },
   {
-    "question": "What is the role of the Communication & Marketing Department in QSE?",
-    "answer": "They are responsible for content on the portal pages and technical operation of university web pages, supporting QSE communication."
+    "question": "What is a typical length for the self-evaluation report in central unit peer review?",
+    "groundtruth_answer": "Ten to fifteen pages, plus possible appendices."
   },
   {
-    "question": "What are the four main pillars of the QSE system as described in the Quality Strategy?",
-    "answer": "Tasks, personnel, cross-sectional topics (like equality, sustainability), and resources, with governance as the overarching structure."
+    "question": "What is the primary goal of QSE measures across all areas at UniBE?",
+    "groundtruth_answer": "To achieve continual quality improvement, foster quality culture, ensure accountability, and facilitate participation and transparency."
   },
   {
-    "question": "How does the university handle complaints or inquiries regarding QSE?",
-    "answer": "Central contacts (e.g., info.qualitaet@unibe.ch) and the QSE Department handle questions, and units have designated Q-responsibles."
+    "question": "What is the function of AKKRED?",
+    "groundtruth_answer": "AKKRED supports the University Executive Board, central administration, faculties, and strategic centers in planning and monitoring the implementation of the university strategy and action plans."
   },
   {
-    "question": "Who provides support for early-career researchers?",
-    "answer": "The university operates a coordination office for early-career support, offering mentoring, grants, and information."
+    "question": "Which commission oversees research quality at UniBE?",
+    "groundtruth_answer": "The Research Commission, comprising faculty representatives and responsible for evaluating funding applications and advising on research matters."
   },
   {
-    "question": "What is the role of the Vice-Rectorate Teaching?",
-    "answer": "It develops, refines, and implements evaluation instruments for courses, assessments, and study programs, focusing on quality improvement."
+    "question": "What is included in the action plans for strategic centers?",
+    "groundtruth_answer": "Measures for implementing performance mandates, Strategy 2030, and sub-strategies within the University Executive Board's competence."
   },
   {
-    "question": "Are there faculty-specific QSE guidelines?",
-    "answer": "Yes, each faculty has its own QSE guidelines aligned with university standards."
+    "question": "For which tasks does the Vice-Rectorate Quality and Sustainable Development provide service?",
+    "groundtruth_answer": "Promoting equal opportunity, anchoring sustainable development, quality assurance and development, supporting academic career and engagement projects."
   },
   {
-    "question": "What mechanisms exist for students to participate in QSE beyond surveys?",
-    "answer": "Students can sit on committees, join the student union (SUB), or be involved as representatives in commissions."
+    "question": "Who can you contact for evaluation of study programs?",
+    "groundtruth_answer": "Stephan Bösiger (stephan.boesiger@unibe.ch) at the QSE Department."
   },
   {
-    "question": "What is the importance of closing the feedback loop in evaluations?",
-    "answer": "It ensures that survey results are discussed and lead to visible improvements, enhancing the feedback culture."
+    "question": "What role do external reviewers play in study and center evaluations?",
+    "groundtruth_answer": "They provide an independent assessment, supplementing internal views, as part of the evaluation committee or via expert reports."
   },
   {
-    "question": "How are complaints or risk events managed?",
-    "answer": "Major losses (fire, hazards, accidents) are reported to the crisis management team, while complaints follow established reporting systems."
+    "question": "How does the university promote equal opportunities and diversity?",
+    "groundtruth_answer": "Through the Department of Equal Opportunities, which offers advice, support, and various programs for staff and students."
   },
   {
-    "question": "What minimum criteria must a course meet to be considered for ALL in the Phil-Hist Faculty?",
-    "answer": "Minimum overall grade of 5.7 and additional indicator thresholds for learning progress and satisfaction, varying by response numbers."
+    "question": "Where can instructors find training resources for digitized course evaluations?",
+    "groundtruth_answer": "On the UniBE intranet, including training videos and guides on the new KSL interface and related processes."
   },
   {
-    "question": "When are evaluation reports required to be archived?",
-    "answer": "Final reports from evaluation procedures are archived in the Dean’s office and/or submitted electronically to the QSE Department."
+    "question": "How are courses rated as 'insufficient' handled over multiple evaluations?",
+    "groundtruth_answer": "They undergo renewed interim and final evaluations; persistent insufficient ratings trigger self-reports, targeted meetings, and may require teaching development courses."
   },
   {
-    "question": "What is the University of Bern’s approach to balancing university-wide and faculty-specific QSE?",
-    "answer": "The maxim is \"as differentiated as academically necessary, as uniform and comparable as possible.\""
+    "question": "What are the core tasks of the university as addressed by QSE guidelines?",
+    "groundtruth_answer": "Teaching, research, continuing education, and services."
   },
   {
-    "question": "Why might a course not be set up for evaluation?",
-    "answer": "Because it was not registered in the KSL for evaluation; setup can sometimes be made post-hoc upon request."
+    "question": "How is teaching quality defined at the University of Bern?",
+    "groundtruth_answer": "As high-quality, research-based, diverse teaching fulfilling high didactic standards and preparing students for responsible roles in society."
   },
   {
-    "question": "What are the goals of the QSE communication concept?",
-    "answer": "To provide comprehensive and appropriate information to all university members about QSE measures, involve them in development, and ensure transparency."
+    "question": "What does 'participatory QSE' mean at UniBE?",
+    "groundtruth_answer": "All university members are involved in QSE via committees or direct participation in feedback, evaluation, and system improvement processes."
   },
   {
-    "question": "How is data protection dealt with in evaluations?",
-    "answer": "By ensuring results are only shared when anonymity is preserved and in compliance with data protection laws."
+    "question": "How is the management of administrative processes assessed for quality?",
+    "groundtruth_answer": "Through regular self-evaluation and peer review, examining efficiency, effectiveness, and stakeholder satisfaction."
   },
   {
-    "question": "What is the main purpose of university service evaluations?",
-    "answer": "To ensure high quality and compliance with defined standards for units providing permanent services, often through external certification."
+    "question": "What is the purpose of the QSE Communication Concept?",
+    "groundtruth_answer": "To inform all university members about QSE measures, procedures, and results and ensure transparency and participation."
   },
   {
-    "question": "Who validates the selection of peer reviewers for administrative unit evaluations?",
-    "answer": "The selection must be confirmed by the QSE Commission before peers are officially invited."
+    "question": "What are the main categories of target groups for QSE communication?",
+    "groundtruth_answer": "Students, professors/leadership, QSE officers/staff, and the broader university/public."
   },
   {
-    "question": "What is the significance of the University Action Plan?",
-    "answer": "It lists all QSE measures and serves as the main document for tracking the implementation of strategies at every level."
+    "question": "Who signs the ALL award certificate at UniBE?",
+    "groundtruth_answer": "The dean of the faculty."
   },
   {
-    "question": "What are typical topics included in a self-evaluation report for centers or administrative units?",
-    "answer": "Organizational structure, management, objectives, performance evaluation, quality management, resource management, stakeholder communication, legal/ethical standards, innovation, and results."
+    "question": "How are outstanding lecturers and courses publicized at UniBE?",
+    "groundtruth_answer": "By publishing awarded courses/lecturers on the university and GuteLehre websites."
   },
   {
-    "question": "How are reports from peer reviews communicated within the university?",
-    "answer": "Reports and decisions on measures are shared with QSE coordinators and aggregated for university management."
+    "question": "What type of cycle does the university recommend for evaluating teaching study programs?",
+    "groundtruth_answer": "A rolling seven-to-eight-year cycle."
   },
   {
-    "question": "Who can advise on the interpretation of evaluation reports?",
-    "answer": "The LVE office (Course Evaluation Office) offers support to interpret results for instructors."
+    "question": "How does interim feedback benefit teaching?",
+    "groundtruth_answer": "It allows real-time adjustments based on student feedback, improves teaching motivation, and enhances the evaluation culture."
   },
   {
-    "question": "How are processes documented in central administration?",
-    "answer": "With electronic process documentation, reviewed and updated annually as part of process review."
+    "question": "What is the official main address of the University of Bern?",
+    "groundtruth_answer": "Hochschulstrasse 6, 3012 Bern, Switzerland."
   },
   {
-    "question": "How are performance assessment evaluations (ELK) registered and managed?",
-    "answer": "Performance assessments are registered in KSL by week 10; surveys are set up by the LVE office, and results are shared post-grading if response rate suffices."
+    "question": "Which body sets the minimum frequency for course and assessment evaluations?",
+    "groundtruth_answer": "The framework concept in cooperation with the Vice-Rectorate and faculties."
   },
   {
-    "question": "What is the procedure if a course with fewer than 5 participants needs evaluation?",
-    "answer": "Surveys can be set up, but results are only sent on request and not included in faculty averages; alternatives may be advised for small numbers."
+    "question": "What is the process when multiple exam dates exist for a performance assessment evaluation?",
+    "groundtruth_answer": "It is recommended to register only one date per performance assessment for evaluation."
   },
   {
-    "question": "How is the effectiveness of QSE measures tracked over time?",
-    "answer": "Through action plan follow-ups, regular reporting, and interim/follow-up evaluations."
+    "question": "What is the minimum number of responses for performance assessment evaluation reports to be generated?",
+    "groundtruth_answer": "A minimum of 5 valid responses."
   },
   {
-    "question": "What are the main aims of the QSE system at the University of Bern?",
-    "answer": "Continuous performance optimization, unification of quality culture, collaborative improvement, and transparency/credibility to society."
+    "question": "Does the LVE office inform instructors in advance that an assessment evaluation is planned?",
+    "groundtruth_answer": "No, instructors are informed by automatic email when the survey is sent to students."
   },
   {
-    "question": "How does the University of Bern ensure that its quality assurance system evolves to meet future educational trends?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "What is the standard opening period for written assessment evaluation surveys?",
+    "groundtruth_answer": "4 days."
   },
   {
-    "question": "What challenges has the Department QSE faced in implementing quality strategies across diverse faculties?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "When are performance assessment evaluations usually conducted?",
+    "groundtruth_answer": "After the performance assessment, from the 12th week of the semester onward."
   },
   {
-    "question": "In what ways does student feedback directly influence program development at the university level?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "What are some qualitative evaluation methods for exams with few participants?",
+    "groundtruth_answer": "Focus group discussions and other qualitative feedback methods."
   },
   {
-    "question": "How are external reviewers for study program evaluations selected and what qualifications do they typically have?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "Who confirms the entry of grades before performance assessment evaluation reports are sent?",
+    "groundtruth_answer": "The instructor confirms grade entry to the LVE office."
   },
   {
-    "question": "Are there plans to integrate more advanced technology (such as AI) into the evaluation process?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "What system is used for centralized evaluations at UniBE?",
+    "groundtruth_answer": "The evaluation system evasys."
   },
   {
-    "question": "How does the university verify the effectiveness of improvement measures suggested through course evaluations?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "Which departments support the faculties in QSE efforts?",
+    "groundtruth_answer": "The Rectorate, Vice Rectorates, Administrative Directorate, General Secretariat, and central organizational units."
   },
   {
-    "question": "What features make a course evaluation at the University of Bern especially impactful or successful?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "How are participatory elements embedded in research evaluation?",
+    "groundtruth_answer": "By involving members of units, including early-career researchers and administrative staff, in evaluation panels and self-assessment."
   },
   {
-    "question": "How does the QSE Department handle conflicts between faculty autonomy and university-wide quality standards?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "How is resource management assessed in QSE for central units?",
+    "groundtruth_answer": "Through evaluation of financial, personnel, and material resources, their alignment with goals, and regular reviews."
   },
   {
-    "question": "Is there regular training for university staff on QSE processes and if so, what formats are most effective?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "Who is responsible for faculty QSE compliance?",
+    "groundtruth_answer": "Quality officers of the faculties."
   },
   {
-    "question": "How does the university assess the impact of diversity and inclusion efforts on teaching quality?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "How is transparency in university finances ensured?",
+    "groundtruth_answer": "Through established systems of financial planning and reporting for accountability and transparency."
   },
   {
-    "question": "What mechanisms are in place to encourage high response rates among students for evaluations?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "Which statement summarizes Silvia Schroer’s view of university quality assurance?",
+    "groundtruth_answer": "Quality requires collaboration, ongoing review, and leads to continual development; not simply constant measurement."
   },
   {
-    "question": "How are qualitative feedback and quantitative results balanced in decision-making?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "What is the standard validity period for UniBE’s institutional accreditation?",
+    "groundtruth_answer": "Seven years."
   },
   {
-    "question": "What specific barriers discourage students from participating in evaluations and how can these be addressed?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "What must service units at UniBE do for quality assurance?",
+    "groundtruth_answer": "Establish a quality management system, often undergoing external certification or accreditation."
   },
   {
-    "question": "To what extent do employers or industry partners contribute feedback on program outcomes?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "How are infrastructural resources covered in QSE?",
+    "groundtruth_answer": "Through regular reviews of buildings, space, operations, and technology to ensure alignment with teaching and research goals."
   },
   {
-    "question": "How does the university benchmark its QSE processes against those of other leading universities?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "What does QSE stand for at UniBE?",
+    "groundtruth_answer": "Quality Assurance and Development (Qualitätssicherung und -entwicklung)."
   },
   {
-    "question": "What is the process for reviewing and updating the standardized evaluation questionnaires?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "Where can faculty regulations for course and research evaluation be found?",
+    "groundtruth_answer": "On the faculty websites and via the QSE documentation links provided on the university's quality assurance web pages."
   },
   {
-    "question": "How are evaluation results incorporated in faculty hiring or promotion processes?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "What are the main challenges the QSE Department faces in implementing quality assurance across diverse faculties?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "Are there faculty or staff incentives beyond the ALL award to encourage teaching quality improvement?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "How does the University of Bern ensure that student feedback leads to concrete improvements in courses?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "How does QSE support interdisciplinary or cross-faculty educational initiatives?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "What mechanisms exist for students to participate more actively in shaping quality assurance processes?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "To what degree do students perceive their feedback as being genuinely acted upon?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "How does the QSE Department measure the impact of its quality improvement initiatives?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "What trends have been observed in evaluation results over recent years?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "In what ways are external stakeholders (e.g., employers, alumni, society) involved in the quality assurance process?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "Are there examples where evaluation feedback has led to significant curriculum or policy change?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "How is resistance to evaluation or quality assurance measures handled among faculty and staff?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "How is teaching quality addressed for courses with small enrollments where anonymity is challenging?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "What are some examples of changes implemented as a direct result of course evaluations?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "How are decisions about the weighting of different success levels in evaluations made?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "How does the QSE Department ensure data privacy beyond anonymity in surveys?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "What support structures exist for instructors who consistently receive \"insufficient\" evaluations?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "What are the criteria for selecting external peer reviewers for program evaluations?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "How do research performance evaluations differ in the sciences versus the humanities?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "How often are the guidelines and framework concepts for evaluation revised or updated?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "Does the university collect longitudinal data on teaching quality improvement?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "What feedback mechanisms exist for students who disagree with their course’s evaluation outcomes?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "What are the challenges of conducting evaluations in courses taught in multiple languages?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "How are competing priorities (e.g., research vs teaching) balanced within the quality assurance system?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "How is the confidentiality of open-response comments ensured in small classes?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "Are there disciplinary differences in how course evaluations are conducted or weighted?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "Are there particular disciplines or faculties with unique approaches to QSE?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "What is the process for adding new modules to the standard course evaluation questionnaire?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "How does the university engage graduates in ongoing evaluation after leaving the institution?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "How does UniBE compare its quality assurance mechanisms to those of other Swiss universities?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "What lessons have been learned from external peer reviews in administrative units?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "What training do staff and faculty receive in preparing for evaluations or interpreting results?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "How is the effectiveness of additional modules in final evaluations assessed?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "What are the main obstacles in achieving higher student participation rates in surveys?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "How do online-only or hybrid courses impact the evaluation process?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "How is faculty or course performance over time tracked and analyzed to identify long-term trends?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "What are typical themes in the open feedback provided by students?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "How are the results from graduate surveys actively used in curriculum development?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "How does the QSE Department track implementation of action plans across the entire university?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "Are there incentives for students to participate in numerous evaluations?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "Is there evidence that QSE measures have improved graduate employability?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "How are the evaluation results from study program reviews communicated to external stakeholders or prospective students?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "How are QSE initiatives communicated to incoming students?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "What are some best practices identified in the recent peer reviews of central administration units?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "What feedback mechanisms exist for the effectiveness of QSE communications themselves?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "How does UniBE’s approach to teaching innovation intersect with its quality assurance practices?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "Are there benchmarks or key performance indicators used in administrative QSE?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "How do students perceive the representativeness and fairness of course evaluation surveys?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "What are some examples of innovation in the use of interim feedback methods?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "Are there standardized consequences for repeated 'insufficient' ratings across all faculties?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "How has the move to exclusively online surveys affected faculty engagement in QSE?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "How does the QSE Department ensure equal opportunities in quality assurance participation, particularly for underrepresented groups?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "What challenges exist in integrating sustainability into QSE processes for courses and assessments?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "What strategic directions is the QSE Department considering for future development?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "In what ways can instructors request support or advice on interpreting negative feedback?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "How are action plans modified in response to significant changes (e.g., emergencies, pandemics)?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "How are external experts compensated for their work in peer reviews or evaluations?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "What are the most commonly selected supplementary modules in course evaluations, and why?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "How do action plans differ between faculties with very distinct disciplines?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "How do departments or faculties customize QSE processes to fit their unique needs?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "What steps does the University of Bern take to ensure transparency in evaluation outcomes for stakeholders?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "What technological advancements are being integrated into evaluation and QSE processes?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "How does the QSE Department coordinate with student government (SUB) on quality matters?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "How does UniBE’s quality culture differ from that of peer institutions internationally?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "How are alumni incorporated into quality development beyond graduate surveys?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "What methodologies are used to evaluate the effectiveness of external experts or peer reviewers?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "Are QSE processes adapted for doctoral and postgraduate programs?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "Are stakeholders outside the university (e.g., local businesses, government) consulted in QSE processes?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "What training is offered to students to help them provide constructive feedback in surveys?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "How do early-career staff experience and perceive the QSE system at UniBE?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "How are indirect measures (such as student retention) incorporated into QSE?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "In what ways is sustainability incorporated into ongoing quality assurance and evaluation?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "How flexible is the evaluation scheduling for block courses or non-traditional formats?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "What challenges arise when managing QSE across interdisciplinary or cross-faculty units?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "How does QSE interface with digital learning environments like ILIAS?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "How are feedback loops closed when students or staff leave before changes are implemented?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "Is there a mechanism for students or staff to propose new QSE initiatives?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "What support exists for instructors who consistently receive lower ratings despite attempts to improve?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "What are some examples of courses that have achieved outstanding results and why?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "How are innovative teaching or assessment approaches evaluated within the QSE framework?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "How is equity evaluated within the teaching and learning quality processes?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "What are the most frequently reported strengths and weaknesses across course evaluations?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "How does the QSE Department ensure that quality assurance doesn't create excessive administrative burden?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "How is the impact of the ALL Award tracked on teaching quality or career progression?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "How are lessons from failed or problematic QSE interventions documented and shared?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "What role does digitalization play in quality assurance beyond survey administration?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "What methods are being considered to increase participation in faculty action planning?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "How did the transition from paper to online surveys affect participation and data quality?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "Is there a feedback process for external reviewers to comment on the QSE system itself?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "How are language choices in surveys affecting response rates and data interpretation?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "What is the average timeline for the design, implementation, and review of a study program evaluation?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "Are there mechanisms for recognizing administrative or service staff contributions to quality assurance?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "How are differences in quality culture between faculties addressed by QSE?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "How do action plans intersect with fiscal or resource planning at faculty and university levels?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "Are data from non-mandatory interim feedback methods systematically collected or analyzed?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "What challenges are faced in harmonizing faculty and university action plans?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "What roles do external accreditation agencies play in ongoing university quality development?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "How are university-wide QSE guidelines balanced with faculty autonomy?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "How does the university manage changes in QSE regulations mandated by Swiss law?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "What research has been conducted on the correlation between evaluation outcomes and actual student learning?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "Do students participate in QSE-related commissions or only in surveys?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "Are the evaluation instruments used at UniBE open-source or proprietary?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "How does QSE ensure that continuing education programs meet both academic and practical relevance?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "How does UniBE handle dispute resolution when faculty contest evaluation findings?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "How is the success of sustainability and internationalization cross-cutting themes measured?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "What are typical timelines for implementing changes following negative evaluation results?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "What is the process for updating the quality strategy (e.g., from 2018–2021 to 2022)?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "Are there cases where student feedback leads to substantial curricular changes?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "How are complaints about grading or assessment fairness addressed in the QSE system?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "How is the effectiveness of communication about QSE measured?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "Are there specialized QSE approaches for online, hybrid, or remote-only degrees?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "Are students involved in the design or revision of questionnaires?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "How frequently is the effectiveness of didactics training assessed for teaching quality?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "How often are external audits or accreditations sought by service units or centers beyond the seven-year institutional cycle?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "What are common reasons for courses or assessments failing to meet quality thresholds?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "What resources are available for faculties or departments with limited QSE expertise?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "How does faculty governance interact with administrative QSE efforts?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "How does the university measure progress towards its stated quality culture objectives?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "To what extent does the QSE Department consult with external educational experts?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "What role does the Senate play in approving or reviewing QSE initiatives?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "How are services (e.g., libraries, IT support) included in QSE processes?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "How do QSE processes interact with requirements from disciplinary or professional accreditation bodies?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "Does the university set targets for increased participation in interim or voluntary evaluations?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "In what ways are teaching assistants and junior staff incorporated into QSE committees or processes?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "How are rapid changes (such as in digital teaching technology) integrated into QSE review cycles?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "Are there examples where course evaluations prompted changes in assessment formats or methods?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "How does QSE interact with risk management and crisis response functions?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "How are confidentiality and transparency balanced when reporting sensitive evaluation results?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "Are there language or accessibility provisions for students with special needs in evaluation surveys?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "What barriers have been identified to effective action plan implementation at the faculty or center level?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "How is the effectiveness of communication about QSE initiatives evaluated?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "How are learning outcomes for students linked to QSE measures across courses and programs?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "What support is available for staff or students wishing to learn more about quality assurance leadership?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "How are key performance indicators for QSE effectiveness determined and reviewed?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "Are there formal avenues for international benchmarking of QSE outcomes?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "What are the most common themes in open text comments on course evaluations?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "How are findings from faculty-specific QSE guidelines shared across other faculties?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "How do successive rounds of evaluation incorporate lessons learned from earlier cycles?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "What are some innovations the Department QSE is considering for the next five years?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "Are there peer learning opportunities among faculties for sharing QSE best practices?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "How is the cost-effectiveness of QSE measures evaluated?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "How is equity monitored in recognition awards like ALL across different subjects and faculties?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "What is the current strategic direction for quality development after 2025?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "What technological challenges have arisen in scaling evaluation systems university-wide?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "How do students' perceptions of feedback culture differ across faculties?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "How is quality assurance managed for interdisciplinary study programs spanning multiple faculties?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "Are there faculty-driven innovations in evaluation methods not yet adopted university-wide?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "Are there approaches to benchmarking UniBE’s QSE performance against international standards?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "How do short, intensive courses (e.g., summer schools) fit in the QSE framework?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "How are changes in faculty or staff reflected in ongoing QSE and evaluation processes?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "Are there mechanisms for dispute resolution in interpretation of evaluation results between staff and management?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "What are the key success factors in effective QSE communication strategies?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "How does the university evaluate the impact of QSE-sponsored professional development for instructors?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "How is the impact of continuing education evaluations tracked in professional or alumni outcomes?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "How do graduates perceive the value of their degree in relation to university QSE measures?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "What research has UniBE undertaken on the effectiveness of interim feedback methods?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "Are there cross-university collaborations in Switzerland for QSE best practices?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "How are minority or special status students’ experiences captured in course or program evaluations?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "What incentives might be created to increase faculty initiative in QSE participation?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "Do any faculties incorporate peer observation into QSE or teaching feedback?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   },
   {
-    "question": "How is academic freedom balanced with the requirements of standardized QSE?",
-    "answer": "The document does not provide an answer to this question."
+    "question": "How is digital accessibility ensured in online survey systems?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
+  },
+  {
+    "question": "Have there been observed shifts in quality culture indicators since the most recent accreditation?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
+  },
+  {
+    "question": "How are quality assurance and academic freedom reconciled in the governance model?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
+  },
+  {
+    "question": "What are the next planned updates to the framework concept or QSE guidelines?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
+  },
+  {
+    "question": "Are there documented cases of significant tension between subject-specific traditions and standard QSE procedures?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
+  },
+  {
+    "question": "How are new teaching methodologies (e.g., flipped classroom, blended learning) incorporated into standard evaluation instruments?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
+  },
+  {
+    "question": "How are complaints about the QSE process itself handled or escalated?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
+  },
+  {
+    "question": "Is there a formal mechanism to evaluate the workload of QSE officers and academic staff?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
+  },
+  {
+    "question": "How are data from external evaluations or accreditations used for internal improvement?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
+  },
+  {
+    "question": "What incentives exist for departments to pursue additional external certification or benchmarking?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
+  },
+  {
+    "question": "How do integrated cross-cutting initiatives (e.g., equality, sustainability) influence faculty-level action plans?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
+  },
+  {
+    "question": "How is unintended bias in survey instruments addressed and mitigated?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
+  },
+  {
+    "question": "Are there opportunities for students to serve in QSE leadership roles or strategic planning?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
+  },
+  {
+    "question": "How does UniBE ensure quality assurance for online-only or hybrid courses?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
+  },
+  {
+    "question": "What strategies has UniBE used to maintain or enhance QSE participation rates in remote learning environments?",
+    "groundtruth_answer": "The document does not provide an answer to this question."
   }
 ]

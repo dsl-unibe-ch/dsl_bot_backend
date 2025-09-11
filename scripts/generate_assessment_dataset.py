@@ -1,4 +1,4 @@
-"""ETL pipeline for RAG."""
+"""Generate assessment dataset for RAG Agent."""
 
 import json
 import logging
@@ -14,8 +14,10 @@ from pydantic import BaseModel
 
 from app.config import settings
 
+import time
+
 # logger
-logger = logging.getLogger("ETL")
+logger = logging.getLogger("assessment-dataset-generator")
 logger.setLevel(logging.DEBUG)
 logger.propagate = False
 handler = logging.StreamHandler()
@@ -98,14 +100,14 @@ def generate_questions_answers(text: str) -> list:
     for question_answer_pair in getattr(llm_answer, 'questions_answers', []):
         tmp = {
             "question": question_answer_pair.question,
-            "answer": question_answer_pair.answer
+            "groundtruth_answer": question_answer_pair.answer
         }
         questions_answers_list.append(tmp)
 
     for question_answer_pair in getattr(llm_answer, 'open_questions', []):
         tmp = {
             "question": question_answer_pair,
-            "answer": "The document does not provide an answer to this question."
+            "groundtruth_answer": "The document does not provide an answer to this question."
         }
         questions_answers_list.append(tmp)
 
@@ -113,7 +115,7 @@ def generate_questions_answers(text: str) -> list:
 
 def extract(file_name: str, encoding: str) -> list:
     """Extract data from source."""
-    full_path = os.path.join("data/raw/", file_name)
+    full_path = os.path.join("tests/data/raw/", file_name)
     df = pd.read_csv(full_path, encoding=encoding)
     extracted_data = df.to_dict(orient='records')
     return extracted_data
@@ -122,6 +124,7 @@ def transform(datasets: list) -> dict:
     """Transform the input data by translating the `text` entry (dataset_with_translation) and generating Q&A (questions_answers)."""
     for dict_ in tqdm(datasets):
         text = dict_["text"]
+        time.sleep(5)
         dict_["text_translated"] = german2english(text)
 
     entire_translated_text = " ".join([dict_['text_translated'] for dict_ in datasets])
@@ -129,7 +132,7 @@ def transform(datasets: list) -> dict:
 
     return {"dataset_with_translation": datasets, "questions_answers": questions_answers}
 
-def load(transformed_dataset: dict, file_name: str, encoding: str) -> None:
+def store(transformed_dataset: dict, file_name: str, encoding: str) -> None:
     """Store transformed data."""
     dataset_with_translation = transformed_dataset["dataset_with_translation"]
     questions_answers = transformed_dataset["questions_answers"] 
@@ -137,18 +140,14 @@ def load(transformed_dataset: dict, file_name: str, encoding: str) -> None:
     file_name_extension = os.path.splitext(file_name)[1]
     
     new_file_name = file_name.replace(file_name_extension, '_with_translation.json')
-    full_path = os.path.join("data/processed/", new_file_name)
+    full_path = os.path.join("tests/data/processed/", new_file_name)
     with open(full_path, 'w', encoding=encoding) as f:
         json.dump(dataset_with_translation, f, ensure_ascii=False, indent=2)
 
     new_file_name = file_name.replace(file_name_extension, '_questions_answers.json')
-    full_path = os.path.join("data/processed/", new_file_name)
-    with open(full_path, 'w', encoding=encoding) as f:
+    full_path = os.path.join("tests/data/processed/", new_file_name)
+    with open(full_path, 'w', encoding="utf-8") as f:
         json.dump(questions_answers, f, ensure_ascii=False, indent=2)
-
-def test_rag() -> None:
-    """Test retrievarl on RAG."""
-    pass
 
 
 if __name__ == "__main__":
@@ -163,5 +162,4 @@ if __name__ == "__main__":
         logger.debug(f"Processing file: {file_name} with encoding: {encoding}")
         extracted_data = extract(file_name, encoding)
         transformed_datasets = transform(extracted_data)
-        load(transformed_datasets, file_name, encoding)
-        test_rag()
+        store(transformed_datasets, file_name, encoding)
