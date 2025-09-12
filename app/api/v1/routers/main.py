@@ -5,7 +5,7 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.agent.chatbot_azure import ChatBot
+from app.agent.chatbot_azure import ChatBot, sessions
 from app.agent.feedback import Feedback
 from app.agent.query import QueryInput, QueryOutput
 from app.agent.schemas import (
@@ -46,7 +46,7 @@ def generate_session_id() -> StartSessionResponse:
         StartSessionResponse: An object containing the generated session_id.
     """  # noqa: E501
     chatbot = ChatBot()
-    return chatbot.generate_session_id_wrapper()
+    return chatbot.generate_session_id_wrapper(sessions=sessions)
 
 
 @app.get("/check_status")
@@ -59,8 +59,8 @@ def get_status(session_id: str) -> CheckStatusResponse:
     Returns:
         CheckStatusResponse: Status and message about chatbot initialization.
     """
-    chatbot = ChatBot.sessions.get(session_id)
-    return chatbot.get_status_wrapper(session_id)
+    chatbot = sessions.get(session_id)
+    return chatbot.get_status_wrapper()
 
 
 @app.post("/rag-agent")
@@ -74,7 +74,7 @@ def ask_chatbot(query: QueryInput, session_id: str) -> QueryOutput:
     Returns:
         QueryOutput: The chatbot's response, including sources and session ID.
     """
-    chatbot = ChatBot.sessions.get(session_id)
+    chatbot = sessions.get(session_id)
     return chatbot.ask_chatbot_wrapper(query)
 
 

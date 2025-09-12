@@ -3,7 +3,7 @@
 import logging
 import uuid
 
-from app.agent.chatbot_azure import ChatBot
+from app.agent.chatbot_azure import ChatBot, sessions
 from app.agent.feedback import Feedback
 from app.agent.query import QueryInput
 from scripts.generate_assessment_dataset import german2english
@@ -19,7 +19,6 @@ logger.addHandler(handler)
 def main() -> None:
     """Main function."""
     chatbot = ChatBot()
-    sessions = chatbot.sessions
     start_session_response = chatbot.generate_session_id_wrapper(sessions)
 
     while True:
