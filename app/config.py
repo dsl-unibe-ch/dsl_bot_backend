@@ -36,6 +36,10 @@ class Settings(BaseSettings):
     LANGSMITH_PROJECT: str
     AZURE_OPENAI_CHAT_KEY: str
 
+    AZURE_CLIENT_SECRET: str
+    AZURE_CLIENT_ID: str
+    AZURE_TENANT_ID: str
+
     @model_validator(mode="after")
     def normalize_urls(self) -> "Settings":
         """Normalize URL fields to be None if they are empty or 'None'."""
