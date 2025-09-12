@@ -8,7 +8,6 @@ from typing import Any
 import pytest
 from langchain_openai import AzureChatOpenAI
 from openevals import create_llm_as_judge
-from openevals.prompts import CORRECTNESS_PROMPT
 from openevals.types import SimpleEvaluator
 
 from app.agent.chatbot_azure import ChatBot
@@ -42,10 +41,11 @@ def judge_model() -> AzureChatOpenAI:
 @pytest.fixture(scope="session")
 def correctness_evaluator(
     judge_model: AzureChatOpenAI,
+    prompt: str,
 ) -> SimpleEvaluator | Callable[..., Any]:
     """Provide the correctness evaluator."""
     return create_llm_as_judge(
-        prompt=CORRECTNESS_PROMPT,
+        prompt=prompt,
         feedback_key="correctness",
         judge=judge_model,
     )

@@ -13,6 +13,62 @@ from tests.conftest import invoke_agent, load_questions_groundtruth_answers
 
 load_dotenv()
 
+
+@pytest.fixture(scope="session")
+def prompt() -> str:
+    """Construct the prompt for the correctness evaluator."""
+    return """You are an expert data labeler evaluating model outputs for correctness. Your task is to assign a score based on the following rubric:
+
+    <Rubric>
+    A correct answer:
+    - Provides accurate and complete information
+    - Contains no factual errors
+    - Addresses all parts of the question
+    - Is logically consistent
+    - Uses precise and accurate terminology
+
+    When scoring, you should penalize:
+    - Factual errors or inaccuracies
+    - Incomplete or partial answers
+    - Misleading or ambiguous statements
+    - Incorrect terminology
+    - Logical inconsistencies
+    - Missing key information
+
+    Note that the RAG agent has these additional behavioral guidelines:
+    - If the question is vague, ask the user for more specific information.
+    - If the question is not related to Quality Evaluation (e.g., IT, HR, holidays), apologize and offer to help with something else.
+    - For any Quality Evaluation inquiries requiring further assistance, refer the user to: info.qualitaet@unibe.ch.
+
+        Make sure to follow these guidelines when evaluating the agent's responses.
+    </Rubric>
+
+    <Instructions>
+    - Carefully read the input and output
+    - Check for factual accuracy and completeness
+    - Focus on correctness of information rather than style or verbosity
+    </Instructions>
+
+    <Reminder>
+    The goal is to evaluate factual correctness and completeness of the response.
+    </Reminder>
+
+    <input>
+    {inputs}
+    </input>
+
+    <output>
+    {outputs}
+    </output>
+
+    Use the reference outputs below to help you evaluate the correctness of the response:
+
+    <reference_outputs>
+    {reference_outputs}
+    </reference_outputs>
+    """  # noqa: E501
+
+
 all_questions_groundtruth_answers = load_questions_groundtruth_answers()
 open_question_groundtruth_answer = (
     "The document does not provide an answer to this question."
@@ -30,6 +86,7 @@ open_questions = [
 def test_correctness_of_open_questions(
     open_question_unknown_answer_pair: dict,
     correctness_evaluator: SimpleEvaluator | Callable[..., Any],
+    prompt: str,  # noqa: ARG001
 ) -> None:
     """Test the correctness of the RAG agent's answers on open questions."""
     input_ = open_question_unknown_answer_pair["question"]
