@@ -6,6 +6,8 @@
 
 - Install Python 3.12.11
 
+- To assess the performance of the RAG Agent, create an account on [LangSmith](https://smith.langchain.com/) and generate a new key
+
 </details>
 
 ## Configure the Python environment
@@ -47,14 +49,14 @@ pre-commit install
 Create `.env` file in the root of this repo and set the variables (see `.env.example` for the template).
 </details>
 
-## ETL pipeline
+## Generate assessment dataset for the RAG Agent
 <details>
 <summary>Click to expand</summary>
 
-The ETL pipeline reads the raw input data, translates text into English, and generates a dataset of question–answer pairs plus open-ended follow-up questions. This dataset is intended to evaluate and benchmark the RAG agent's performance.
+The script reads the raw input data, translates text into English, and generates a dataset of question–answer pairs plus open-ended follow-up questions. This dataset is intended to evaluate and benchmark the RAG agent's performance.
 
 ```bash 
-make etl-pipeline-rag
+make generate-assessment-dataset
 ```
 
 </details>
@@ -90,10 +92,12 @@ make compose-down
 <details>
 <summary>Click to expand</summary>
 
-- Integration tests
+- Unit tests
 ```bash 
-make test
+make unit-tests
 ```
+
+Log in to [LangSmith](https://smith.langchain.com/), navigate to `Datasets & Experiments`, and review the test results.
 
 </details>
 

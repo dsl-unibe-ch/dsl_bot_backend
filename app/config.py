@@ -1,6 +1,6 @@
 """Configuration settings for the application."""
 
-from pydantic import model_validator
+from pydantic import ConfigDict, model_validator
 from pydantic_settings import BaseSettings
 
 
@@ -30,6 +30,12 @@ class Settings(BaseSettings):
     AZURE_OPENAI_CHAT_DEPLOYMENT: str
     AZURE_OPENAI_CHAT_API_VERSION: str
 
+    LANGSMITH_TRACING: str
+    LANGSMITH_ENDPOINT: str
+    LANGSMITH_API_KEY: str
+    LANGSMITH_PROJECT: str
+    AZURE_OPENAI_CHAT_KEY: str
+
     @model_validator(mode="after")
     def normalize_urls(self) -> "Settings":
         """Normalize URL fields to be None if they are empty or 'None'."""
@@ -39,10 +45,7 @@ class Settings(BaseSettings):
                 setattr(self, attr, None)
         return self
 
-    class Config:
-        """Configuration for the settings."""
-
-        env_file = ".env"
+    model_config = ConfigDict(env_file=".env")
 
 
 settings = Settings()

@@ -6,7 +6,7 @@ import uuid
 from app.agent.chatbot_azure import ChatBot
 from app.agent.feedback import Feedback
 from app.agent.query import QueryInput
-from scripts.etl_pipeline_rag import german2english
+from scripts.generate_assessment_dataset import german2english
 
 logger = logging.getLogger("Kioskbot")
 logger.setLevel(logging.DEBUG)
