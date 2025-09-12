@@ -6,7 +6,6 @@ import logging
 import re
 import uuid
 from datetime import UTC, datetime
-from typing import ClassVar
 
 import ftfy
 from azure.core.credentials import AzureKeyCredential
@@ -33,11 +32,11 @@ table_service = TableServiceClient.from_connection_string(
 )
 chat_history_table = table_service.get_table_client(settings.CHAT_HISTORY_TABLE_NAME)
 
+sessions = {}
+
 
 class ChatBot:
     """ChatBot class to interact with Azure OpenAI and Azure AI Search."""
-
-    sessions: ClassVar[dict] = {}
 
     def __init__(self) -> None:
         """Initialize the ChatBot with Azure clients and prompt chains."""
