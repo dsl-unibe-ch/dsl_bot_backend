@@ -161,6 +161,23 @@ curl -s -X POST "http://127.0.0.1:8000/send_feedback" -H "Content-Type: applicat
 
 </details>
 
+## Crawler
+<details>
+
+- Scrape unibe website: 
+
+```bash
+scrape-unibe-innovation
+```
+
+- Convert .mht files (One Note extracts) to text:
+
+```bash
+convert-mht-to-txt
+```
+
+</details>
+
 ## Others
 <details>
 <summary>Click to expand</summary>
