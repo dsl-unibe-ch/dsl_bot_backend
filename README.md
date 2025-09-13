@@ -170,7 +170,10 @@ curl -s -X POST "http://127.0.0.1:8000/send_feedback" -H "Content-Type: applicat
 scrape-unibe-innovation
 ```
 
-- Convert .mht files (One Note extracts) to text:
+- Convert .mht files to text: 
+1. Extract One Note in .mht. 
+2. Place the mht file under ```crawler/data/raw```
+3. Verify that input name of file matches in makefile. 
 
 ```bash
 convert-mht-to-txt
