@@ -22,7 +22,7 @@ deny_domains:
   - kpp.psy.unibe.ch
   - philhum.unibe.ch
 feed:
-  output: crawler/data/raw/innovation.jsonl
+  output: scripts/crawler/data/raw/innovation.jsonl
   format: jsonlines
   encoding: utf-8
-jobdir: crawler/jobs/innovation
+jobdir: scripts/crawler/jobs/innovation

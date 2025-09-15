@@ -20,13 +20,13 @@ run-demo:
 .PHONY: scrape-unibe-innovation
 scrape-unibe-innovation:
 	@echo $@
-	@rm -rf crawler/jobs/innovation
-	@rm -f  crawler/data/raw/innovation.jsonl
-	@PYTHONPATH=$(shell pwd) scrapy runspider crawler/unibe_crawler.py -a config=crawler/configs/innovation.yml -o crawler/data/raw/innovation.jsonl -s JOBDIR=crawler/jobs/innovation
+	@rm -rf scripts/crawler/jobs/innovation
+	@rm -f  scripts/crawler/data/raw/innovation.jsonl
+	@PYTHONPATH=$(shell pwd) scrapy runspider scripts/crawler/unibe_crawler.py -a config=scripts/crawler/configs/innovation.yml -o scripts/crawler/data/raw/innovation.jsonl -s JOBDIR=scripts/crawler/jobs/innovation
 
-convert-mht-to-txt:
+convert-mht-to-txt-innovation:
 	@echo $@
-	@PYTHONPATH=$(shell pwd) python crawler/one_note_mht_reader.py crawler/data/raw/Notizbuch_fuer_Ideenlabor.mht crawler/data/raw/Notizbuch_fuer_Ideenlabor.txt
+	@PYTHONPATH=$(shell pwd) python scripts/crawler/one_note_mht_reader.py scripts/crawler/data/raw/Notizbuch_fuer_Ideenlabor.mht scripts/crawler/data/raw/Notizbuch_fuer_Ideenlabor.txt
 
 VERSION=$(shell grep '^version' pyproject.toml | head -1 | cut -d '"' -f2)
 

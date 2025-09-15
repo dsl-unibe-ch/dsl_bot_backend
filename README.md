@@ -172,11 +172,11 @@ scrape-unibe-innovation
 
 - Convert .mht files to text: 
 1. Extract One Note in .mht. 
-2. Place the mht file under ```crawler/data/raw```
+2. Place the mht file under ```scripts/crawler/data/raw```
 3. Verify that input name of file matches in makefile. 
 
 ```bash
-convert-mht-to-txt
+convert-mht-to-txt-ideenlabor
 ```
 
 </details>

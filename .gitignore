@@ -51,6 +51,7 @@ coverage.xml
 .pytest_cache/
 cover/
 
+
 # Translations
 *.mo
 *.pot
@@ -83,7 +84,6 @@ profile_default/
 ipython_config.py
 
 # Crawler
-crawler/jobs/
 crawler/data/raw/
 crawler/jobs/
 
