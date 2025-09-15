@@ -1,14 +1,28 @@
-import sys, re, argparse
-from pathlib import Path
-from email import message_from_binary_file
-from urllib.parse import urljoin, urlparse
-from bs4 import BeautifulSoup, NavigableString
+"""Convert .mht/.mhtml to plain text with inline URLs."""
 
-def pick_html_part(msg):
-    """
-    Return (html_string, base_url) from the first suitable text/html part.
-    Prefer a part with a non-cid Content-Location, else fall back to any text/html.
-    """
+import argparse
+import logging
+import re
+from email import message_from_binary_file
+from email.message import Message
+from pathlib import Path
+from urllib.parse import urljoin, urlparse
+
+from bs4 import BeautifulSoup, FeatureNotFound, NavigableString
+from lxml.etree import XMLSyntaxError
+
+# logger
+logger = logging.getLogger("convert-mht-to-txt-ideenlabor")
+logger.setLevel(logging.DEBUG)
+logger.propagate = False
+handler = logging.StreamHandler()
+handler.setLevel(logging.DEBUG)
+handler.setFormatter(logging.Formatter("%(levelname)s: %(message)s"))
+logger.addHandler(handler)
+
+
+def pick_html_part(msg: Message) -> tuple[str, str]:
+    """Return (html_string, base_url) from the first suitable text/html part."""
     candidate = None
     base = None
 
@@ -24,17 +38,16 @@ def pick_html_part(msg):
                 candidate = html
                 base = cl
     if candidate is None:
-        raise RuntimeError("No text/html part found in this MHT file.")
+        error_message = "No text/html found in this part of the MHT file"
+        raise RuntimeError(error_message)
     return candidate, base
 
-def html_to_text_with_links(html, base_url=None):
-    """
-    Convert HTML to plain text while appending (resolved URL) after each anchor's text.
-    Only http/https links are kept. Relative links are resolved against base_url or <base> tag.
-    """
+
+def html_to_text_with_links(html: str, base_url: str | None = None) -> str:
+    """Convert HTML to plain text with resolved URL."""
     try:
         soup = BeautifulSoup(html, "lxml")
-    except Exception:
+    except (XMLSyntaxError, FeatureNotFound):
         soup = BeautifulSoup(html, "html.parser")
 
     # Drop scripts/styles/noscript
@@ -46,10 +59,10 @@ def html_to_text_with_links(html, base_url=None):
     if base_tag and base_tag.get("href"):
         base_url = base_tag["href"]
 
-    def is_http(u):
+    def is_http(u: str) -> bool:
         try:
             return urlparse(u).scheme in ("http", "https")
-        except Exception:
+        except ValueError:
             return False
 
     # Replace each <a> with its text + (resolved URL) if applicable
@@ -74,15 +87,20 @@ def html_to_text_with_links(html, base_url=None):
     raw = re.sub(r" *\n *", "\n", raw)
     return raw.strip() + "\n"
 
-def convert_mht_to_text(mht_path: Path, out_path: Path):
-    with open(mht_path, "rb") as f:
+
+def convert_mht_to_text(mht_path: Path, out_path: Path) -> None:
+    """Convert .mht/.mhtml to plain text with inline URLs."""
+    with Path(mht_path).open(mode="rb") as f:
         msg = message_from_binary_file(f)
     html, base = pick_html_part(msg)
     text = html_to_text_with_links(html, base_url=base)
     out_path.write_text(text, encoding="utf-8")
 
+
 # ---- Argument parsing and execution at top level (no main function) ----
-parser = argparse.ArgumentParser(description="Convert .mht/.mhtml to plain text with inline URLs.")
+parser = argparse.ArgumentParser(
+    description="Convert .mht/.mhtml to plain text with inline URLs."
+)
 parser.add_argument("input", help="Path to the .mht/.mhtml file")
 parser.add_argument("output", help="Path to the output .txt file")
 args = parser.parse_args()
@@ -90,6 +108,4 @@ args = parser.parse_args()
 mht = Path(args.input).expanduser()
 out = Path(args.output).expanduser()
 convert_mht_to_text(mht, out)
-print(f"Done. Wrote: {out}")
-
-#python scripts/one_note_mht_reader.py data/raw/Notizbuch_fuer_Ideenlabor.mht data/raw/Notizbuch_fuer_Ideenlabor.txt
+logger.debug("MHT file converted to text. Wrote: %s", out)
