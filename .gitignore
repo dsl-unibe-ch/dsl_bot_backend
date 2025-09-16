@@ -51,6 +51,7 @@ coverage.xml
 .pytest_cache/
 cover/
 
+
 # Translations
 *.mo
 *.pot
@@ -81,6 +82,10 @@ target/
 # IPython
 profile_default/
 ipython_config.py
+
+# Crawler
+crawler/data/raw/
+crawler/jobs/
 
 # pyenv
 #   For a library or package, you might want to ignore these files since the code is
