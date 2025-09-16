@@ -1,6 +1,5 @@
 """Test RAG agent."""
 
-import json
 from collections.abc import Callable
 from typing import Any
 
@@ -97,11 +96,20 @@ def test_correctness_of_questions_with_answers(
         inputs=input_, outputs=output["output"], reference_outputs=reference_output
     )
 
-    sources = output["sources"]
-    sources_json = json.dumps([str(s) for s in sources]) if sources else "[]"
+    sources_list = [
+        {
+            "document_url": source.document_url,
+            "document_location": source.document_location,
+            "page_content": source.page_content,
+            "gathered_on": source.gathered_on,
+            "modified": source.modified,
+            "score": source.score,
+        }
+        for source in output["sources"]
+    ]
 
     t.log_outputs({"answer": output["output"]})
-    t.log_outputs({"sources": sources_json})
+    t.log_outputs({"sources": sources_list})
     t.log_outputs({"correctness_explanation": result.get("comment")})
     if not result["score"]:
         pytest.fail("RAG agent failed to answer the question correctly", pytrace=False)
