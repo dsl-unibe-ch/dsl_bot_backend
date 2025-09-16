@@ -164,13 +164,13 @@ curl -s -X POST "http://127.0.0.1:8000/send_feedback" -H "Content-Type: applicat
 ## Crawler
 <details>
 
-- Scrape unibe website: 
+- Scrape UniBe Innovation website: 
 
 ```bash
 scrape-unibe-innovation
 ```
 
-- Convert .mht files to text: 
+- Convert One Note .mht files from Ideenlabor (UniBe Innovation) to text: 
 1. Extract One Note in .mht. 
 2. Place the mht file under ```scripts/crawler/data/raw```
 3. Verify that input name of file matches in makefile. 
