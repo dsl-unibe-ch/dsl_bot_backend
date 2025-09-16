@@ -2,10 +2,10 @@
 
 import json
 import logging
-import os
 import time
 
 import pandas as pd
+import Path
 from azure.identity import DefaultAzureCredential, get_bearer_token_provider
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import AzureChatOpenAI
@@ -92,7 +92,7 @@ def generate_questions_answers(text: str) -> list:
         messages=[
             {
                 "role": "system",
-                "content": f"Generate {number_of_questions} relevant questions and answers based on the provided text. Also generate {number_of_questions} additional relevant questions whose answers are NOT present in the text (these should be open-ended/follow-up questions). Return them as a JSON object with a top-level array named 'questions_answers' (each entry containing 'question' and 'answer') and an array named 'open_questions' containing {number_of_questions} question strings whose answers are not in the text.",
+                "content": f"Generate {number_of_questions} relevant questions and answers based on the provided text. Also generate {number_of_questions} additional relevant questions whose answers are NOT present in the text (these should be open-ended/follow-up questions). Return them as a JSON object with a top-level array named 'questions_answers' (each entry containing 'question' and 'answer') and an array named 'open_questions' containing {number_of_questions} question strings whose answers are not in the text.",  # noqa: E501
             },
             {"role": "user", "content": text},
         ],
@@ -111,7 +111,7 @@ def generate_questions_answers(text: str) -> list:
     for question_answer_pair in getattr(llm_answer, "open_questions", []):
         tmp = {
             "question": question_answer_pair,
-            "groundtruth_answer": "The document does not provide an answer to this question.",
+            "groundtruth_answer": "The document does not provide an answer to this question.",  # noqa: E501
         }
         questions_answers_list.append(tmp)
 
@@ -120,14 +120,13 @@ def generate_questions_answers(text: str) -> list:
 
 def extract(file_name: str, encoding: str) -> list:
     """Extract data from source."""
-    full_path = os.path.join("tests/data/raw/", file_name)
+    full_path = Path.os.path.join("tests/data/raw/", file_name)
     df = pd.read_csv(full_path, encoding=encoding)
-    extracted_data = df.to_dict(orient="records")
-    return extracted_data
+    return df.to_dict(orient="records")
 
 
 def transform(datasets: list) -> dict:
-    """Transform the input data by translating the `text` entry (dataset_with_translation) and generating Q&A (questions_answers)."""
+    """Transform the input data by translating the `text` entry (dataset_with_translation) and generating Q&A (questions_answers)."""  # noqa: E501
     for dict_ in tqdm(datasets):
         text = dict_["text"]
         time.sleep(5)
@@ -147,16 +146,16 @@ def store(transformed_dataset: dict, file_name: str, encoding: str) -> None:
     dataset_with_translation = transformed_dataset["dataset_with_translation"]
     questions_answers = transformed_dataset["questions_answers"]
 
-    file_name_extension = os.path.splitext(file_name)[1]
+    file_name_extension = Path(file_name).suffix
 
     new_file_name = file_name.replace(file_name_extension, "_with_translation.json")
-    full_path = os.path.join("tests/data/processed/", new_file_name)
-    with open(full_path, "w", encoding=encoding) as f:
+    full_path = Path("tests/data/processed") / new_file_name
+    with Path.open(full_path, "w", encoding=encoding) as f:
         json.dump(dataset_with_translation, f, ensure_ascii=False, indent=2)
 
     new_file_name = file_name.replace(file_name_extension, "_questions_answers.json")
-    full_path = os.path.join("tests/data/processed/", new_file_name)
-    with open(full_path, "w", encoding="utf-8") as f:
+    full_path = Path("tests/data/processed") / new_file_name
+    with Path.open(full_path, "w", encoding="utf-8") as f:
         json.dump(questions_answers, f, ensure_ascii=False, indent=2)
 
 

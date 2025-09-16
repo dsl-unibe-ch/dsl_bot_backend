@@ -3,9 +3,9 @@ PYTHON := $(firstword $(wildcard .venv/bin/python) $(wildcard .venv/Scripts/pyth
 
 lint:
 	@echo $@
-	$(PYTHON) -m ruff format app demo tests
+	$(PYTHON) -m ruff format app demo tests scripts
 	@echo $@
-	$(PYTHON) -m ruff check --fix app demo tests
+	$(PYTHON) -m ruff check --fix app demo tests scripts
 	
 
 generate-assessment-dataset:
