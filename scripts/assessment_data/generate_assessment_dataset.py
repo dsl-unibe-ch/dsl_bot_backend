@@ -3,9 +3,9 @@
 import json
 import logging
 import time
+from pathlib import Path
 
 import pandas as pd
-import Path
 from azure.identity import DefaultAzureCredential, get_bearer_token_provider
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import AzureChatOpenAI
@@ -120,9 +120,9 @@ def generate_questions_answers(text: str) -> list:
 
 def extract(file_name: str, encoding: str) -> list:
     """Extract data from source."""
-    full_path = Path.os.path.join("tests/data/raw/", file_name)
+    full_path = Path("tests/data/raw") / file_name
     df = pd.read_csv(full_path, encoding=encoding)
-    return df.to_dict(orient="records")
+    return df.to_dict(orient="records")[:2]
 
 
 def transform(datasets: list) -> dict:
