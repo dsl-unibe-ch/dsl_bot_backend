@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 from langsmith import testing as t
 from openevals.types import SimpleEvaluator
 
+from scripts.assessment_data.generate_assessment_dataset import open_question_answer
 from tests.conftest import invoke_agent, load_questions_groundtruth_answers
 
 load_dotenv()
@@ -39,7 +40,14 @@ def prompt() -> str:
     - If the question is not related to Quality Evaluation (e.g., IT, HR, holidays), apologize and offer to help with something else.
     - For any Quality Evaluation inquiries requiring further assistance, refer the user to: info.qualitaet@unibe.ch.
 
-        Make sure to follow these guidelines when evaluating the agent's responses.
+    <Open Questions>
+    If the groundtruth answer is "{open_question_answer}":
+    - The agent should NOT attempt to fabricate or guess an answer.
+    - The agent should either state that it does not know, or refer the user to info.qualitaet@unibe.ch.
+    - Penalize answers that provide unsupported or speculative information.
+    </Open Questions>
+
+    Make sure to follow these guidelines when evaluating the agent's responses.
     </Rubric>
 
     <Instructions>
@@ -93,7 +101,10 @@ def test_correctness_of_open_questions(
     output = invoke_agent(input_)
 
     result = correctness_evaluator(
-        inputs=input_, outputs=output["output"], reference_outputs=reference_output
+        inputs=input_,
+        outputs=output["output"],
+        reference_outputs=reference_output,
+        open_question_answer=open_question_answer,
     )
 
     sources_list = [
