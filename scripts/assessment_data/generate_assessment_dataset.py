@@ -26,10 +26,11 @@ logger.addHandler(handler)
 
 
 class QuestionAnswer(BaseModel):
-    """Question and answer pairs for each document."""
+    """Question, answer, and supporting sentences for each document."""
 
     question: str
     answer: str
+    supporting_sentences: list[str] = []
 
 
 # wrapper model to hold multiple question/answer pairs
@@ -41,6 +42,7 @@ class QuestionAnswerList(BaseModel):
 
 
 number_of_questions = 100
+open_question_answer = "The document does not provide an answer to this question."
 token_provider = get_bearer_token_provider(
     DefaultAzureCredential(), "https://cognitiveservices.azure.com/.default"
 )
@@ -78,7 +80,7 @@ def german2english(text: str) -> str:
 
 
 def generate_questions_answers(text: str) -> list:
-    """Generate questions and answers, and open questions from text."""
+    """Generate questions and answers, open questions, and supporting sentences from text."""  # noqa: E501
     questions_answers_list = []
 
     client = AzureOpenAI(
@@ -87,12 +89,23 @@ def generate_questions_answers(text: str) -> list:
         api_version=settings.AZURE_OPENAI_CHAT_API_VERSION,
     )
 
+    prompt_content = (
+        f"Generate {number_of_questions} relevant questions and answers based on the provided text. "  # noqa: E501
+        f"For each answer, also extract the exact sentences from the text that were used to generate the answer and return them as a list of strings in a field called 'supporting_sentences'. "  # noqa: E501
+        f"Important: When extracting supporting sentences, copy them verbatim from the original text. Do not change punctuation, spacing, or new lines. "  # noqa: E501
+        f"If multiple sentences are needed, store each as a separate element in the list, do not merge or join them with '[...]' or any other characters. "  # noqa: E501
+        f"Do not add, remove, or modify any words; only extract sentences exactly as they appear in the original text. "  # noqa: E501
+        f"Think step by step: First identify the answer, then carefully locate and copy the exact supporting sentences from the text, ensuring they are verbatim and formatted as in the original. "  # noqa: E501
+        f"Also generate {number_of_questions} additional relevant questions whose answers are NOT present in the text (these should be open-ended/follow-up questions). "  # noqa: E501
+        f"Return them as a JSON object with a top-level array named 'questions_answers' (each entry containing 'question', 'answer', and 'supporting_sentences') and an array named 'open_questions' containing {number_of_questions} question strings whose answers are not in the text."  # noqa: E501
+    )
+
     completion = client.beta.chat.completions.parse(
         model=settings.AZURE_OPENAI_CHAT_DEPLOYMENT,
         messages=[
             {
                 "role": "system",
-                "content": f"Generate {number_of_questions} relevant questions and answers based on the provided text. Also generate {number_of_questions} additional relevant questions whose answers are NOT present in the text (these should be open-ended/follow-up questions). Return them as a JSON object with a top-level array named 'questions_answers' (each entry containing 'question' and 'answer') and an array named 'open_questions' containing {number_of_questions} question strings whose answers are not in the text.",  # noqa: E501
+                "content": prompt_content,
             },
             {"role": "user", "content": text},
         ],
@@ -105,13 +118,17 @@ def generate_questions_answers(text: str) -> list:
         tmp = {
             "question": question_answer_pair.question,
             "groundtruth_answer": question_answer_pair.answer,
+            "supporting_sentences": getattr(
+                question_answer_pair, "supporting_sentences", []
+            ),
         }
         questions_answers_list.append(tmp)
 
     for question_answer_pair in getattr(llm_answer, "open_questions", []):
         tmp = {
             "question": question_answer_pair,
-            "groundtruth_answer": "The document does not provide an answer to this question.",  # noqa: E501
+            "groundtruth_answer": open_question_answer,
+            "supporting_sentences": [],
         }
         questions_answers_list.append(tmp)
 
@@ -122,7 +139,7 @@ def extract(file_name: str, encoding: str) -> list:
     """Extract data from source."""
     full_path = Path("tests/data/raw") / file_name
     df = pd.read_csv(full_path, encoding=encoding)
-    return df.to_dict(orient="records")[:2]
+    return df.to_dict(orient="records")
 
 
 def transform(datasets: list) -> dict:
@@ -135,7 +152,40 @@ def transform(datasets: list) -> dict:
     entire_translated_text = " ".join([dict_["text_translated"] for dict_ in datasets])
     questions_answers = generate_questions_answers(entire_translated_text)
 
+    # validate supporting sentences
+    for question_answer_pair in questions_answers:
+        if question_answer_pair["groundtruth_answer"] == open_question_answer:
+            if len(question_answer_pair["supporting_sentences"]) == 0:
+                continue
+            logger.debug(
+                "Supporting sentences for question '%s' should be empty: %s",
+                question_answer_pair["question"],
+                question_answer_pair["supporting_sentences"],
+            )
+        else:
+            valid_sentences = []
+            if len(question_answer_pair["supporting_sentences"]) == 0:
+                valid_sentences.append("The supporting sentences were not extracted.")
+                logger.debug(
+                    "Supporting sentences not extracted for question '%s'",
+                    question_answer_pair["question"],
+                )
+            for supporting_sentence in question_answer_pair["supporting_sentences"]:
+                if supporting_sentence.lower() in entire_translated_text.lower():
+                    valid_sentences.append(supporting_sentence)
+                else:
+                    valid_sentences.append(
+                        "Cannot find the supporting sentence in the text."
+                    )
+                    logger.debug(
+                        "Supporting sentence not found in text for question '%s': %s",
+                        question_answer_pair["question"],
+                        supporting_sentence,
+                    )
+            question_answer_pair["supporting_sentences"] = valid_sentences
+
     return {
+        "entire_translated_text": entire_translated_text,
         "dataset_with_translation": datasets,
         "questions_answers": questions_answers,
     }
@@ -143,10 +193,18 @@ def transform(datasets: list) -> dict:
 
 def store(transformed_dataset: dict, file_name: str, encoding: str) -> None:
     """Store transformed data."""
+    entire_translated_text = transformed_dataset["entire_translated_text"]
     dataset_with_translation = transformed_dataset["dataset_with_translation"]
     questions_answers = transformed_dataset["questions_answers"]
 
     file_name_extension = Path(file_name).suffix
+
+    new_file_name = file_name.replace(
+        file_name_extension, "_entire_translated_text.txt"
+    )
+    full_path = Path("tests/data/processed") / new_file_name
+    with Path.open(full_path, "w", encoding="utf-8") as f:
+        f.write(entire_translated_text)
 
     new_file_name = file_name.replace(file_name_extension, "_with_translation.json")
     full_path = Path("tests/data/processed") / new_file_name
