@@ -1,0 +1,1136 @@
+[
+  {
+    "question": "What is the purpose of course evaluation at the University of Bern?",
+    "groundtruth_answer": "Course evaluation provides concrete suggestions for the improvement of teaching and learning situations and enables the University of Bern to maintain a high level of teaching quality and initiate its further development. In addition, it serves as evidence of quality for legislators and the public.",
+    "supporting_sentences": [
+      "Course evaluation provides concrete suggestions for the improvement of teaching and learning situations and enables the University of Bern to maintain a high level of teaching quality and initiate its further development. In addition, it serves as evidence of quality for legislators and the public."
+    ]
+  },
+  {
+    "question": "Which courses and assessments must be evaluated at the University of Bern?",
+    "groundtruth_answer": "Every course should be evaluated at least once every three years, 50% of all assessments should be evaluated at least once within 3 years, and for new lecturers and those in qualifying positions, a final evaluation is mandatory.",
+    "supporting_sentences": [
+      "The quality officers of the faculties are responsible for the selection and registration of courses and assessments to be evaluated. The minimum requirements according to the framework concept are:",
+      "- Every course should be evaluated at least once every three years",
+      "- 50% of all assessments should be evaluated at least once every 3 years",
+      "- For new lecturers and those in qualifying positions, a final evaluation is mandatory"
+    ]
+  },
+  {
+    "question": "How often must final evaluations be conducted for each course?",
+    "groundtruth_answer": "Every course should be evaluated at least once every three years.",
+    "supporting_sentences": [
+      "- Final evaluation: every course should be evaluated at least once every three years"
+    ]
+  },
+  {
+    "question": "How often must assessments (exams) be evaluated at minimum?",
+    "groundtruth_answer": "50% of all assessments should be evaluated at least once within 3 years.",
+    "supporting_sentences": [
+      "- Evaluation of assessments: 50% of all assessments should be evaluated at least once within 3 years"
+    ]
+  },
+  {
+    "question": "Are there mandatory evaluations for new lecturers at the University of Bern?",
+    "groundtruth_answer": "Yes, for new lecturers and those in qualifying positions, a final evaluation is mandatory.",
+    "supporting_sentences": [
+      "- For new lecturers and those in qualifying positions, a final evaluation is mandatory"
+    ]
+  },
+  {
+    "question": "What are the languages in which course evaluation questionnaires are available?",
+    "groundtruth_answer": "The questionnaires for midterm, final evaluations, and assessment evaluation are available in German, English, and French.",
+    "supporting_sentences": [
+      "The questionnaires for midterm, final evaluations, and assessment evaluation are available in German, English, and French (language can be selected via the flag at the top of the survey)."
+    ]
+  },
+  {
+    "question": "Can standard course evaluation questionnaires be customized?",
+    "groundtruth_answer": "Customizing the standard questionnaires is not possible. For the final evaluation, optional additional question blocks (modules) are available, which can be added to the core questionnaire. Faculties may also design their own survey instruments, but these do not replace the mandatory final evaluation using the standard questionnaire.",
+    "supporting_sentences": [
+      "Customizing the standard questionnaires is not possible. For the final evaluation, optional additional question blocks (modules) are available, which can be added to the core questionnaire as needed. The sample additional modules can be found here (https://www.unibe.ch/studium/werkzeuge_und_arbeitshilfen/fuer_lehrende/lehrveranstaltungsevaluation/schlussevaluation/index_ger.html#pane1101959). Faculties may also design their own survey instruments. The Unit for Course Evaluation can provide feedback on custom-designed questionnaires, but implementation and analysis cannot be done centrally. Custom questionnaires do not replace the mandatory final evaluation using the standard questionnaire."
+    ]
+  },
+  {
+    "question": "What is the minimum number of student responses required for the automatic release of survey results?",
+    "groundtruth_answer": "Survey results are only sent automatically if at least 5 students have participated.",
+    "supporting_sentences": [
+      "To preserve student anonymity, survey results are only sent automatically if at least 5 students have participated. In exceptional cases, lecturers may receive results upon request if fewer than 5 but more than 2 students participated. The results of assessment evaluations are only sent when at least 5 students have participated."
+    ]
+  },
+  {
+    "question": "Are course evaluations at the University of Bern anonymous?",
+    "groundtruth_answer": "Yes, all surveys are anonymous. It is not possible to trace who gave which answer.",
+    "supporting_sentences": [
+      "Yes, all surveys are anonymous. It is not possible to trace who gave which answer."
+    ]
+  },
+  {
+    "question": "How are students informed of the opportunity to participate in a course evaluation?",
+    "groundtruth_answer": "Lecturers provide a QR code (typically during the second to last session), leading to the survey. Alternatively, a survey link may be distributed (e.g., by email or ILIAS).",
+    "supporting_sentences": [
+      "Final and midterm evaluation: Lecturers provide a QR code (typically during the second to last session), leading to the survey. Alternatively, a survey link may be distributed (e.g., by email or ILIAS)."
+    ]
+  },
+  {
+    "question": "How do students participate in assessment (exam) evaluations?",
+    "groundtruth_answer": "Students receive a survey link via email from the Unit for Course Evaluation.",
+    "supporting_sentences": [
+      "Assessment evaluation: Students receive a survey link via email from the Unit for Course Evaluation."
+    ]
+  },
+  {
+    "question": "Why should students participate in surveys?",
+    "groundtruth_answer": "Survey participation enables lecturers and the university to further develop teaching and allows students to reflect on their behavior and its contribution to their learning success.",
+    "supporting_sentences": [
+      "Course evaluation is a tool to measure to what extent the conditions and target criteria for quality teaching have been fulfilled. This measurement is based on students’ ratings in the surveys and is thus only possible through student participation. Students benefit in two ways:",
+      "- Lecturers and the university use survey results to further develop teaching. Resulting improvements benefit students in their courses and assessments.",
+      "- Surveys give students an opportunity to reflect on their own behavior and contribution to learning success, and improve it, if necessary, in the future.",
+      "Full participation in an evaluation ensures more representative results."
+    ]
+  },
+  {
+    "question": "When are course evaluations typically conducted?",
+    "groundtruth_answer": "Survey dates depend on the type of evaluation and the individual schedule of the course and exams.",
+    "supporting_sentences": [
+      "Survey dates depend on the type of evaluation (midterm, final, or assessment evaluation) and the individual schedule of the course and exams."
+    ]
+  },
+  {
+    "question": "Is there a standard time for when interim feedback should be collected?",
+    "groundtruth_answer": "It is recommended that you collect interim feedback no later than the second third of the semester, so that the results can be discussed with students and any necessary adjustments can still be made during the current course.",
+    "supporting_sentences": [
+      "We recommend that you collect interim feedback no later than the second third of the semester, so that the results can be discussed with students and any necessary adjustments can still be made during the current course. For specific feedback, e.g., on a certain method or a concrete input, a later time during the semester is also conceivable."
+    ]
+  },
+  {
+    "question": "Are course evaluation surveys online or paper-based?",
+    "groundtruth_answer": "Since the Spring semester 2022, all surveys (final, midterm, and assessment evaluations) are conducted online.",
+    "supporting_sentences": [
+      "Since the Spring semester 2022, all surveys (final, midterm, and assessment evaluations) are conducted online."
+    ]
+  },
+  {
+    "question": "Can a course be evaluated if there are fewer than 5 participants?",
+    "groundtruth_answer": "Standard surveys are recommended for courses with 5 or more participants. For data protection reasons, results from surveys with fewer than 5 participants are only provided on request.",
+    "supporting_sentences": [
+      "Standard surveys are recommended for courses with 5 or more participants. For data protection reasons, results from surveys (midterm or final) with fewer than 5 participants are only provided on request. Additionally, only survey results from 5 or more participants are included in the faculty average. It is possible to create surveys for smaller courses, but results may not be viewable. Assessments are only evaluated via the standardized method from 5 participants. For exams with fewer than 5 participants, no results are provided. For exams with very few participants, faculties should use other, qualitative evaluation methods."
+    ]
+  },
+  {
+    "question": "Who receives the results of a survey?",
+    "groundtruth_answer": "Detailed results are usually sent only to the lecturers included in the evaluation. In some institutes, the report is also sent to the person responsible for evaluation. At the end of an evaluation period, aggregated results for the entire faculty are sent to the faculty quality officers.",
+    "supporting_sentences": [
+      "Detailed results are usually sent only to the lecturers included in the evaluation. In some institutes, the report is also sent to the person responsible for evaluation. At the end of an evaluation period, aggregated results for the entire faculty are sent to the faculty quality officers."
+    ]
+  },
+  {
+    "question": "How and when do lecturers receive the evaluation results?",
+    "groundtruth_answer": "Final or midterm evaluation: Lecturers receive the evaluation result immediately after the survey closes. A PDF report with automatic analysis and students’ comments is sent by email.",
+    "supporting_sentences": [
+      "Final or midterm evaluation: Lecturers receive the evaluation result immediately after the survey closes. A PDF report with automatic analysis and students’ comments is sent by email. In addition, an interactive HTML report can be accessed via a link in the email. If the report is not received in the expected time, contact the Unit for Course Evaluation. Assessment evaluation: The PDF report is only sent after the grades are confirmed."
+    ]
+  },
+  {
+    "question": "Are evaluation results published for students to access?",
+    "groundtruth_answer": "The Unit for Course Evaluation does not provide students with access to results. However, lecturers should discuss the results and any consequential improvements with students where possible. Faculties can publish aggregated results through their own channels.",
+    "supporting_sentences": [
+      "The Unit for Course Evaluation does not provide students with access to results. However, lecturers should discuss the results and any consequential improvements with students where possible. Faculties can publish aggregated results through their own channels (e.g., their websites)."
+    ]
+  },
+  {
+    "question": "Should results of course evaluations be discussed with students?",
+    "groundtruth_answer": "Yes. To close the first feedback loop, the framework concept provides that lecturers should discuss survey results and any improvements before the end of the semester.",
+    "supporting_sentences": [
+      "To close the first feedback loop, the framework concept provides that lecturers should discuss survey results and any improvements before the end of the semester. This way, students know lecturers are engaging with feedback."
+    ]
+  },
+  {
+    "question": "What are the possible consequences for courses with ‘outstanding’ evaluation results?",
+    "groundtruth_answer": "Final evaluations that achieve the 'outstanding' level are nominated for the ALL Award (Recognition of Outstanding Teaching Achievement).",
+    "supporting_sentences": [
+      "Final evaluations that achieve the “outstanding” level (https://www.unibe.ch/studium/werkzeuge_und_arbeitshilfen/fuer_lehrende/lehrveranstaltungsevaluation/rahmenkonzept/index_ger.html#pane1121983) are nominated for the ALL Award (Recognition of Outstanding Teaching Achievement) (https://www.gutelehre.unibe.ch/foerderangebote/all/)."
+    ]
+  },
+  {
+    "question": "What happens if a course receives an ‘inadequate’ evaluation result?",
+    "groundtruth_answer": "Measures for insufficient final evaluation results are specified in the framework concept. Faculties may also define additional actions in their own QSE guidelines.",
+    "supporting_sentences": [
+      "Measures for insufficient final evaluation results are specified in the framework concept (https://www.unibe.ch/unibe/portal/content/e1006/e855118/e855497/e946563/e998762/e1009019/e1009041/Rahmenkonzept_2024_Final_ger.pdf). Faculties may also define additional actions in their own QSE guidelines."
+    ]
+  },
+  {
+    "question": "What is interim feedback and what is its purpose?",
+    "groundtruth_answer": "Interim feedback is a quick and uncomplicated type of feedback collected from students during a course to help instructors identify student needs, monitor understanding, and improve teaching. It serves to develop teaching and student learning, motivate student engagement, and promote an open feedback culture.",
+    "supporting_sentences": [
+      "With interim feedback, answers can be found to questions concerning the ongoing development of teaching.",
+      "Interim feedback allows for quick and uncomplicated types of feedback for both instructors and students. On the one hand, instructors receive targeted responses about the course, student learning needs, and student preferences. On the other hand, students receive feedback on their own learning progress and can actively participate in the teaching development processes.",
+      "Interim feedback is important for the development of teaching and for student learning for three reasons:",
+      "- As instructors, you are free to choose which aspects of teaching and learning you want to focus on in interim feedback.",
+      "- Adjustments to teaching based on interim feedback can have a motivating effect on the engagement of your students.",
+      "- If you take up questions from the final evaluation during the interim feedback and discuss them with the students, this can have a positive impact on the evaluation culture and the results of the final evaluation."
+    ]
+  },
+  {
+    "question": "What are some methods of gathering interim feedback?",
+    "groundtruth_answer": "Some methods include Traffic Light Feedback, Flashlight, Target Board, Posters with Open Questions, Interim Tests, and Muddiest Point.",
+    "supporting_sentences": [
+      "Survey Instruments",
+      "Traffic Light Feedback",
+      "Flashlight",
+      "Target Board",
+      "Posters with Open Questions",
+      "Interim Tests",
+      "Muddiest Point"
+    ]
+  },
+  {
+    "question": "What is the purpose of the Muddiest Point method?",
+    "groundtruth_answer": "The Muddiest Point method aims at specifically identifying open questions students still have and then addressing them.",
+    "supporting_sentences": [
+      "Muddiest Point",
+      "This method aims at specifically identifying open questions students still have and then addressing them."
+    ]
+  },
+  {
+    "question": "What is the final evaluation in the course evaluation process?",
+    "groundtruth_answer": "The final evaluation is student feedback collected using a standardized questionnaire toward the end of a course to provide a summative assessment of the teaching and to observe quality development.",
+    "supporting_sentences": [
+      "The final evaluation is student feedback collected using a standardized questionnaire. It is set up by the LVE Office, conducted through the central evaluation system evasys, and analyzed for quality assurance and development purposes.",
+      "The final evaluation is summative and allows for an assessment of the current state as well as observation of the development of teaching quality at the University of Bern."
+    ]
+  },
+  {
+    "question": "What is the standard timeframe for conducting final evaluations?",
+    "groundtruth_answer": "Standard implementation date: Toward the end of the course dates, starting from the 11th week of the semester.",
+    "supporting_sentences": [
+      "Standard implementation date: Toward the end of the course dates, starting from the 11th week of the semester."
+    ]
+  },
+  {
+    "question": "How are final evaluation surveys distributed to students?",
+    "groundtruth_answer": "Surveys for the final evaluation are conducted online using a non-personalized link (\"Losung\"). The link and QR code are sent to the main responsible instructor or alternatively to other recipients.",
+    "supporting_sentences": [
+      "Surveys for the final evaluation are conducted online using a non-personalized link (\"Losung\"). The link and QR code are sent to the main instructor or—upon request—to another person."
+    ]
+  },
+  {
+    "question": "Can supplementary modules be added to the core questionnaire for the final evaluation?",
+    "groundtruth_answer": "Yes, to address specific topics of a course, additional question blocks (supplementary modules) can be added to the core questionnaire for the final evaluation. Student feedback in these modules is for the information of instructors only and does not affect the overall result.",
+    "supporting_sentences": [
+      "To address specific topics of a course, additional question blocks (supplementary modules) can be added to the core questionnaire for the final evaluation. Student feedback in these modules is for the information of instructors only and does not affect the overall result (assignment to success level (https://www.unibe.ch/studium/werkzeuge_und_arbeitshilfen/fuer_lehrende/lehrveranstaltungsevaluation/schlussevaluation/index_ger.html#pane1122104)) of the final evaluation."
+    ]
+  },
+  {
+    "question": "How are success levels determined from final evaluation results?",
+    "groundtruth_answer": "The results of the final evaluation are assigned to one of five success levels, based on mean values from questions about learning progress and satisfaction.",
+    "supporting_sentences": [
+      "The results of the final evaluation are assigned to one of five success levels. The assignment is based on the overall result from a final evaluation. Mean values from questions 1.1 – 1.3 (learning progress) and 2.1 – 2.5 (satisfaction) are considered."
+    ]
+  },
+  {
+    "question": "Which success level must a course reach to be nominated for the ALL award?",
+    "groundtruth_answer": "A course must achieve an 'excellent' overall result (mean value ≥5.7) to be nominated for the ALL award.",
+    "supporting_sentences": [
+      "- ≥5.7 = \"excellent\" (level dark green)",
+      "Categorization as \"excellent\" is linked to the nomination for the ALL award (https://www.gutelehre.unibe.ch/foerderangebote/all/) (recognition of excellent teaching performance)."
+    ]
+  },
+  {
+    "question": "What happens if a course is rated as 'inadequate' in two consecutive final evaluations?",
+    "groundtruth_answer": "If, after a repeated final evaluation, a course again receives 'inadequate,' the instructor must submit a self-report, and a meeting is organized to identify reasons and seek improvement measures.",
+    "supporting_sentences": [
+      "If, after this, the repeated final evaluation again results (for the second time) in only the \"inadequate\" category, the instructor is asked by the Q-officer to submit a short written self-report23 commenting on the three evaluations and their results and to reflect on their own teaching. Among other things, the instructor should explain a) to what extent framework conditions or other factors might have influenced the results and b) what measures have been or will be taken by the instructor to improve teaching. Which persons the self-report must be sent to is determined in the faculty QSE guidelines.",
+      "If on renewed final evaluation (second time) only \"inadequate\" is achieved, the Q-officer of the respective faculty shall also arrange a meeting with the affected instructor24, to jointly identify the reasons and search for suitable measures to improve the situation. The Unit for Course Evaluation may be involved for interpreting the result as well as in the meeting."
+    ]
+  },
+  {
+    "question": "What must an instructor do if their course is rated 'inadequate' for a third time?",
+    "groundtruth_answer": "The instructor is required to attend a course from the wide range offered by university didactics or to seek individual advice.",
+    "supporting_sentences": [
+      "If, after these measures, the following evaluation is again (third time) classified as \"inadequate,\" the instructor is required to attend a course from the wide range offered by university didactics or to seek individual advice25."
+    ]
+  },
+  {
+    "question": "What instrument is used for automated analysis of survey data?",
+    "groundtruth_answer": "The evaluation system evasys is used for automated analysis of survey data.",
+    "supporting_sentences": [
+      "The statistical analysis is performed by the evaluation system evasys. Free-text responses are included in the report. The report automatically generated by evasys from the midterm evaluation is sent to the instructors of the course unless otherwise agreed and is not used for organizational quality assurance."
+    ]
+  },
+  {
+    "question": "What is the minimum required cycle for evaluating achievement controls (exams/assessments)?",
+    "groundtruth_answer": "50% of all achievement controls must be evaluated at least once every 3 years.",
+    "supporting_sentences": [
+      "The minimum requirement stipulates that 50% of all achievement controls must be evaluated at least once every 3 years."
+    ]
+  },
+  {
+    "question": "Who is responsible for managing the evaluation of performance assessments/exams?",
+    "groundtruth_answer": "The Unit for Course Evaluation (Fachstelle LVE) sets up and coordinates the evaluation of performance assessments using the central evaluation system evasys. Faculties may also use their own methods for some types of assessments.",
+    "supporting_sentences": [
+      "The evaluation of performance assessments (exam evaluation) is conducted using standardized surveys among students. The surveys are set up by the LVE office and carried out in the central evaluation system evasys.",
+      "Alternatively, faculties may use their own methods for evaluating performance assessments (e.g., focus group discussions), especially for exams with few participants and for exam formats that are not written or oral exams."
+    ]
+  },
+  {
+    "question": "What are some of the quality criteria assessed in performance assessment evaluations?",
+    "groundtruth_answer": "The standardized questionnaire covers didactic coherence, suitability of exam format, student exam preparation, framework conditions, and difficulty of the exam.",
+    "supporting_sentences": [
+      "The standardized questionnaire (https://scanserveruls.unibe.ch/evasys/online.php?p=7JDG6) for the evaluation of performance assessments (oral and written exams) is based on the teaching quality model (https://www.unibe.ch/unibe/portal/content/e1006/e855118/e855497/e946563/e998762/e1027399/e1027402/VRQ_Modell_Lehrqualitaet_md3_Modell_Lehrqualitaet_ger.jpg) and covers the following dimensions:",
+      "- Didactic coherence (How well do the course content, teaching methods used in the course, and the exam fit together?) (Questions 2.1–2.5)",
+      "- Suitability of the exam format (Question 3.1)",
+      "- Student exam preparation (Questions 4.1–4.2)",
+      "- Framework conditions (5.1–5.2)",
+      "- Difficulty of the exam (6.1)"
+    ]
+  },
+  {
+    "question": "How is the evaluation of performance assessments carried out?",
+    "groundtruth_answer": "It takes place exclusively online (TAN links to the survey are sent directly to students' email addresses).",
+    "supporting_sentences": [
+      "The evaluation of performance assessments using the standard questionnaire (https://scanserveruls.unibe.ch/evasys/online.php?p=7JDG6) takes place exclusively online (TAN links to the survey are sent directly to students' email addresses)."
+    ]
+  },
+  {
+    "question": "When are students invited to participate in a survey for performance assessment evaluation?",
+    "groundtruth_answer": "At 20:00 on the day of the performance assessment, students receive an email with the access link to the questionnaire.",
+    "supporting_sentences": [
+      "At 20:00 on the day of the performance assessment, students receive an email with the access link to the questionnaire."
+    ]
+  },
+  {
+    "question": "How long do students have to complete the survey for a written performance assessment?",
+    "groundtruth_answer": "The surveys remain open for 4 days (written performance assessments and all other types).",
+    "supporting_sentences": [
+      "The surveys remain open for 24 hours (oral performance assessments) or 4 days (written performance assessments and all other types) and are closed automatically. For surveys that last 4 days, a reminder is sent after 2 days to those students who have not yet completed the survey."
+    ]
+  },
+  {
+    "question": "When are evaluation results provided to instructors for performance assessments?",
+    "groundtruth_answer": "Evaluation results are only provided to instructors after grading is complete. Particular attention is paid to data protection compliance.",
+    "supporting_sentences": [
+      "Evaluation results are only provided to instructors after grading is complete. Particular attention is paid to data protection compliance."
+    ]
+  },
+  {
+    "question": "Who analyzes the results from performance assessment evaluations?",
+    "groundtruth_answer": "The faculty examination committee or a commission/body fulfilling this role analyzes the results, develops recommendations, and takes appropriate measures.",
+    "supporting_sentences": [
+      "The faculty examination committee or a commission/body fulfilling this role analyzes the results, develops recommendations, and takes appropriate measures."
+    ]
+  },
+  {
+    "question": "What is the process if no survey was set up for a course?",
+    "groundtruth_answer": "If no survey was set up, the course was probably not registered for evaluation in KSL. Please contact the Unit for Course Evaluation to see if a survey can be set up retroactively.",
+    "supporting_sentences": [
+      "If no survey was set up, the course was probably not registered for evaluation in KSL. Please contact the Unit for Course Evaluation to see if a survey can be set up retroactively."
+    ]
+  },
+  {
+    "question": "What happens if fewer than 5 students respond to a survey?",
+    "groundtruth_answer": "If there are fewer than 5 responses, instructors receive an automatic message stating that the report could not be generated. Upon request, the office can provide the report or at least the responses to open questions manually, depending on the response rate.",
+    "supporting_sentences": [
+      "If there are fewer than 5 responses, instructors receive an automatic message stating that the report could not be generated. Upon request to the Fachstelle LVE (lehrevaluation@unibe.ch), the office can provide the report or at least the responses to open questions manually, depending on the response rate."
+    ]
+  },
+  {
+    "question": "Is participation in interim evaluations mandatory?",
+    "groundtruth_answer": "The interim evaluation is basically voluntary. For courses that were rated as \"inadequate\" in a final evaluation, the interim evaluation is mandatory for the next session of the course.",
+    "supporting_sentences": [
+      "The interim evaluation is basically voluntary.",
+      "For courses that were rated as \"inadequate\" in a final evaluation, the interim evaluation is mandatory for the next session of the course."
+    ]
+  },
+  {
+    "question": "What is the recommended procedure after receiving interim evaluation results?",
+    "groundtruth_answer": "It is recommended to discuss the survey results, as well as the insights and possible consequences (e.g., improvement measures), with the students.",
+    "supporting_sentences": [
+      "It is recommended to discuss the survey results, as well as the insights and possible consequences (e.g., improvement measures), with the students."
+    ]
+  },
+  {
+    "question": "How does the course evaluation process support an open evaluation culture?",
+    "groundtruth_answer": "The interim evaluation can promote an open feedback culture within a course. Communicating results and planned adjustments to students encourages discussion and improvement.",
+    "supporting_sentences": [
+      "Furthermore, the interim evaluation can promote an open feedback culture within a course.",
+      "Additionally, it is desirable that the instructors comment on the evaluation results so that students learn how the results are used."
+    ]
+  },
+  {
+    "question": "What is the minimum response required for a report to be automatically generated after interim evaluation?",
+    "groundtruth_answer": "An automatic evaluation report is sent provided the minimum response rate of 5 replies is reached.",
+    "supporting_sentences": [
+      "Immediately after the end of the survey, all instructors of the evaluated course receive an automatic evaluation report, provided the minimum response rate of 5 replies is reached."
+    ]
+  },
+  {
+    "question": "Who can instructors contact for help interpreting evaluation results?",
+    "groundtruth_answer": "Instructors can contact the Fachstelle LVE (lehrevaluation@unibe.ch).",
+    "supporting_sentences": [
+      "For questions regarding interpretation of the results, instructors can contact the Fachstelle LVE (lehrevaluation@unibe.ch)."
+    ]
+  },
+  {
+    "question": "What is the content focus of the interim evaluation questionnaire?",
+    "groundtruth_answer": "The interim evaluation instrument is based on the teaching quality model and is structured by three dimensions: Instructors (presentation, learning outcomes, interaction, feedback), Course (content, structure, resources, challenge, pace), and Students (active participation, regular learning).",
+    "supporting_sentences": [
+      "CONTENT",
+      "The instrument for the interim evaluation is based on the model of teaching quality (https://www.unibe.ch/unibe/portal/content/e1006/e855118/e855497/e946563/e998762/e1027399/e1027402/VRQ_Modell_Lehrqualitaet_md3_Modell_Lehrqualitaet_ger.jpg) and is structured as follows:",
+      "- Dimension Instructors (presentation of the topic, specification of learning outcomes, interaction with students, learning progress-related feedback)",
+      "- Dimension Course (content and structure, support for learning through resources, level of challenge: over- or under-demand, pace)",
+      "- Dimension Students (active participation, rhythmic/regular learning)"
+    ]
+  },
+  {
+    "question": "When are interim evaluations usually registered by instructors?",
+    "groundtruth_answer": "Registration is usually done by the 3rd week of the semester in KSL.",
+    "supporting_sentences": [
+      "Registration is usually done by the 3rd week of the semester in KSL (see deadlines (https://www.unibe.ch/studium/werkzeuge_und_arbeitshilfen/fuer_lehrende/lehrveranstaltungsevaluation/zwischenevaluation/%7B$uid:b3445c2b-6af9-4547-80b3-39a8769286b2%7D)). Register the interim evaluation in KSL."
+    ]
+  },
+  {
+    "question": "What are the registration deadlines for evaluations in the Autumn Semester 2025?",
+    "groundtruth_answer": "Midterm Evaluation registration deadline: 03.10.2025. Final Evaluation registration deadline: 07.11.2025. Final Evaluation with Additional Modules registration deadline: 07.11.2025. Evaluation of Exam registration deadline: 21.11.2025.",
+    "supporting_sentences": [
+      "Midterm Evaluation      Registration via KSL with registration deadline 03.10.2025* and standard period starting from 06.10.2025",
+      "Final Evaluation      Registration via KSL with registration deadline 07.11.2025* and standard period from 24.11.2025 until end of semester",
+      "Final Evaluation with Additional Module(s) (https://www.unibe.ch/studium/werkzeuge_und_arbeitshilfen/fuer_lehrende/lehrveranstaltungsevaluation/schlussevaluation/index_ger.html#pane1101959)      Registration via KSL + registration form (https://www.unibe.ch/studium/werkzeuge_und_arbeitshilfen/fuer_lehrende/lehrveranstaltungsevaluation/formular_onlineevaluation/schlussevaluation/index_ger.html) with registration deadline 07.11.2025* and standard period from 24.11.2025 until end of semester",
+      "Evaluation of the Exam (of the performance assessment)      Registration via KSL with registration deadline 21.11.2025** and standard period starting from 01.12.2025"
+    ]
+  },
+  {
+    "question": "What is the general purpose of the Framework Concept for course evaluations?",
+    "groundtruth_answer": "It provides an overview of the measures for quality assurance and development (QSE) at the level of courses, defines minimum requirements for course evaluation, and establishes university-wide processes.",
+    "supporting_sentences": [
+      "The Framework Concept (https://www.unibe.ch/unibe/portal/content/e1006/e855118/e855497/e946563/e998762/e1009019/e1009041/Rahmenkonzept_2024_Final_ger.pdf) for the implementation and use of course evaluations provides an overview of the measures for quality assurance and development (QSE) at the level of courses. This page describes the key points of the framework concept.",
+      "The framework concept defines the minimum requirements for course evaluation at UniBE and establishes the university-wide processes. Thus, the framework concept provides all staff members entrusted with QSE tasks a solid structure for their day-to-day work."
+    ]
+  },
+  {
+    "question": "What three purposes does course evaluation serve at the University of Bern?",
+    "groundtruth_answer": "Course evaluations serve as proof of quality (accountability), further development (improvement), and co-determination (student involvement).",
+    "supporting_sentences": [
+      "Course evaluations at the University of Bern serve multiple purposes. They are conducted in the form of student surveys, thus including students in the design of teaching (co-determination). The data collected provides concrete guidance for improving teaching and learning situations (improvement focus). Finally, it serves as proof of quality for the legislators and the public (accountability)."
+    ]
+  },
+  {
+    "question": "What is meant by 'didactic coherence' in teaching quality?",
+    "groundtruth_answer": "Didactic coherence refers to the alignment and coordination of intended learning outcomes, teaching and learning activities, and achievement controls (exams/assessments).",
+    "supporting_sentences": [
+      "Based on findings from teaching and learning research, teaching is considered “good” when three key factors are well coordinated (“didactic coherence”, English: “constructive alignment”):",
+      "- the intended learning outcomes",
+      "- the teaching and learning activities",
+      "- the achievement controls"
+    ]
+  },
+  {
+    "question": "What is the minimum evaluation frequency for newly appointed lecturers?",
+    "groundtruth_answer": "The final evaluation is mandatory for newly appointed lecturers.",
+    "supporting_sentences": [
+      "For new types of courses and newly appointed lecturers, the final evaluation is mandatory, as it is for those on qualifying posts (e.g. assistant professorships with tenure track)."
+    ]
+  },
+  {
+    "question": "What success levels exist for final evaluations, and what are their thresholds since FS24?",
+    "groundtruth_answer": "Excellent (≥5.7), Very Good (≥5.5 <5.7), Good (≥4.5 <5.5), Sufficient (≥4.0 <4.5), Inadequate (<4.0).",
+    "supporting_sentences": [
+      "Since FS24, the following success levels and thresholds, defined together with the faculties and an external expert, apply:",
+      "- ≥5.7 = \"excellent\" (level dark green)",
+      "- ≥5.5 <5.7 = \"very good\" (level light green)",
+      "- ≥4.5 <5.5 = \"good\" (level blue)",
+      "- ≥4.0 <4.5 = \"sufficient\" (level yellow)",
+      "- <4.0 = \"inadequate\" (level red)"
+    ]
+  },
+  {
+    "question": "What happens after a course’s third consecutive ‘inadequate’ evaluation?",
+    "groundtruth_answer": "The instructor must attend a course on university didactics or receive individual counseling.",
+    "supporting_sentences": [
+      "Courses (LV) that have been rated as \"inadequate\" for the third time: Instructors attend a course on university didactics (https://www.gutelehre.unibe.ch/dienstleistungen/hochschuldidaktik_und_lehrentwicklung/) or make use of individual counseling."
+    ]
+  },
+  {
+    "question": "Who is eligible to be nominated for the ALL award for outstanding teaching?",
+    "groundtruth_answer": "Courses that achieve an 'outstanding' overall result (mean value ≥5.7 for key indicators) in the final evaluation, according to university-wide and faculty-specific criteria.",
+    "supporting_sentences": [
+      "To be nominated for ALL, a course must achieve an “outstanding” overall result in the final evaluation. The determining factors for classification as “outstanding” are the results in the categories “learning progress” and “satisfaction”.",
+      "Since HS22, the threshold for the “outstanding” level is ≥ 5.7. You can find more information here"
+    ]
+  },
+  {
+    "question": "Which faculty-specific additional criteria might apply for the ALL award?",
+    "groundtruth_answer": "Some faculties, such as the Faculty of Humanities, require minimum scores for learning progress and satisfaction depending on the number of participants; others may have additional regulations or restrict the award to a top subset of courses.",
+    "supporting_sentences": [
+      "Faculty of Humanities (Phil-Hist) has had the following additional criteria since HS22. In addition to an overall score of at least 5.7, the courses must meet the following minimum scores for the two indicators, learning progress and satisfaction:",
+      "Courses with 1–10 survey participants: at least 5.65",
+      "Courses with 11–20 survey participants: at least 5.55",
+      "Courses with 21–30 survey participants: at least 5.45",
+      "Courses with 31 or more survey participants: at least 5.35",
+      "For courses with fewer than 15 evaluation forms, the institute is asked if the course did not actually have significantly more participants. For 6 or fewer evaluation forms, the institute is asked if granting the award is appropriate. Courses with less participation from the instructor (e.g. research colloquia, lecture series) are excluded from ALL."
+    ]
+  },
+  {
+    "question": "Who supports the university management in implementation planning and updating action plans?",
+    "groundtruth_answer": "The Accreditation Working Group (AKKRED) supports the university management, central administration, faculties, and strategic centers in planning and reviewing the implementation of the university’s strategy and updating action plans.",
+    "supporting_sentences": [
+      "The Accreditation Working Group (AKKRED), which operates independently of the QSE Commission, supports the university management, the central administration, the faculties, and the strategic centers in planning and reviewing the implementation of the university’s strategy. In cooperation with the central administration’s organizational units, AKKRED reviews and updates the university action plan annually according to the management’s guidelines. In addition, AKKRED supports the faculties in the annual updating of the faculty action plans and the strategic centers in the annual updating of the action plan for strategic centers."
+    ]
+  },
+  {
+    "question": "What is the university's approach to ensuring comparability and respecting faculty-specific needs in QSE?",
+    "groundtruth_answer": "The maxim is 'As differentiated as academically necessary, as uniform and comparable as possible.'",
+    "supporting_sentences": [
+      "In balancing subject-related, faculty, and university-wide interests, the approach follows the maxim “As differentiated as academically necessary, as uniform and comparable as possible”. This considers the specific needs and traditions of the various disciplines, while ensuring the required comparability."
+    ]
+  },
+  {
+    "question": "How is the QSE system at the University of Bern described?",
+    "groundtruth_answer": "It is a participatory system and a culture that permeates the entire university, involving all members in committees, direct feedback, and ongoing development of quality.",
+    "supporting_sentences": [
+      "Quality assurance and development as a participatory system and a culture that permeates the entire university.",
+      "The QSE at the University of Bern is highly participatory. All university members contribute through their participation in bodies such as commissions and committees, or steer it through their involvement in the development, improvement, and review of work (feedback, exchange, etc.)."
+    ]
+  },
+  {
+    "question": "What cycle underpins the management and quality assurance system at the university?",
+    "groundtruth_answer": "The Plan-Do-Check-Act (PDCA) cycle.",
+    "supporting_sentences": [
+      "The central elements of quality assurance and quality development follow the Plan-Do-Check-Act (PDCA) cycle (Figure 1). The PDCA cycle describes a continuous improvement process in which findings flow into quality planning, thus forming a control loop.",
+      "To formulate, achieve, and maintain the highest quality goals, the University of Bern is guided by the quality cycle (Deming cycle, PDCA-cycle), as shown in Figure 1."
+    ]
+  },
+  {
+    "question": "What is the foundational legal act ensuring QSE systems in Swiss higher education?",
+    "groundtruth_answer": "The Federal Act on the Promotion of Universities and the Coordination in the Swiss Higher Education Sector (HFKG).",
+    "supporting_sentences": [
+      "The Federal Act on the Promotion of Universities and the Coordination in the Swiss Higher Education Sector (HFKG) defines the requirements for universities and, through institutional accreditation, ensures that universities develop quality assurance systems of their own and conduct quality assurance and development according to national and international criteria."
+    ]
+  },
+  {
+    "question": "Is external review a requirement in the university’s quality assurance?",
+    "groundtruth_answer": "Yes, the university is required to include external perspectives and reviews, particularly in study program and research evaluations.",
+    "supporting_sentences": [
+      "As recommended by the experts of the Quality Audits and institutional accreditation, external perspectives (e.g., the views of alumni or employers) should increasingly complement internal analyses."
+    ]
+  },
+  {
+    "question": "What is the role of the QSE Commission?",
+    "groundtruth_answer": "The QSE Commission advises the university management on all matters of quality assurance and quality development, develops core documents for QSE, and supports QSE initiatives across the university and faculties.",
+    "supporting_sentences": [
+      "Quality assurance and development (QSE) is designed to be participatory and is supported by all members of the university, through participation in committees or direct involvement in the development, improvement, and evaluation of services (feedback, exchange, etc.).",
+      "The framework for the entire QSE organization is provided by the Commission for Quality Assurance and Quality Development (QSE Commission), which advises the university management on all matters relating to quality assurance and quality development."
+    ]
+  },
+  {
+    "question": "What is the period of validity for the most recent institutional accreditation of Universität Bern?",
+    "groundtruth_answer": "The accreditation is valid for a period of seven years.",
+    "supporting_sentences": [
+      "The accreditation is valid for a period of seven years."
+    ]
+  },
+  {
+    "question": "What are the main pillars of the university action and quality plans?",
+    "groundtruth_answer": "Tasks, Personnel, Cross-cutting Issues, Resources; with Governance as an overarching category.",
+    "supporting_sentences": [
+      "The action plans are structured according to the university’s four pillars—Tasks, Personnel, Cross-cutting Issues, Resources—as well as the category Governance."
+    ]
+  },
+  {
+    "question": "Does the university have faculty-specific QSE guidelines?",
+    "groundtruth_answer": "Yes, faculties formulate and further develop their own faculty guidelines for QSE of the university's core tasks.",
+    "supporting_sentences": [
+      "They serve as a foundation for the faculties to formulate and further develop their own faculty guidelines for the QSE of the university's core tasks."
+    ]
+  },
+  {
+    "question": "What other core tasks, besides teaching, does the QSE system cover?",
+    "groundtruth_answer": "Research, continuing education, and services.",
+    "supporting_sentences": [
+      "Based on the university quality strategy, the QSE guidelines describe the principles of QSE at the University of Bern for the university’s core tasks and show how the various elements of QSE are operationalized (organization, communication, etc.). They primarily define basic conditions for the evaluation of teaching, research, continuing education, and services."
+    ]
+  },
+  {
+    "question": "How are service units evaluated for quality assurance?",
+    "groundtruth_answer": "Organizational units with a permanent service mandate are externally certified or accredited and have generally implemented a quality management system.",
+    "supporting_sentences": [
+      "Organizational units with a permanent service mandate are specifically listed in the University Regulations (UniV Art.110). The institutes providing services have generally implemented a quality management system, which is checked through accreditation or certification by external agencies. Bern, 11 April 2024"
+    ]
+  },
+  {
+    "question": "How does the University of Bern define high-quality teaching?",
+    "groundtruth_answer": "High-quality teaching is research-based and diverse. It relies on the academic competencies of instructors and meets high didactic standards. Students are guided into creative and critical thinking and thus prepared to responsibly take on roles in research, business, and society.",
+    "supporting_sentences": [
+      "High-quality teaching is research-based and diverse. It relies on the academic competencies of instructors and meets high didactic standards. In the teaching and learning process, students are guided into creative and critical thinking and thus prepared to responsibly take on roles in research, business, and society."
+    ]
+  },
+  {
+    "question": "Are all study programs at the University of Bern evaluated regularly?",
+    "groundtruth_answer": "Yes, all study programs and study courses offered at the University of Bern are evaluated on a regular basis and with the involvement of external assessments. An evaluation cycle of ideally seven years is aimed for.",
+    "supporting_sentences": [
+      "All study programs and study courses offered at the University of Bern are evaluated on a regular basis and with the involvement of external assessments. An evaluation cycle of ideally seven years, which can be deviated from in well-founded exceptions, should be aimed for. The faculties prepare binding evaluation plans accordingly."
+    ]
+  },
+  {
+    "question": "What is the cycle for evaluating study programs as per guidelines?",
+    "groundtruth_answer": "Every study program must be evaluated regularly, with a seven- to eight-year cycle recommended according to national and international standards.",
+    "supporting_sentences": [
+      "Each study program must be evaluated regularly, with a seven- to eight-year cycle recommended according to national and international standards."
+    ]
+  },
+  {
+    "question": "How are students involved in the QSE process?",
+    "groundtruth_answer": "Students are included in surveys on teaching (co-determination), can participate in evaluations via QSE commissions, and their feedback is used for quality development and accountability.",
+    "supporting_sentences": [
+      "By participating in the surveys, students have the opportunity to communicate their opinions about the courses and achievement controls and are thus involved in shaping teaching. Co-determination is anchored in the quality standards for institutional accreditation (Quality Standard 1.3)."
+    ]
+  },
+  {
+    "question": "How does faculty-level QSE participate in quality reporting?",
+    "groundtruth_answer": "Faculty QSE officers receive aggregated results and report annually, reflecting on evaluation results and describing planned or implemented measures.",
+    "supporting_sentences": [
+      "The QSE officers of the faculties receive aggregated results of final evaluations and achievement control evaluations (7) from the LVE office and take appropriate measures (https://www.unibe.ch/studium/werkzeuge_und_arbeitshilfen/fuer_lehrende/lehrveranstaltungsevaluation/massnahmen/index_ger.html) (8) as specified in the framework concept and faculty quality guidelines.",
+      "At the end of the academic year, the QSE officers of the faculties submit a report (https://www.unibe.ch/unibe/portal/content/e1006/e855118/e855497/e946563/e998762/e1124557/Berichterstattung_Vorlage_Semesteruebergreifend_ger.pdf) to the LVE office. They reflect on the evaluation results, set them in context, and report on planned or already implemented QSE measures."
+    ]
+  },
+  {
+    "question": "Who is included in the QSE Commission membership?",
+    "groundtruth_answer": "Every faculty, Central Administration, the Association of Lecturers, the Association of Assistants, and students each have a Q representative who is a member of the university-wide QSE Commission.",
+    "supporting_sentences": [
+      "The faculties, the central administration, the Association of Lecturers (Oberer Mittelbau), the Association of Assistants (Unterer Mittelbau), and the students each have a Q-officer who is a member of the university-wide QSE Commission."
+    ]
+  },
+  {
+    "question": "What is the PDCA cycle as used in the University of Bern?",
+    "groundtruth_answer": "Plan: Set goals; Do: Implement measures; Check: Define indicators and check achievement; Act: Update action plans based on results, adapt measures as necessary.",
+    "supporting_sentences": [
+      "The central elements of quality assurance and quality development follow the Plan-Do-Check-Act (PDCA) cycle (Figure 1). The PDCA cycle describes a continuous improvement process in which findings flow into quality planning, thus forming a control loop.",
+      "- Plan: The goals for the university core tasks are defined in the quality strategy, in the faculty strategies, or in the terms of reference for the university centers. The measures derived from these goals are documented in the university action plan as well as in the subsequent faculty action plans and the action plan of the strategic centers.",
+      "- Do: The responsible university units implement the measures established in the action plans for the university’s core tasks.",
+      "- Check: In order to check the extent to which the objectives have been achieved, meaningful, QSE-relevant indicators are defined.",
+      "- Act: In annual operational meetings, the university management checks whether and to what extent the faculties have achieved the objectives set in their action plans. The results of the review form the basis for updating the action plans. With new or adapted measures, changes in framework conditions, such as changes in faculty strategies, can be taken into account."
+    ]
+  },
+  {
+    "question": "What is the university’s quality culture based on?",
+    "groundtruth_answer": "Quality culture consists of structural-formal elements (regulations, guidelines, evaluation tools) and organizational-psychological elements (leadership, participation, communication, commitment, engagement, sense of responsibility).",
+    "supporting_sentences": [
+      "Quality culture consists of structural-formal and organizational-psychological elements (Sonntag and Sattler 2017). Structural-formal elements are found at the normative, strategic, and operational levels of quality assurance. These include, in particular, regulations, directives, as well as guidelines and specific evaluation tools for teaching, research, and the services of the central QSE unit. Key organizational-psychological elements for the development of a shared quality culture include leadership understanding, participation, communication, commitment, engagement, and sense of responsibility."
+    ]
+  },
+  {
+    "question": "What instruments does the university use to ensure teaching quality?",
+    "groundtruth_answer": "It uses instruments for the evaluation of courses and study programs; teaching and examination methods are aligned with learning outcomes.",
+    "supporting_sentences": [
+      "In teaching, instruments for the evaluation of courses as well as study programs and degrees are used.",
+      "Teaching and examination methods are aligned with learning objectives (learning outcomes)."
+    ]
+  },
+  {
+    "question": "Does the University of Bern consider digitalization a cross-cutting theme?",
+    "groundtruth_answer": "Yes, digitalization is one of the cross-cutting themes incorporated into university QSE and strategies.",
+    "supporting_sentences": [
+      "The quality assurance system of the University of Bern follows a comprehensive approach that permanently guarantees quality as a system goal. The quality assurance system sufficiently takes into account the specificities of a university (especially academic freedom). Measures for QSE include, on the one hand, the university’s core activities—teaching, research, service, and continuing education—as well as all university members from professors to students (see Figure 2); on the other hand, the cross-cutting themes of gender equality, sustainable development, internationalization, communication, and digitalization, as well as resources—personnel recruitment and development, finance, infrastructure, administration and operations, and risk management."
+    ]
+  },
+  {
+    "question": "What challenges have faculties encountered when implementing the new digital evaluation system?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "How are students informed about changes to evaluation procedures?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "How do the faculties address low response rates in course evaluations?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "What specific methods are used to encourage greater student participation?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "How is feedback from course evaluations integrated into curriculum development?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "What training is provided to staff involved in setting up and analyzing evaluations?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "Are there differences in evaluation procedures across the faculties?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "How does the university ensure fairness in interpreting evaluation results?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "What are students' perceptions of the effectiveness of course evaluations?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "How are repeat instances of 'inadequate' teaching addressed at the faculty or university-wide level?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "How do course evaluation results impact instructors’ career progression?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "Are students given examples of course changes made as a result of their feedback?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "How is data from evaluations stored and protected?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "What recourse do instructors have if they dispute evaluation results?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "How are qualitative comments from students analyzed and used?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "Is there faculty or department recognition for consistent improvement in teaching quality?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "How are new evaluation instruments tested before campus-wide adoption?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "Are there mechanisms for students to initiate their own surveys on teaching quality?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "How are language choices in surveys adjusted for multilingual courses?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "How often are supplementary modules reviewed or updated?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "What criteria determine the content of supplementary modules?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "How are external perspectives formally incorporated into program evaluations?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "What are the most common themes in student feedback according to the SUB survey?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "How does the university benchmark its evaluation cycle against peer institutions?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "Has the impact of evaluation on teaching quality been measured longitudinally?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "What logistical challenges exist in evaluating block courses?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "How is evaluation data used at the institutional as opposed to course level?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "Are any types of teaching exempt from mandatory evaluation cycles?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "How are the results of faculty action plans communicated to students?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "Is there a process for students to appeal or question evaluation outcomes?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "What has been the impact of discontinuing paper surveys?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "What additional measures are recommended for courses that repeatedly underperform?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "Are external evaluators involved in program evaluation beyond accreditation?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "How do study program evaluations inform strategic planning?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "What are the most challenging modules for survey customization?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "How are technical issues with online surveys resolved?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "Are there incentives for survey completion besides influencing teaching quality?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "What is the process for revising university-wide evaluation policies?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "How are best practices in evaluation shared across departments?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "What support is available for instructors to improve teaching after negative evaluations?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "Are there workshops or events related to QSE for students?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "How does the university address survey fatigue among students?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "How are conflicting responses in survey data reconciled?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "Have any faculties piloted alternative evaluation cycles?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "What percentage of courses receive the ALL award each semester?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "How are team-taught courses allocated for evaluation in large programs?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "Are there differences in evaluation procedures for graduate versus undergraduate courses?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "How is student anonymity ensured in small classes?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "How does interim feedback differ in effect from final evaluation?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "Who decides to implement evaluation results and how?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "How regularly is the QSE framework concept updated?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "Are there longitudinal data sets showing improvement in teaching quality over time?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "How do the external review mechanisms interact with internal QSE measures?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "Can students propose new supplementary modules or evaluation criteria?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "How is teacher resistance to evaluation managed?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "What are the implications of repeated inadequate scores for employment?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "Has the University of Bern collaborated with other universities on QSE methodologies?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "How do results from the BfS graduate surveys inform faculty reviews?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "Are survey completion rates publicly reported by unit or faculty?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "Do students have input on question wording or survey design?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "Are faculty action plans accessible to all students and staff?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "Is there monitoring to prevent bias in student feedback?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "What proportion of voluntary evaluations are initiated by students versus faculty?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "How does QSE contribute to accreditation reports?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "How are new quality assurance policies communicated campus-wide?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "What is the time frame for implementing suggested improvements?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "How have students responded to the removal of paper surveys?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "Are there interdepartmental QSE initiatives at the University of Bern?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "How do QSE measures impact faculty workload?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "What are the main concerns raised by instructors regarding QSE?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "Are evaluation findings ever made available to external stakeholders?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "What happens if a faculty or department fails to meet minimum evaluation cycles?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "How frequently are course evaluation questionnaires validated or reviewed by experts?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "Are there disciplinary differences in average scores from final evaluations?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "Has the use of open-ended responses in surveys increased in recent years?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "Are there QSE mentoring programs for mid-career academics?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "How is the effectiveness of the ALL award assessed over time?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "Are there forums for cross-faculty exchange on QSE practices?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "How specific do improvement measures following evaluations need to be?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "How have the evaluation thresholds shifted over previous cycles?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "Is student survey data ever linked to student performance data?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "Are there any plans to expand evaluation to non-credit-bearing activities?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "What proportion of evaluated performance assessments are written versus oral?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "Do instructors ever receive training on utilizing student feedback effectively?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "How is quality assurance incorporated into distance or hybrid learning environments?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "Are department heads involved in the interpretation of evaluation results?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "What is the approval process for new supplementary modules?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "How are international students’ perspectives accommodated in evaluations?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "Are there studies on the correlation between evaluation scores and external rankings?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "What are the costs associated with maintaining the evaluation system?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "How are changes to the framework concept communicated to faculties?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "Are there academic publications based on data from the QSE system?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "How are exceptional teaching practices identified beyond surveys?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "Has QSE been extended to administrative or support services universally?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "To what extent do QSE processes differ between the University of Bern and other Swiss universities?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "Are there known issues with cultural bias in evaluation instruments?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "How are stakeholder expectations for QSE managed within the university?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "What support is available for academic staff to develop new QSE measures?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "How does the university assess the impact of supplementary modules?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  },
+  {
+    "question": "How many courses are typically evaluated each semester across the university?",
+    "groundtruth_answer": "The document does not provide an answer to this question.",
+    "supporting_sentences": []
+  }
+]

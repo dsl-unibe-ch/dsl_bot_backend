@@ -94,6 +94,7 @@ def test_correctness_of_open_questions(
     open_question_unknown_answer_pair: dict,
     correctness_evaluator: SimpleEvaluator | Callable[..., Any],
     prompt: str,  # noqa: ARG001
+    documentid_to_text_translated: dict,
 ) -> None:
     """Test the correctness of the RAG agent's answers on open questions."""
     input_ = open_question_unknown_answer_pair["question"]
@@ -112,6 +113,9 @@ def test_correctness_of_open_questions(
             "document_url": source.document_url,
             "document_location": source.document_location,
             "page_content": source.page_content,
+            "document_translated": documentid_to_text_translated[
+                source.document_location
+            ],
             "gathered_on": source.gathered_on,
             "modified": source.modified,
             "score": source.score,

@@ -66,7 +66,7 @@ This command generates three files per dataset:
 
 When extracting supporting sentences, the script checks that each sentence actually exists in `<DATASET_NAME>_entire_translated_text.txt`. If not, a warning is shown in the terminal and you should manually check them. Sometimes, small formatting differences may cause valid sentences to be flagged.
 
-Currently, the datasets to be processed and their corresponding encodings are specified directly within the `generate_assessment_dataset.py` script.
+Currently, the datasets to be processed and their corresponding excel sheets are specified directly within the `generate_assessment_dataset.py` script.
 </details>
 
 ## Docker

@@ -135,10 +135,10 @@ def generate_questions_answers(text: str) -> list:
     return questions_answers_list
 
 
-def extract(file_name: str, encoding: str) -> list:
+def extract(file_name: str, sheet_name: str) -> list:
     """Extract data from source."""
     full_path = Path("tests/data/raw") / file_name
-    df = pd.read_csv(full_path, encoding=encoding)
+    df = pd.read_excel(full_path, sheet_name=sheet_name)
     return df.to_dict(orient="records")
 
 
@@ -191,7 +191,7 @@ def transform(datasets: list) -> dict:
     }
 
 
-def store(transformed_dataset: dict, file_name: str, encoding: str) -> None:
+def store(transformed_dataset: dict, file_name: str) -> None:
     """Store transformed data."""
     entire_translated_text = transformed_dataset["entire_translated_text"]
     dataset_with_translation = transformed_dataset["dataset_with_translation"]
@@ -203,30 +203,30 @@ def store(transformed_dataset: dict, file_name: str, encoding: str) -> None:
         file_name_extension, "_entire_translated_text.txt"
     )
     full_path = Path("tests/data/processed") / new_file_name
-    with Path.open(full_path, "w", encoding="utf-8") as f:
+    with Path.open(full_path, "w") as f:
         f.write(entire_translated_text)
 
     new_file_name = file_name.replace(file_name_extension, "_with_translation.json")
     full_path = Path("tests/data/processed") / new_file_name
-    with Path.open(full_path, "w", encoding=encoding) as f:
+    with Path.open(full_path, "w") as f:
         json.dump(dataset_with_translation, f, ensure_ascii=False, indent=2)
 
     new_file_name = file_name.replace(file_name_extension, "_questions_answers.json")
     full_path = Path("tests/data/processed") / new_file_name
-    with Path.open(full_path, "w", encoding="utf-8") as f:
+    with Path.open(full_path, "w") as f:
         json.dump(questions_answers, f, ensure_ascii=False, indent=2)
 
 
 if __name__ == "__main__":
     datasets = [
         {
-            "file_name": "data_overview_ver4(quality_new).csv",
-            "encoding": "utf-8-sig",
+            "file_name": "data_overview_ver4.xlsx",
+            "sheet_name": "quality_new",
         }
     ]
 
-    for file_name, encoding in [(d["file_name"], d["encoding"]) for d in datasets]:
-        logger.debug("Processing file: %s with encoding: %s", file_name, encoding)
-        extracted_data = extract(file_name, encoding)
+    for file_name, sheet_name in [(d["file_name"], d["sheet_name"]) for d in datasets]:
+        logger.debug("Processing file: %s | sheet name: %s", file_name, sheet_name)
+        extracted_data = extract(file_name, sheet_name)
         transformed_datasets = transform(extracted_data)
-        store(transformed_datasets, file_name, encoding)
+        store(transformed_datasets, file_name)
