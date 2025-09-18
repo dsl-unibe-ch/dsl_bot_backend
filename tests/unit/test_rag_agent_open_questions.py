@@ -8,7 +8,10 @@ from dotenv import load_dotenv
 from langsmith import testing as t
 from openevals.types import SimpleEvaluator
 
-from scripts.assessment_data.generate_assessment_dataset import open_question_answer
+from scripts.assessment_data.generate_assessment_dataset import (
+    german2english,
+    open_question_answer,
+)
 from tests.conftest import invoke_agent, load_questions_groundtruth_answers
 
 load_dotenv()
@@ -87,6 +90,8 @@ open_questions = [
     if q["groundtruth_answer"] == open_question_groundtruth_answer
 ]
 
+german_chunk_2_english_chunk = {}
+
 
 @pytest.mark.langsmith
 @pytest.mark.parametrize("open_question_unknown_answer_pair", open_questions)
@@ -113,6 +118,9 @@ def test_correctness_of_open_questions(
             "document_url": source.document_url,
             "document_location": source.document_location,
             "page_content": source.page_content,
+            "page_content_translated": german_chunk_2_english_chunk.setdefault(
+                source.page_content, german2english(source.page_content)
+            ),
             "document_translated": documentid_to_text_translated[
                 source.document_location
             ],
