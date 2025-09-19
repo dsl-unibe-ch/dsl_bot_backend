@@ -1,6 +1,5 @@
 """Test RAG agent."""
 
-import json
 from collections.abc import Callable
 from typing import Any
 
@@ -9,6 +8,7 @@ from dotenv import load_dotenv
 from langsmith import testing as t
 from openevals.types import SimpleEvaluator
 
+from scripts.assessment_data.generate_assessment_dataset import german2english
 from tests.conftest import invoke_agent, load_questions_groundtruth_answers
 
 load_dotenv()
@@ -80,13 +80,16 @@ questions_with_answer = [
     if q["groundtruth_answer"] != open_question_groundtruth_answer
 ]
 
+german_chunk_2_english_chunk = {}
+
 
 @pytest.mark.langsmith
 @pytest.mark.parametrize("question_groundtruth_answer_pair", questions_with_answer)
 def test_correctness_of_questions_with_answers(
     question_groundtruth_answer_pair: dict,
     correctness_evaluator: SimpleEvaluator | Callable[..., Any],
-    prompt: str,  # noqa: ARG001
+    prompt: str,  # noqa: ARG001,
+    documentid_to_text_translated: dict,
 ) -> None:
     """Test the correctness of the RAG agent's answers on answerable questions."""
     input_ = question_groundtruth_answer_pair["question"]
@@ -97,11 +100,26 @@ def test_correctness_of_questions_with_answers(
         inputs=input_, outputs=output["output"], reference_outputs=reference_output
     )
 
-    sources = output["sources"]
-    sources_json = json.dumps([str(s) for s in sources]) if sources else "[]"
+    sources_list = [
+        {
+            "document_url": source.document_url,
+            "document_location": source.document_location,
+            "page_content": source.page_content,
+            "page_content_translated": german_chunk_2_english_chunk.setdefault(
+                source.page_content, german2english(source.page_content)
+            ),
+            "document_translated": documentid_to_text_translated[
+                source.document_location
+            ],
+            "gathered_on": source.gathered_on,
+            "modified": source.modified,
+            "score": source.score,
+        }
+        for source in output["sources"]
+    ]
 
     t.log_outputs({"answer": output["output"]})
-    t.log_outputs({"sources": sources_json})
+    t.log_outputs({"sources": sources_list})
     t.log_outputs({"correctness_explanation": result.get("comment")})
     if not result["score"]:
         pytest.fail("RAG agent failed to answer the question correctly", pytrace=False)

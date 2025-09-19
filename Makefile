@@ -1,16 +1,17 @@
 
 PYTHON := $(firstword $(wildcard .venv/bin/python) $(wildcard .venv/Scripts/python.exe) python)
+VERSION=$(shell grep '^version' pyproject.toml | head -1 | cut -d '"' -f2)
 
 lint:
 	@echo $@
-	$(PYTHON) -m ruff format app demo tests
+	$(PYTHON) -m ruff format app demo tests scripts
 	@echo $@
-	$(PYTHON) -m ruff check --fix app demo tests
+	$(PYTHON) -m ruff check --fix app demo tests scripts
 	
 
 generate-assessment-dataset:
 	@echo $@
-	@PYTHONPATH=$(shell pwd) python scripts/generate_assessment_dataset.py
+	@PYTHONPATH=$(shell pwd) python scripts/assessment_data/generate_assessment_dataset.py
 
 run-demo:
 	@echo $@
@@ -28,7 +29,6 @@ convert-mht-to-txt-innovation:
 	@echo $@
 	@PYTHONPATH=$(shell pwd) python scripts/crawler/one_note_mht_reader.py scripts/crawler/data/raw/Notizbuch_fuer_Ideenlabor.mht scripts/crawler/data/raw/Notizbuch_fuer_Ideenlabor.txt
 
-VERSION=$(shell grep '^version' pyproject.toml | head -1 | cut -d '"' -f2)
 
 build-image:
 	@echo $@

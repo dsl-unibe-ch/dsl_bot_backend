@@ -18,8 +18,7 @@ from app.config import settings
 def load_questions_groundtruth_answers() -> dict:
     """Load questions and groundtruth answers from a JSON file."""
     with Path.open(
-        "tests/data/processed/data_overview_ver4(quality_new)_questions_answers.json",
-        encoding="utf-8",
+        "tests/data/processed/data_overview_ver4_questions_answers.json"
     ) as f:
         return json.load(f)
 
@@ -57,3 +56,13 @@ def invoke_agent(input_: str) -> dict:
     query_input = QueryInput(text=input_, session_id="test_session")
     query_response = chatbot.ask_chatbot_wrapper(query_input)
     return {"output": query_response["output"], "sources": query_response["sources"]}
+
+
+@pytest.fixture(scope="session")
+def documentid_to_text_translated() -> dict:
+    """Load DocumentID to text_translated mapping from the translation JSON file."""
+    with Path.open(
+        "tests/data/processed/data_overview_ver4_with_translation.json"
+    ) as f:
+        data = json.load(f)
+    return {item["DocumentID"]: item["text_translated"] for item in data}
