@@ -11,11 +11,12 @@ lint:
 
 generate-assessment-dataset:
 	@echo $@
-	@PYTHONPATH=$(shell pwd) python scripts/assessment_data/generate_assessment_dataset.py
+	@ENV=dev PYTHONPATH=$(shell pwd) python scripts/generate_assessment_dataset.py
+
 
 run-demo:
 	@echo $@
-	@PYTHONPATH=$(shell pwd) python demo/demo.py
+	@ENV=dev PYTHONPATH=$(shell pwd) python demo/demo.py
 
 
 .PHONY: scrape-unibe-innovation
@@ -32,16 +33,20 @@ convert-mht-to-txt-innovation:
 
 build-image:
 	@echo $@
-	VERSION=$(VERSION) docker compose build
+	@ENV=dev VERSION=$(VERSION) docker compose build
 
 compose-up:
 	@echo $@
-	VERSION=$(VERSION) docker compose up -d
+	@ENV=dev VERSION=$(VERSION) docker compose up -d
 
 compose-down:
 	@echo $@
-	VERSION=$(VERSION) docker compose down
+	@ENV=dev VERSION=$(VERSION) docker compose down
 
 unit-tests:
 	@echo $@
-	@PYTHONPATH=$(shell pwd) pytest -v tests/unit/
+	@ENV=dev PYTHONPATH=$(shell pwd) pytest -v tests/unit/
+
+e2e-tests:
+	@echo $@
+	@ENV=dev PYTHONPATH=$(shell pwd) pytest -v tests/e2e/

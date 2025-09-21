@@ -105,7 +105,24 @@ make compose-down
 make unit-tests
 ```
 
+
 Log in to [LangSmith](https://smith.langchain.com/), navigate to `Datasets & Experiments`, and review the test results.
+
+- End2End tests
+    - Setup
+        - Follow the setup mentioned in Frontend Repository 
+        - On the backend
+            - Install Chromium
+            ```python -m playwright install chromium```
+            - Update the FRONTEND_URL in .env.
+    - Run tests
+        - Start the frontend.
+        - Start the backend container.
+
+            ```bash 
+            make e2e-tests
+            ```
+
 
 </details>
 
