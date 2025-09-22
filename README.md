@@ -76,22 +76,35 @@ Currently, the datasets to be processed and their corresponding excel sheets are
 
 - Before building the docker image: 
     - update the image version in `pyproject.toml` under the `[project]` section as `version = "x.y.z"`.  
-    - update the enviroment value `ENV` with either `dev` or `prod`.
 
 - Build the docker image:
-```bash 
-make build-image
-```
-
+    - For dev containers
+        ```bash 
+        make build-image-dev
+        ```
+    - For prod containers
+        ```bash 
+        make build-image-prod
+        ```
 - Run the Docker Compose service with the image version specified in `pyproject.toml`:
-```bash 
-make compose-up
-```
+    - For dev containers
+        ```bash 
+        make compose-up-dev
+        ```
+    - For prod containers
+        ```bash 
+        make compose-up-prod
+        ```
 
 - Stop the Docker Compose service with the image version specified in `pyproject.toml`:
-```bash 
-make compose-down
-```
+    - For dev containers
+        ```bash 
+        make compose-down-dev
+        ```
+    - For prod containers
+        ```bash 
+        make compose-down-prod
+        ```
 
 </details>
 
@@ -110,7 +123,7 @@ Log in to [LangSmith](https://smith.langchain.com/), navigate to `Datasets & Exp
 
 - End2End tests
     - Setup
-        - Follow the setup mentioned in Frontend Repository 
+        - Follow the setup mentioned in [Frontend Repository](https://github.com/dsl-unibe-ch/kioskbot_frontend?tab=readme-ov-file#quickstart) 
         - On the backend
             - Install Chromium
             ```python -m playwright install chromium```

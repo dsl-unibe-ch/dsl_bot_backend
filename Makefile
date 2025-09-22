@@ -31,17 +31,29 @@ convert-mht-to-txt-innovation:
 	@PYTHONPATH=$(shell pwd) python scripts/crawler/one_note_mht_reader.py scripts/crawler/data/raw/Notizbuch_fuer_Ideenlabor.mht scripts/crawler/data/raw/Notizbuch_fuer_Ideenlabor.txt
 
 
-build-image:
+build-image-dev:
 	@echo $@
 	@ENV=dev VERSION=$(VERSION) docker compose build
 
-compose-up:
+build-image-prod:
+	@echo $@
+	@ENV=prod VERSION=$(VERSION) docker compose build
+
+compose-up-dev:
 	@echo $@
 	@ENV=dev VERSION=$(VERSION) docker compose up -d
 
-compose-down:
+compose-up-prod:
+	@echo $@
+	@ENV=prod VERSION=$(VERSION) docker compose up -d
+
+compose-down-dev:
 	@echo $@
 	@ENV=dev VERSION=$(VERSION) docker compose down
+
+compose-down-prod:
+	@echo $@
+	@ENV=prod VERSION=$(VERSION) docker compose down
 
 unit-tests:
 	@echo $@
