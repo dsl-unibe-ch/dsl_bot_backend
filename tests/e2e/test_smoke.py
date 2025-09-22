@@ -7,7 +7,7 @@ This test is meant to check if
 """
 
 import json
-import re  # <-- you use re in accept_disclaimer
+import re
 import time
 from collections.abc import Callable
 from pathlib import Path
@@ -108,6 +108,22 @@ def test_frontend_disclaimer_button_visible(page: Page) -> None:
 
     accept_button = page.get_by_role("button", name="Akzeptieren")
     expect(accept_button).to_be_visible(timeout=5000)
+
+
+def test_frontend_send_message(
+    page: Page, accept_disclaimer: Callable[[], None]
+) -> None:
+    """Frontend sends a message and receives a response."""
+    if not settings.FRONTEND_URL:
+        pytest.skip("FRONTEND_URL not set")
+    page.goto(url=settings.FRONTEND_URL)
+    page.wait_for_load_state("networkidle")
+    accept_disclaimer()
+    page.get_by_placeholder("Nachricht eingeben").fill("Test E2E: Hi")
+    submit_button = page.locator("button[data-slot='button']")
+    expect(submit_button).to_be_visible(timeout=10000)
+    submit_button.click()
+    expect(page.get_by_text("Test E2E: Hi")).to_be_visible(timeout=15000)
 
 
 def test_backend_running() -> None:
