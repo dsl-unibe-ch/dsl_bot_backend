@@ -178,18 +178,13 @@ session=$(curl -s http://127.0.0.1:8000/ | jq -r .session_id)
 echo $session
 ```
 
-- Check the status of the chatbot:
-```bash
-curl -s "http://127.0.0.1:8000/check_status?session_id=$session" | jq .
-```
-
 - Interact with the Agent:
 ```bash
-curl -s -X POST "http://127.0.0.1:8000/rag-agent?session_id=$session" -H "Content-Type: application/json" -d '{"session_id":"'"$session"'","text":"What is the email address of the QSE Department?"}' | jq .
+curl -s -X POST "http://127.0.0.1:8000/rag-agent" -H "Content-Type: application/json" -d '{"session_id":"'"$session"'","text":"What is the email address of the QSE Department?"}' | jq .
 ```
 
 ```bash
-curl -s -X POST "http://127.0.0.1:8000/rag-agent?session_id=$session" -H "Content-Type: application/json" -d '{"session_id":"'"$session"'","text":"Where it is located?"}' | jq .
+curl -s -X POST "http://127.0.0.1:8000/rag-agent" -H "Content-Type: application/json" -d '{"session_id":"'"$session"'","text":"Where it is located?"}' | jq .
 ```
 
 - Send feedback:

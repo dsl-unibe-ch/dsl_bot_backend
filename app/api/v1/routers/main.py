@@ -9,7 +9,6 @@ from app.agent.chatbot_azure import ChatBot, sessions
 from app.agent.feedback import Feedback
 from app.agent.query import QueryInput, QueryOutput
 from app.agent.schemas import (
-    CheckStatusResponse,
     FeedbackResponse,
     StartSessionResponse,
 )
@@ -49,22 +48,8 @@ def generate_session_id() -> StartSessionResponse:
     return chatbot.generate_session_id_wrapper(sessions=sessions)
 
 
-@app.get("/check_status")
-def get_status(session_id: str) -> CheckStatusResponse:
-    """Check if the chatbot for the given session is initialized and ready.
-
-    Args:
-        session_id (str): The session ID to check.
-
-    Returns:
-        CheckStatusResponse: Status and message about chatbot initialization.
-    """
-    chatbot = sessions.get(session_id)
-    return chatbot.get_status_wrapper()
-
-
 @app.post("/rag-agent")
-def ask_chatbot(query: QueryInput, session_id: str) -> QueryOutput:
+def ask_chatbot(query: QueryInput) -> QueryOutput:
     """Query the chatbot for an answer using the provided session and user input.
 
     Args:
@@ -74,7 +59,7 @@ def ask_chatbot(query: QueryInput, session_id: str) -> QueryOutput:
     Returns:
         QueryOutput: The chatbot's response, including sources and session ID.
     """
-    chatbot = sessions.get(session_id)
+    chatbot = sessions.get(query.session_id)
     return chatbot.ask_chatbot_wrapper(query)
 
 
