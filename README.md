@@ -67,7 +67,7 @@ Key Steps in the ETL Pipeline:
 
 Note that the raw data source (Excel file path, name, and sheet) are hardcoded in the script's main() function.
 
-To execute the ETL pipeline for Azure Search, use:
+To run the ETL pipeline for Azure Search, specify your desired index name in the `.env` file using the `AZURE_AI_SEARCH_INDEX_NAME` variable, then execute:
 
 ```bash
 make etl-pipeline-azure-search
