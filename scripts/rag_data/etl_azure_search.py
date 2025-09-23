@@ -103,7 +103,7 @@ def run_etl(
     sheet_name: str,
     index_name: str,
     processed_data_path: Path,
-) -> None:
+) -> dict:
     """Run the ETL process to create index, process docs and upload them.
 
     Returns a dict with summary information.
@@ -298,7 +298,7 @@ def run_etl(
 
     return {
         "index_name": index_name,
-        "documents_count": len(documents),
+        "chunk_count": len(documents),
     }
 
 
