@@ -49,6 +49,32 @@ pre-commit install
 Create `.env` file in the root of this repo and set the variables (see `.env.example` for the template).
 </details>
 
+
+## ETL pipeline for Azure Search
+<details>
+<summary>Click to expand</summary>
+
+This script automates the process of reading raw input data, processing it, and uploading it to a newly created index in Azure Search.
+
+Key Steps in the ETL Pipeline:
+- Chunking and Embedding: Uses SemanticChunker (with Azure OpenAI embeddings) to split documents into semantically meaningful chunks. Each chunk is embedded using Azure OpenAI's embedding model.
+- Title Generation: For each chunk, a concise and informative title is generated using Azure OpenAI's chat model.
+- Index Configuration: Configures the Azure Search index with custom vectorizer, vector search algorithm (HNSW), semantic search configuration, and a detailed set of fields (including metadata, chunk content, translations, keywords, example questions, and vector embeddings).
+- Index Initialization: Creates the index in Azure Search with the above configuration.
+- Data Processing and Upload: Reads the raw Excel data, processes each row, generates chunks and embeddings, and uploads the processed documents to the Azure Search index.
+- Local Export: Stores a local JSON export of all processed documents for debugging and auditing purposes.
+
+
+Note that the raw data source (Excel file path, name, and sheet) are hardcoded in the script's main() function.
+
+To execute the ETL pipeline for Azure Search, use:
+
+```bash
+make etl-pipeline-azure-search
+```
+
+</details>
+
 ## Generate assessment dataset for the RAG Agent
 <details>
 <summary>Click to expand</summary>
