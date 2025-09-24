@@ -307,7 +307,7 @@ def main() -> None:
     xlsx_file_path = "tests/data/raw/"
     xlsx_file_name = "data_overview_ver4"
     sheet_name = "quality_new"
-    index_name = "qualitat-dev"
+    index_name = settings.AZURE_AI_SEARCH_INDEX_NAME
     processed_data_path = Path("scripts/rag_data/data/processed/")
     summary = run_etl(
         xlsx_file_path, xlsx_file_name, sheet_name, index_name, processed_data_path
