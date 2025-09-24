@@ -53,6 +53,7 @@ cover/
 
 # E2E
 tests/e2e/contract-snapshots/
+tests/e2e/__pycache__/
 
 
 # Translations
