@@ -46,7 +46,7 @@ pre-commit install
 <details>
 <summary>Click to expand</summary>
 
-Create `.env` file in the root of this repo and set the variables (see `.env.example` for the template).
+Create `.env.dev` and `.env.prod` files in the root of this repo and set the variables (see `.env.dev.example` and `.env.prod.example`  for the template).
 </details>
 
 
@@ -67,7 +67,7 @@ Key Steps in the ETL Pipeline:
 
 Note that the raw data source (Excel file path, name, and sheet) are hardcoded in the script's main() function.
 
-To run the ETL pipeline for Azure Search, specify your desired index name in the `.env` file using the `AZURE_AI_SEARCH_INDEX_NAME` variable, then execute:
+To run the ETL pipeline for Azure Search, specify your desired index name in the respective `.env.dev` file using the `AZURE_AI_SEARCH_INDEX_NAME` variable, then execute:
 
 ```bash
 make etl-pipeline-azure-search
@@ -153,10 +153,10 @@ Log in to [LangSmith](https://smith.langchain.com/), navigate to `Datasets & Exp
         - On the backend
             - Install Chromium
             ```python -m playwright install chromium```
-            - Update the FRONTEND_URL in .env.
+            - Update the FRONTEND_URL in .env.dev.
     - Run tests
         - Start the frontend.
-        - Start the backend container.
+        - Build and then start the backend container.
 
             ```bash 
             make e2e-tests
@@ -226,7 +226,7 @@ curl -s -X POST "http://127.0.0.1:8000/send_feedback" -H "Content-Type: applicat
 - Scrape UniBe Innovation website: 
 
 ```bash
-scrape-unibe-innovation
+make scrape-unibe-innovation
 ```
 
 - Convert One Note .mht files from Ideenlabor (UniBe Innovation) to text: 
@@ -235,7 +235,7 @@ scrape-unibe-innovation
 3. Verify that input name of file matches in makefile. 
 
 ```bash
-convert-mht-to-txt-ideenlabor
+make convert-mht-to-txt-ideenlabor
 ```
 
 </details>

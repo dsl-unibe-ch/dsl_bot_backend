@@ -1,5 +1,3 @@
-ENV := dev
-
 PYTHON := $(firstword $(wildcard .venv/bin/python) $(wildcard .venv/Scripts/python.exe) python)
 VERSION=$(shell grep '^version' pyproject.toml | head -1 | cut -d '"' -f2)
 
@@ -11,12 +9,11 @@ lint:
 
 etl-pipeline-azure-search:
 	@echo $@
-	@PYTHONPATH=$(shell pwd) python scripts/rag_data/etl_azure_search.py	
+	@ENV=dev PYTHONPATH=$(shell pwd) python scripts/rag_data/etl_azure_search.py	
 
 generate-assessment-dataset:
 	@echo $@
-	@ENV=dev PYTHONPATH=$(shell pwd) python scripts/generate_assessment_dataset.py
-
+	@ENV=dev PYTHONPATH=$(shell pwd) python scripts/assessment_data/generate_assessment_dataset.py
 
 run-demo:
 	@echo $@

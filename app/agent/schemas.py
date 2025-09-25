@@ -9,13 +9,6 @@ class StartSessionResponse(BaseModel):
     session_id: str
 
 
-class CheckStatusResponse(BaseModel):
-    """Response model for the check_status endpoint."""
-
-    chatbot_status: str
-    message: str
-
-
 class FeedbackResponse(BaseModel):
     """Response model for the send_feedback endpoint."""
 
