@@ -288,8 +288,8 @@ class ChatBot:
         else:
             return query_response
 
-    def generate_session_id_wrapper(self, sessions: dict) -> str:
+    def generate_session_id_wrapper(self, sessions: dict) -> StartSessionResponse:
         """Create a new chatbot session and return the session ID."""
-        session_id = str(uuid.uuid4())
+        session_id = uuid.uuid4()
         sessions[session_id] = self
         return StartSessionResponse(session_id=session_id)

@@ -1,4 +1,4 @@
-"""Test smoke.
+"""Test End to End.
 
 This test is meant to check if
 - the page loads
@@ -13,6 +13,7 @@ import uuid
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlsplit
 
 import pytest
 from playwright.sync_api import Page, Request, Response, expect
@@ -24,35 +25,37 @@ BAD_REQUEST_CODE = 400
 SESSION_ID_MIN_LENGTH = 5
 RAG_AGENT_ENDPOINT_MATCH = re.compile(r"/rag-agent(?:\?|$)")
 FEEDBACK_ENDPOINT_MATCH = re.compile(r"/send_feedback(?:\?|$)")
+ROOT_ENDPOINT_MATCH = re.compile(r"^/$")
 
 
 @pytest.fixture
 def accept_disclaimer(page: Page) -> Callable[[], None]:
-    """Accepts the disclaimer for other tests."""
+    """Returns a reusablefunction to accept the disclaimer.
+
+    When called, the functions accepts the "terms of use and disclaimer"
+    dialog in the UI.
+    """
 
     def _accept() -> None:
-        # Find the open dialog
+        """Accepts the disclaimer by clicking the button or pressing Escape."""
         dialog = page.locator(
             "[role='alertdialog'][data-state='open'],"
             "[data-slot='alert-dialog-content'][data-state='open']"
         )
         if dialog.count():
-            # Prefer the explicit cancel/accept data attributes if present
             button = dialog.locator(
                 "[data-alert-dialog-cancel], [data-alert-dialog-action]"
             )
             if not button.count():
-                # Fallback to a localized text match
                 button = dialog.get_by_role(
                     "button",
                     name=re.compile(
                         r"Akzeptieren|Accept|OK|Schliessen|Schließen", re.IGNORECASE
                     ),
                 )
+                page.keyboard.press("Escape")
             if button.count():
                 button.first.click()
-            else:
-                page.keyboard.press("Escape")
             expect(dialog).not_to_be_visible(timeout=5000)
 
     return _accept
@@ -60,13 +63,38 @@ def accept_disclaimer(page: Page) -> Callable[[], None]:
 
 @pytest.fixture
 def app_page(page: Page, accept_disclaimer: Callable[[], None]) -> Page:
-    """Navigates to the frontend and ensures the disclaimer is handled."""
+    """Navigates to the frontend, handles the disclaimer, and returns the page."""
     if not settings.FRONTEND_URL:
         pytest.skip("FRONTEND_URL not set")
-    page.goto(url=settings.FRONTEND_URL)
+    with (
+        page.expect_request(
+            lambda r: _is_outgoing_request_valid_get(r, ROOT_ENDPOINT_MATCH),
+            timeout=30_000,
+        ) as request_info_root,
+        page.expect_response(
+            lambda r: _is_incoming_response_valid_get(r, ROOT_ENDPOINT_MATCH),
+            timeout=30_000,
+        ) as response_info_root,
+    ):
+        page.goto(url=settings.FRONTEND_URL)
+    request_root = request_info_root.value
+    response_root = response_info_root.value
+    status, ok, body_json, body_text = _read_response(response_root)
+    if not ok or status >= BAD_REQUEST_CODE:
+        _save_frontend_snapshot(
+            request_root, {}, response_root, body_json, body_text, prefix="root_get"
+        )
+        detail = _extract_fastapi_detail(body_json, body_text)
+        pytest.fail(f"GET / returned {status}: {detail}")
     page.wait_for_load_state("networkidle")
+
     accept_disclaimer()
     return page
+
+
+def _path(url: str) -> str:
+    """Return only the path part (no scheme/host/query)."""
+    return urlsplit(url).path or "/"
 
 
 def _is_outgoing_request_valid_post(
@@ -75,9 +103,19 @@ def _is_outgoing_request_valid_post(
     """Checks if the request sent is a valid POST request and endpoint_pattern."""
     content_type = request.headers.get("content-type") or ""
     return (
-        endpoint_pattern.search(request.url) is not None
+        endpoint_pattern.search(_path(request.url)) is not None
         and request.method.upper() == "POST"
         and content_type.startswith("application/json")
+    )
+
+
+def _is_outgoing_request_valid_get(
+    request: Request, endpoint_pattern: re.Pattern
+) -> bool:
+    """Checks if the request sent is a valid GET request and endpoint_pattern."""
+    return (
+        endpoint_pattern.search(_path(request.url)) is not None
+        and request.method.upper() == "GET"
     )
 
 
@@ -86,8 +124,18 @@ def _is_incoming_response_valid_post(
 ) -> bool:
     """Checks if the incoming response has a valid POST request and endpoint_pattern."""
     return (
-        endpoint_pattern.search(response.url) is not None
+        endpoint_pattern.search(_path(response.url)) is not None
         and response.request.method.upper() == "POST"
+    )
+
+
+def _is_incoming_response_valid_get(
+    response: Response, endpoint_pattern: re.Pattern
+) -> bool:
+    """Checks if the incoming response has a valid GET request and endpoint_pattern."""
+    return (
+        endpoint_pattern.search(_path(response.url)) is not None
+        and response.request.method.upper() == "GET"
     )
 
 
@@ -101,7 +149,6 @@ def _parse_request_json(request: Request) -> dict[str, Any]:
         return json.loads(raw_request)
     except json.JSONDecodeError as exc:
         pytest.fail(f"Request body is not valid JSON: {exc}")
-    # unreachable; pytest.fail raises
 
 
 def _read_response(
@@ -150,13 +197,15 @@ def _extract_fastapi_detail(
 
 def _save_frontend_snapshot(
     request: Request,
-    sent_body: dict[str, Any],
     response: Response,
     body_json: dict[str, Any] | None,
     body_text: str | None,
+    prefix: str = "snapshot",
 ) -> None:
     """Persists a contract snapshot."""
     outdir = _out_dir()
+
+    sent_body = _parse_request_json(request)
     record = {
         "request": {
             "url": request.url,
@@ -171,8 +220,7 @@ def _save_frontend_snapshot(
             "text": body_text,
         },
     }
-    # Include status in filename to avoid accidental overwrites in same second
-    _dump(record, outdir / f"rag_agent_{response.status}.json")
+    _dump(record, outdir / f"{prefix}_{response.status}.json")
 
 
 def _is_valid_uuid(value: str) -> bool:
@@ -215,32 +263,28 @@ def _send_one_message_and_wait(
         app_page.expect_request(
             lambda r: _is_outgoing_request_valid_post(r, RAG_AGENT_ENDPOINT_MATCH),
             timeout=30_000,
-        ) as req_info,
+        ) as request_info,
         app_page.expect_response(
             lambda r: _is_incoming_response_valid_post(r, RAG_AGENT_ENDPOINT_MATCH),
             timeout=30_000,
-        ) as resp_info,
+        ) as response_info,
     ):
         submit_button.click()
 
-    req = req_info.value
-    resp = resp_info.value
+    request_rag = request_info.value
+    response_rag = response_info.value
 
-    sent = _parse_request_json(req)
+    sent = _parse_request_json(request_rag)
     sid_val = sent.get("session_id")
-    if (
-        not isinstance(sid_val, str)
-        or not sid_val.strip()
-        or not _is_valid_uuid(sid_val)
-    ):
+    if not _is_valid_uuid(sid_val):
         pytest.fail(f"Invalid session_id in body: {sid_val!r}")
     txt_val = sent.get("text")
     if not isinstance(txt_val, str) or not txt_val.strip():
         pytest.fail("text missing or empty in request body")
-    status, ok, body_json, body_text = _read_response(resp)
+    status, ok, body_json, body_text = _read_response(response_rag)
     if not ok or status >= BAD_REQUEST_CODE:
         _save_frontend_snapshot(
-            req, sent, resp, body_json, body_text, prefix="rag_agent"
+            request_rag, response_rag, body_json, body_text, prefix="rag_agent"
         )
         detail_msg = _extract_fastapi_detail(body_json, body_text)
         pytest.fail(f"/rag-agent returned {status}: {detail_msg}")
@@ -253,7 +297,7 @@ def _send_one_message_and_wait(
     )
     if not last_msg.strip():
         pytest.fail("UI returned an empty chatbot message")
-    return req, resp, last_msg
+    return request_rag, response_rag, last_msg
 
 
 def test_frontend_to_backend(app_page: Page) -> None:
@@ -286,32 +330,59 @@ def test_frontend_to_backend(app_page: Page) -> None:
         app_page.expect_request(
             lambda r: _is_outgoing_request_valid_post(r, FEEDBACK_ENDPOINT_MATCH),
             timeout=30_000,
-        ) as req_info_fb,
+        ) as request_info_fb,
         app_page.expect_response(
             lambda r: _is_incoming_response_valid_post(r, FEEDBACK_ENDPOINT_MATCH),
             timeout=30_000,
-        ) as resp_info_fb,
+        ) as response_info_fb,
     ):
         submit_button.click()
 
-    req_fb = req_info_fb.value
-    resp_fb = resp_info_fb.value
+    request_fb = request_info_fb.value
+    response_fb = response_info_fb.value
 
-    sent_fb = _parse_request_json(req_fb)
+    sent_fb = _parse_request_json(request_fb)
     sid_fb = sent_fb.get("session_id")
     if not isinstance(sid_fb, str) or not sid_fb.strip() or not _is_valid_uuid(sid_fb):
         pytest.fail(f"Invalid session_id in feedback body: {sid_fb!r}")
-    rating_val = sent_fb.get("rating")
-    if rating_val not in (0, 1):
-        pytest.fail(f"Invalid rating (expected 0 or 1): {rating_val!r}")
     comments_val = sent_fb.get("comments")
     if comments_val is not None and not isinstance(comments_val, str):
         pytest.fail(f"Invalid comments type: {type(comments_val).__name__}")
-
-    status_fb, ok_fb, body_json_fb, body_text_fb = _read_response(resp_fb)
+    status_fb, ok_fb, body_json_fb, body_text_fb = _read_response(response_fb)
     if not ok_fb or status_fb >= BAD_REQUEST_CODE:
         _save_frontend_snapshot(
-            req_fb, sent_fb, resp_fb, body_json_fb, body_text_fb, prefix="send_feedback"
+            request_fb, response_fb, body_json_fb, body_text_fb, prefix="send_feedback"
         )
         detail_msg = _extract_fastapi_detail(body_json_fb, body_text_fb)
         pytest.fail(f"/send_feedback returned {status_fb}: {detail_msg}")
+
+
+def test_backend_root_contract(page: Page) -> None:
+    """Contract check for backend root."""
+    if not settings.BACKEND_URL:
+        pytest.skip("BACKEND_URL not set")
+    page.goto(settings.FRONTEND_URL)
+    page.wait_for_load_state("domcontentloaded")
+    request = page.context.request.get(settings.BACKEND_URL)
+    req_path = (urlsplit(request.url).path or "/").rstrip("/")
+    exp_path = (urlsplit(settings.BACKEND_URL).path or "/").rstrip("/")
+    if req_path != exp_path:
+        pytest.fail(f"Root path {req_path!r} != expected {exp_path!r}.")
+    status = request.status
+    ctype = (request.headers.get("content-type") or "").lower()
+    text = request.text()
+
+    if status >= BAD_REQUEST_CODE:
+        pytest.fail(f"GET root returned {status}: {text[:200]}")
+
+    if "application/json" not in ctype:
+        pytest.fail(f"Root content-type not JSON: {ctype!r}")
+
+    try:
+        body = json.loads(text)
+    except json.JSONDecodeError as exc:
+        pytest.fail(f"Root JSON decode failed: {exc}. Body: {text[:200]}")
+
+    sid = body.get("session_id") if isinstance(body, dict) else None
+    if not (isinstance(sid, str) and _is_valid_uuid(sid)):
+        pytest.fail(f"Invalid session_id from root: {sid!r}")

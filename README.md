@@ -153,14 +153,17 @@ Log in to [LangSmith](https://smith.langchain.com/), navigate to `Datasets & Exp
         - On the backend
             - Install Chromium
             ```python -m playwright install chromium```
-            - Update the FRONTEND_URL in .env.dev.
+            - Update the `FRONTEND_URL` in `.env.dev` with `http://localhost:5173`.
+        - Note that the `PUBLIC_API` is set to the `BACKEND_URL` as mentioned in the `.env.dev`. For example `PUBLIC_API=http://127.0.0.1:8000`
     - Run tests
-        - Start the frontend.
+        - Start the frontend with `pnpm dev`.
         - Build and then start the backend container.
+        - Verify that the frontend and the backend are functioning correctly by visiting `http://localhost:5173/` and ensuring that the bot is operational.
 
             ```bash 
             make e2e-tests
             ```
+        - Note that whenever the backend returns an error, the test saves the request and response details to a snapshot file in `tests/e2e/contract-snapshots` for debugging.
 
 
 </details>

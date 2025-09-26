@@ -2,7 +2,7 @@
 
 import logging
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.agent.chatbot_azure import ChatBot, sessions
@@ -54,12 +54,16 @@ def ask_chatbot(query: QueryInput) -> QueryOutput:
 
     Args:
         query (QueryInput): The user's question and session information.
-        session_id (str): The session ID to retrieve the ChatBot instance.
+        session_id (UUID): The session ID to retrieve the ChatBot instance.
 
     Returns:
         QueryOutput: The chatbot's response, including sources and session ID.
     """
     chatbot = sessions.get(query.session_id)
+    if chatbot is None:
+        raise HTTPException(
+            status_code=404, detail="Session not found. Call GET / to start a session."
+        )
     return chatbot.ask_chatbot_wrapper(query)
 
 

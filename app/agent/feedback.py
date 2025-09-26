@@ -1,6 +1,7 @@
 """Data model for user feedback."""
 
 import datetime
+from uuid import UUID
 
 from azure.data.tables import TableServiceClient
 from fastapi import HTTPException
@@ -20,7 +21,7 @@ class Feedback(BaseModel):
 
     rating: int  # 1 for thumbs up, 0 for thumbs down
     comments: str = None  # Optional additional comments
-    session_id: str
+    session_id: UUID
 
     def send_feedback_wrapper(self: "Feedback") -> FeedbackResponse:
         """Send feedback to Azure Table Storage."""
