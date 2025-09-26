@@ -14,7 +14,7 @@ from scripts.assessment_data.generate_assessment_dataset import (
 )
 from tests.conftest import invoke_agent, load_questions_groundtruth_answers
 
-load_dotenv()
+load_dotenv(".env.dev")
 
 
 @pytest.fixture(scope="session")

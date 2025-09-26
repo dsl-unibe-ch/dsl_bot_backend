@@ -190,7 +190,7 @@ make run-demo
 
 - Start the uvicorn server: 
 ```bash
-uvicorn app.api.v1.routers.main:app --reload --host 0.0.0.0 --port 8000
+ENV=dev uvicorn app.api.v1.routers.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 - Start a session:
