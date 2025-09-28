@@ -51,6 +51,10 @@ coverage.xml
 .pytest_cache/
 cover/
 
+# E2E
+tests/e2e/contract-snapshots/
+tests/e2e/__pycache__/
+
 
 # Translations
 *.mo
@@ -140,7 +144,8 @@ celerybeat.pid
 *.sage.py
 
 # Environments
-.env
+.env.prod
+.env.dev
 .envrc
 .venv
 env/

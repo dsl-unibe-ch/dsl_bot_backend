@@ -1,4 +1,3 @@
-
 PYTHON := $(firstword $(wildcard .venv/bin/python) $(wildcard .venv/Scripts/python.exe) python)
 VERSION=$(shell grep '^version' pyproject.toml | head -1 | cut -d '"' -f2)
 
@@ -10,15 +9,15 @@ lint:
 
 etl-pipeline-azure-search:
 	@echo $@
-	@PYTHONPATH=$(shell pwd) python scripts/rag_data/etl_azure_search.py	
+	@ENV=dev PYTHONPATH=$(shell pwd) python scripts/rag_data/etl_azure_search.py	
 
 generate-assessment-dataset:
 	@echo $@
-	@PYTHONPATH=$(shell pwd) python scripts/assessment_data/generate_assessment_dataset.py
+	@ENV=dev PYTHONPATH=$(shell pwd) python scripts/assessment_data/generate_assessment_dataset.py
 
 run-demo:
 	@echo $@
-	@PYTHONPATH=$(shell pwd) python demo/demo.py
+	@ENV=dev PYTHONPATH=$(shell pwd) python demo/demo.py
 
 
 .PHONY: scrape-unibe-innovation
@@ -33,18 +32,34 @@ convert-mht-to-txt-innovation:
 	@PYTHONPATH=$(shell pwd) python scripts/crawler/one_note_mht_reader.py scripts/crawler/data/raw/Notizbuch_fuer_Ideenlabor.mht scripts/crawler/data/raw/Notizbuch_fuer_Ideenlabor.txt
 
 
-build-image:
+build-image-dev:
 	@echo $@
-	VERSION=$(VERSION) docker compose build
+	@ENV=dev VERSION=$(VERSION) docker compose build
 
-compose-up:
+build-image-prod:
 	@echo $@
-	VERSION=$(VERSION) docker compose up -d
+	@ENV=prod VERSION=$(VERSION) docker compose build
 
-compose-down:
+compose-up-dev:
 	@echo $@
-	VERSION=$(VERSION) docker compose down
+	@ENV=dev VERSION=$(VERSION) docker compose up -d
+
+compose-up-prod:
+	@echo $@
+	@ENV=prod VERSION=$(VERSION) docker compose up -d
+
+compose-down-dev:
+	@echo $@
+	@ENV=dev VERSION=$(VERSION) docker compose down
+
+compose-down-prod:
+	@echo $@
+	@ENV=prod VERSION=$(VERSION) docker compose down
 
 unit-tests:
 	@echo $@
-	@PYTHONPATH=$(shell pwd) pytest -v tests/unit/
+	@ENV=dev PYTHONPATH=$(shell pwd) pytest -v tests/unit/
+
+e2e-tests:
+	@echo $@
+	@ENV=dev PYTHONPATH=$(shell pwd) pytest -v tests/e2e/

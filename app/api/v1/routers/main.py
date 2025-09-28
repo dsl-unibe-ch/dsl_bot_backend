@@ -2,14 +2,13 @@
 
 import logging
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.agent.chatbot_azure import ChatBot, sessions
 from app.agent.feedback import Feedback
 from app.agent.query import QueryInput, QueryOutput
 from app.agent.schemas import (
-    CheckStatusResponse,
     FeedbackResponse,
     StartSessionResponse,
 )
@@ -26,9 +25,9 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        settings.BASE_URL,
+        settings.FRONTEND_URL,
         "*",
-    ],  # any website can send requests to the API. Improvement: only allow the frontend domain, i.e., BASE_URL # noqa: E501
+    ],  # any website can send requests to the API. Improvement: only allow the frontend domain, i.e., FRONTEND_URL # noqa: E501
     allow_credentials=settings.ALLOWED_CREDENTIALS,  # requests can include credentials (cookies, auth headers). Improvement: True only if you need cookies/auth, TBD # noqa: E501
     allow_methods=settings.ALLOWED_METHODS,  #  HTTP methods GET, POST, PUT, DELETE are allowed. Improvement: only allow necessary HTTP methods, i.e., GET, POST. TBD # noqa: E501
     allow_headers=settings.ALLOWED_HEADERS,  #  the API will accept requests with any HTTP headers. Improvement: only allow needed header, i.e., Authorization, Content-Type # noqa: E501
@@ -49,32 +48,22 @@ def generate_session_id() -> StartSessionResponse:
     return chatbot.generate_session_id_wrapper(sessions=sessions)
 
 
-@app.get("/check_status")
-def get_status(session_id: str) -> CheckStatusResponse:
-    """Check if the chatbot for the given session is initialized and ready.
-
-    Args:
-        session_id (str): The session ID to check.
-
-    Returns:
-        CheckStatusResponse: Status and message about chatbot initialization.
-    """
-    chatbot = sessions.get(session_id)
-    return chatbot.get_status_wrapper()
-
-
 @app.post("/rag-agent")
-def ask_chatbot(query: QueryInput, session_id: str) -> QueryOutput:
+def ask_chatbot(query: QueryInput) -> QueryOutput:
     """Query the chatbot for an answer using the provided session and user input.
 
     Args:
         query (QueryInput): The user's question and session information.
-        session_id (str): The session ID to retrieve the ChatBot instance.
+        session_id (UUID): The session ID to retrieve the ChatBot instance.
 
     Returns:
         QueryOutput: The chatbot's response, including sources and session ID.
     """
-    chatbot = sessions.get(session_id)
+    chatbot = sessions.get(query.session_id)
+    if chatbot is None:
+        raise HTTPException(
+            status_code=404, detail="Session not found. Call GET / to start a session."
+        )
     return chatbot.ask_chatbot_wrapper(query)
 
 

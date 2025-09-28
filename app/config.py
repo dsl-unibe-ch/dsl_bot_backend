@@ -1,7 +1,14 @@
 """Configuration settings for the application."""
 
+import os
+
 from pydantic import ConfigDict, model_validator
 from pydantic_settings import BaseSettings
+
+env = os.environ["ENV"]
+if not env and env not in ["dev", "prod"]:
+    error_message = "ENV environment variable must be either 'dev' or 'prod'."
+    raise RuntimeError(error_message)
 
 
 class Settings(BaseSettings):
@@ -9,7 +16,8 @@ class Settings(BaseSettings):
 
     ENV: str
 
-    BASE_URL: str
+    FRONTEND_URL: str | None = None
+    BACKEND_URL: str | None = None
     DOCS_URL: str | None = None
     REDOC_URL: str | None = None
     APP_TITLE: str
@@ -49,7 +57,7 @@ class Settings(BaseSettings):
                 setattr(self, attr, None)
         return self
 
-    model_config = ConfigDict(env_file=".env")
+    model_config = ConfigDict(env_file=f".env.{env}")
 
 
 settings = Settings()

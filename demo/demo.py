@@ -1,7 +1,6 @@
 """Demo script of kioskbot."""
 
 import logging
-import uuid
 
 from app.agent.chatbot_azure import ChatBot, sessions
 from app.agent.feedback import Feedback
@@ -27,16 +26,14 @@ def main() -> None:
             print("Exiting...")  # noqa: T201
             break
 
-        query_input = QueryInput(text=query, session_id=str(uuid.uuid4()))
+        query_input = QueryInput(
+            text=query, session_id=start_session_response.session_id
+        )
 
         query_response = chatbot.ask_chatbot_wrapper(query_input)
         logger.debug("Output: %s", query_response["output"])
         translated_text = german2english(query_response["output"])
         logger.debug("Translated output: %s", translated_text)
-
-    check_status_response = chatbot.get_status_wrapper()
-    logger.debug("Status: %s", check_status_response.chatbot_status)
-    logger.debug("Message: %s", check_status_response.message)
 
     my_feedback = Feedback(
         rating=5,

@@ -22,7 +22,7 @@ from openai import AzureOpenAI
 
 from app.agent.prompt_templates import qa_prompt, translation_prompt
 from app.agent.query import QueryInput, QueryOutput, Source
-from app.agent.schemas import CheckStatusResponse, StartSessionResponse
+from app.agent.schemas import StartSessionResponse
 from app.agent.utils import truncate_for_table_storage
 from app.config import settings
 
@@ -288,20 +288,8 @@ class ChatBot:
         else:
             return query_response
 
-    def generate_session_id_wrapper(self, sessions: dict) -> str:
+    def generate_session_id_wrapper(self, sessions: dict) -> StartSessionResponse:
         """Create a new chatbot session and return the session ID."""
-        session_id = str(uuid.uuid4())
+        session_id = uuid.uuid4()
         sessions[session_id] = self
         return StartSessionResponse(session_id=session_id)
-
-    def get_status_wrapper(self) -> CheckStatusResponse:
-        """Check the status of the chatbot initialization for a given session ID."""
-        if self is None:
-            return CheckStatusResponse(
-                chatbot_status="failed",
-                message="Chatbot initialization failed - check server logs",
-            )
-        return CheckStatusResponse(
-            chatbot_status="ready",
-            message="Chatbot is initialized and ready",
-        )

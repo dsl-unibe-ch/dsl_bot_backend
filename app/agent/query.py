@@ -1,5 +1,7 @@
 """Schemas for the query integration."""
 
+from uuid import UUID
+
 from pydantic import BaseModel
 
 
@@ -12,7 +14,7 @@ class QueryInput(BaseModel):
     """
 
     text: str
-    session_id: str
+    session_id: UUID
 
 
 class Source(BaseModel):
@@ -45,4 +47,4 @@ class QueryOutput(BaseModel):
 
     output: str
     sources: list[Source]
-    session_id: str
+    session_id: UUID

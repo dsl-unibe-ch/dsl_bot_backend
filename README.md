@@ -46,7 +46,7 @@ pre-commit install
 <details>
 <summary>Click to expand</summary>
 
-Create `.env` file in the root of this repo and set the variables (see `.env.example` for the template).
+Create `.env.dev` and `.env.prod` files in the root of this repo and set the variables (see `.env.dev.example` and `.env.prod.example`  for the template).
 </details>
 
 
@@ -67,7 +67,7 @@ Key Steps in the ETL Pipeline:
 
 Note that the raw data source (Excel file path, name, and sheet) are hardcoded in the script's main() function.
 
-To run the ETL pipeline for Azure Search, specify your desired index name in the `.env` file using the `AZURE_AI_SEARCH_INDEX_NAME` variable, then execute:
+To run the ETL pipeline for Azure Search, specify your desired index name in the respective `.env.dev` file using the `AZURE_AI_SEARCH_INDEX_NAME` variable, then execute:
 
 ```bash
 make etl-pipeline-azure-search
@@ -102,22 +102,35 @@ Currently, the datasets to be processed and their corresponding excel sheets are
 
 - Before building the docker image: 
     - update the image version in `pyproject.toml` under the `[project]` section as `version = "x.y.z"`.  
-    - update the enviroment value `ENV` with either `dev` or `prod`.
 
 - Build the docker image:
-```bash 
-make build-image
-```
-
+    - For dev containers
+        ```bash 
+        make build-image-dev
+        ```
+    - For prod containers
+        ```bash 
+        make build-image-prod
+        ```
 - Run the Docker Compose service with the image version specified in `pyproject.toml`:
-```bash 
-make compose-up
-```
+    - For dev containers
+        ```bash 
+        make compose-up-dev
+        ```
+    - For prod containers
+        ```bash 
+        make compose-up-prod
+        ```
 
 - Stop the Docker Compose service with the image version specified in `pyproject.toml`:
-```bash 
-make compose-down
-```
+    - For dev containers
+        ```bash 
+        make compose-down-dev
+        ```
+    - For prod containers
+        ```bash 
+        make compose-down-prod
+        ```
 
 </details>
 
@@ -131,7 +144,27 @@ make compose-down
 make unit-tests
 ```
 
+
 Log in to [LangSmith](https://smith.langchain.com/), navigate to `Datasets & Experiments`, and review the test results.
+
+- End2End tests
+    - Setup
+        - Follow the setup mentioned in [Frontend Repository](https://github.com/dsl-unibe-ch/kioskbot_frontend?tab=readme-ov-file#quickstart) 
+        - On the backend
+            - Install Chromium
+            ```python -m playwright install chromium```
+            - Update the `FRONTEND_URL` in `.env.dev` with `http://localhost:5173`.
+        - Note that the `PUBLIC_API` is set to the `BACKEND_URL` as mentioned in the `.env.dev`. For example `PUBLIC_API=http://127.0.0.1:8000`
+    - Run tests
+        - Start the frontend with `pnpm dev`.
+        - Build and then start the backend container.
+        - Verify that the frontend and the backend are functioning correctly by visiting `http://localhost:5173/` and ensuring that the bot is operational.
+
+            ```bash 
+            make e2e-tests
+            ```
+        - Note that whenever the backend returns an error, the test saves the request and response details to a snapshot file in `tests/e2e/contract-snapshots` for debugging.
+
 
 </details>
 
@@ -160,7 +193,7 @@ make run-demo
 
 - Start the uvicorn server: 
 ```bash
-uvicorn app.api.v1.routers.main:app --reload --host 0.0.0.0 --port 8000
+ENV=dev uvicorn app.api.v1.routers.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 - Start a session:
@@ -174,18 +207,13 @@ session=$(curl -s http://127.0.0.1:8000/ | jq -r .session_id)
 echo $session
 ```
 
-- Check the status of the chatbot:
-```bash
-curl -s "http://127.0.0.1:8000/check_status?session_id=$session" | jq .
-```
-
 - Interact with the Agent:
 ```bash
-curl -s -X POST "http://127.0.0.1:8000/rag-agent?session_id=$session" -H "Content-Type: application/json" -d '{"session_id":"'"$session"'","text":"What is the email address of the QSE Department?"}' | jq .
+curl -s -X POST "http://127.0.0.1:8000/rag-agent" -H "Content-Type: application/json" -d '{"session_id":"'"$session"'","text":"What is the email address of the QSE Department?"}' | jq .
 ```
 
 ```bash
-curl -s -X POST "http://127.0.0.1:8000/rag-agent?session_id=$session" -H "Content-Type: application/json" -d '{"session_id":"'"$session"'","text":"Where it is located?"}' | jq .
+curl -s -X POST "http://127.0.0.1:8000/rag-agent" -H "Content-Type: application/json" -d '{"session_id":"'"$session"'","text":"Where it is located?"}' | jq .
 ```
 
 - Send feedback:
@@ -201,7 +229,7 @@ curl -s -X POST "http://127.0.0.1:8000/send_feedback" -H "Content-Type: applicat
 - Scrape UniBe Innovation website: 
 
 ```bash
-scrape-unibe-innovation
+make scrape-unibe-innovation
 ```
 
 - Convert One Note .mht files from Ideenlabor (UniBe Innovation) to text: 
@@ -210,7 +238,7 @@ scrape-unibe-innovation
 3. Verify that input name of file matches in makefile. 
 
 ```bash
-convert-mht-to-txt-ideenlabor
+make convert-mht-to-txt-ideenlabor
 ```
 
 </details>

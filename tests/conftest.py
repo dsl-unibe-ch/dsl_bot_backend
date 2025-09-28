@@ -1,6 +1,7 @@
 """Configuration file of tests."""
 
 import json
+import uuid
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
@@ -53,7 +54,8 @@ def correctness_evaluator(
 def invoke_agent(input_: str) -> dict:
     """Invoke the RAG agent with the given input and return the output."""
     chatbot = ChatBot()
-    query_input = QueryInput(text=input_, session_id="test_session")
+    session_id = uuid.uuid4()
+    query_input = QueryInput(text=input_, session_id=session_id)
     query_response = chatbot.ask_chatbot_wrapper(query_input)
     return {"output": query_response["output"], "sources": query_response["sources"]}
 
