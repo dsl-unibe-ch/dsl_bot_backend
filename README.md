@@ -132,6 +132,16 @@ Currently, the datasets to be processed and their corresponding excel sheets are
         make compose-down-prod
         ```
 
+- Push the Docker image to Azure Container Registry (use username and password from the Access keys of the container registry):
+    - For dev containers
+        ```bash 
+        make push-image-dev
+        ```
+    - For prod containers
+        ```bash 
+        make push-image-prod
+        ```
+
 </details>
 
 ## Run the tests
