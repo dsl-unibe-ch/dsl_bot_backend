@@ -34,41 +34,41 @@ convert-mht-to-txt-innovation:
 
 build-image-dev:
 	@ENV=dev; \
-	. .env.$${ENV}; \
+	. ./.env.$${ENV}; \
 	ENV=$${ENV} VERSION=$(VERSION) AZURE_CONTAINER_REGISTRY_LOGIN_SERVER=$${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER} docker compose --project-name kioskbot-backend-$${ENV} build
 
 build-image-prod:
 	@ENV=prod; \
-	. .env.$${ENV}; \
+	. ./.env.$${ENV}; \
 	ENV=$${ENV} VERSION=$(VERSION) AZURE_CONTAINER_REGISTRY_LOGIN_SERVER=$${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER} docker compose --project-name kioskbot-backend-$${ENV} build
 
 compose-up-dev:
 	@echo $@
 	@ENV=dev; \
-	. .env.$${ENV}; \
+	. ./.env.$${ENV}; \
 	ENV=$${ENV} VERSION=$(VERSION) AZURE_CONTAINER_REGISTRY_LOGIN_SERVER=$${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER} docker compose --project-name kioskbot-backend-$${ENV} up -d
 
 compose-up-prod:
 	@echo $@
 	@ENV=prod; \
-	. .env.$${ENV}; \
+	. ./.env.$${ENV}; \
 	ENV=$${ENV} VERSION=$(VERSION) AZURE_CONTAINER_REGISTRY_LOGIN_SERVER=$${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER} docker compose --project-name kioskbot-backend-$${ENV} up -d
 
 compose-down-dev:
 	@echo $@
 	@ENV=dev; \
-	. .env.$${ENV}; \
+	. ./.env.$${ENV}; \
 	ENV=$${ENV} VERSION=$(VERSION) AZURE_CONTAINER_REGISTRY_LOGIN_SERVER=$${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER} docker compose --project-name kioskbot-backend-$${ENV} down
 
 compose-down-prod:
 	@echo $@
 	@ENV=prod; \
-	. .env.$${ENV}; \
+	. ./.env.$${ENV}; \
 	ENV=$${ENV} VERSION=$(VERSION) AZURE_CONTAINER_REGISTRY_LOGIN_SERVER=$${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER} docker compose --project-name kioskbot-backend-$${ENV} down
 
 push-image-dev:
 	@ENV=dev; \
-	. .env.$${ENV}; \
+	. ./.env.$${ENV}; \
 	read -p "Username: " USERNAME; \
 	read -s -p "Password: " PASSWORD; echo; \
 	echo $$PASSWORD | docker login $${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER} -u $$USERNAME --password-stdin; \
@@ -81,7 +81,7 @@ push-image-dev:
 
 push-image-prod:
 	@ENV=prod; \
-	. .env.$${ENV}; \
+	. ./.env.$${ENV}; \
 	read -p "Username: " USERNAME; \
 	read -s -p "Password: " PASSWORD; echo; \
 	echo $$PASSWORD | docker login $${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER} -u $$USERNAME --password-stdin; \
