@@ -2,6 +2,7 @@
 
 import json
 import logging
+import sys
 from pathlib import Path
 
 import pandas as pd
@@ -40,6 +41,9 @@ handler = logging.StreamHandler()
 handler.setLevel(logging.DEBUG)
 handler.setFormatter(logging.Formatter("%(levelname)s: %(message)s"))
 logger.addHandler(handler)
+
+
+http_status_bad_request = 400
 
 
 class AzureEmbeddingWrapper:
@@ -97,7 +101,7 @@ def generate_title(chunk: str, token_provider: str) -> str:
     return title_generation_chain.invoke({"input": chunk}).content
 
 
-def run_etl(
+def run_etl(  # noqa: PLR0915
     xlsx_file_path: str,
     xlsx_file_name: str,
     sheet_name: str,
@@ -233,9 +237,20 @@ def run_etl(
         index_client.create_index(index)
         logger.debug("Index %s created successfully", index_name)
     except HttpResponseError as e:
-        logger.debug("Azure API error creating index: %s", e)
-    except (ValueError, TypeError) as e:
-        logger.debug("Local error creating index: %s", e)
+        if (
+            e.status_code == http_status_bad_request
+            and f"Message: Cannot create index '{index_name}' because it already exists."  # noqa: E501
+            in str(e)
+        ):
+            logger.exception(
+                "Index '%s' already exists. Stopping execution.", index_name
+            )
+        else:
+            logger.exception("Azure API error creating index:")
+        sys.exit(1)
+    except (ValueError, TypeError):
+        logger.exception("Local error creating index:")
+        sys.exit(1)
 
     # process the row data to generate the fields that will be pushed to the index
     documents = []
