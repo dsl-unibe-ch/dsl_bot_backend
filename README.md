@@ -257,6 +257,14 @@ make convert-mht-to-txt-ideenlabor
 
 </details>
 
+## Release process
+<details>
+<summary>Create a new release</summary>
+
+- Create a new release on GitHub with the same version as in `pyproject.toml`. Note that the `Generate Release Notes` workflow will generate the release notes after the new release is created.
+
+</details>
+
 ## Others
 <details>
 <summary>Click to expand</summary>
