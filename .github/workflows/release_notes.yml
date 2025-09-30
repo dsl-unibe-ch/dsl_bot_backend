@@ -66,12 +66,13 @@ jobs:
         run: |
           echo "## Release Notes" > release_notes.md
           echo "" >> release_notes.md
+          baseURL="${JIRA_BASE_URL%/}"
           if [ -s jira_ids.txt ]; then # if jira_ids.txt is not empty
             while read ID; do # for each Jira ID in jira_ids.txt
-              TITLE=$(curl -s -u $JIRA_USER:$JIRA_API_TOKEN \
-                -X GET "$JIRA_BASE_URL/rest/api/2/issue/$ID" \
+              TITLE=$(curl -s -u "$JIRA_USER:$JIRA_API_TOKEN" \
+                -X GET "$baseURL/rest/api/2/issue/$ID" \
                 | jq -r '.fields.summary') # fetch the title of the Jira ticket using Jira REST API
-              echo "- [$ID] $TITLE" >> release_notes.md # append the Jira ID and title to release_notes.md
+              echo "- [$ID]($baseURL/browse/$ID) $TITLE" >> release_notes.md # append link + title to release_notes.md
             done < jira_ids.txt # read from jira_ids.txt
           else
             echo "_No Jira tickets found for this release._" >> release_notes.md
