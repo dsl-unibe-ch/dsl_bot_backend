@@ -1,4 +1,8 @@
 services:
+  kafka:
+    image: apache/kafka:4.1.0
+    ports:
+      - "9092:9092"
   kioskbot-backend-api:
     image: ${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER}/kioskbot-backend-api:${VERSION}-${ENV}
     build:
