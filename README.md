@@ -96,6 +96,9 @@ Currently, the datasets to be processed and their corresponding excel sheets are
 </details>
 
 ## Terraform 
+<details>
+<summary>Click to expand</summary>
+
 - Setup
     - Install Terraform
         - Windows : Run from Powershell as admin
@@ -103,7 +106,6 @@ Currently, the datasets to be processed and their corresponding excel sheets are
             choco install terraform 
             choco install azure-cli 
             Invoke-WebRequest -Uri https://aka.ms/installazurecliwindows -OutFile .\AzureCLI.msi; Start-Process msiexec.exe -Wait -ArgumentList '/I AzureCLI.msi /quiet'; rm .\AzureCLI.msi
-
             ```
         - Mac :  
             ```bash
@@ -111,7 +113,7 @@ Currently, the datasets to be processed and their corresponding excel sheets are
             brew install hashicorp/tap/terraform
             brew install azure-cli
             ```
-    - Create `environments/dev.tfvars` and `environments/prod.tfvars` using the templates of ``environments/dev.tfvar.example` and `environments/prod.tfvars.example` respectively.
+    - Create `scripts/terraform/environments/dev.tfvars` and `scripts/terraform/environments/prod.tfvars` using the templates `scripts/terraform/environments/dev.tfvars.example` and `scripts/terraform/environments/prod.tfvars.example` respectively.
     - Login: Select the subscription id as mentioned in `scripts\terraform\environments\{ENV}.tfvars` where `ENV` can be `dev` or `prod`.
         ```bash 
         make az-login
@@ -129,38 +131,38 @@ Currently, the datasets to be processed and their corresponding excel sheets are
         make terraform-validate
         ```
     - Create or select workspace (if already created)
-        - For `dev` environmemt
+        - For `dev` environment
             ```bash
             make terraform-workspace-dev
             ```
-        - For `prod` environmemt
+        - For `prod` environment
             ```bash
             make terraform-workspace-prod
             ```
     - Create a plan (plans are output and stored as `scripts/terraform/${ENV}.plan`)
-        - For `dev` environmemt
+        - For `dev` environment
             ```bash
             make terraform-plan-dev
             ```
-        - For `prod` environmemt
+        - For `prod` environment
             ```bash
             make terraform-plan-prod
             ```
     - Apply the plan created above
-        - For `dev` environmemt
+        - For `dev` environment
             ```bash
             make terraform-apply-dev
             ```
-        - For `prod` environmemt
+        - For `prod` environment
             ```bash
             make terraform-apply-prod
             ```
     - Extract Output 
-        - For `dev` environmemt
+        - For `dev` environment
             ```bash
             make terraform-output-dev
             ```
-        - For `prod` environmemt
+        - For `prod` environment
             ```bash
             make terraform-output-prod
             ```
@@ -179,6 +181,7 @@ Currently, the datasets to be processed and their corresponding excel sheets are
             ```bash
             make terraform-fmt
             ```
+</details>
 
 ## Docker
 
