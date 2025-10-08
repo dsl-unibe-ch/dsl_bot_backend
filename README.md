@@ -111,7 +111,7 @@ Currently, the datasets to be processed and their corresponding excel sheets are
             brew install hashicorp/tap/terraform
             brew install azure-cli
             ```
-
+    - Create `environments/dev.tfvars` and `environments/prod.tfvars` using the templates of ``environments/dev.tfvar.example` and `environments/prod.tfvars.example` respectively.
     - Login: Select the subscription id as mentioned in `scripts\terraform\environments\{ENV}.tfvars` where `ENV` can be `dev` or `prod`.
         ```bash 
         make az-login
