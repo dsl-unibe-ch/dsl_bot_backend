@@ -3,9 +3,12 @@
 import inspect
 import json
 import logging
+import os
 import re
+import tomllib
 import uuid
 from datetime import UTC, datetime
+from pathlib import Path
 
 import ftfy
 from azure.core.credentials import AzureKeyCredential
@@ -23,7 +26,6 @@ from openai import AzureOpenAI
 from app.agent.prompt_templates import qa_prompt, translation_prompt
 from app.agent.query import QueryInput, QueryOutput, Source
 from app.agent.schemas import StartSessionResponse
-from app.agent.utils import truncate_for_table_storage
 from app.config import settings
 
 logger = logging.getLogger("Kioskbot")
@@ -34,6 +36,10 @@ chat_history_table = table_service.get_table_client(settings.CHAT_HISTORY_TABLE_
 azure_container_storage_name = settings.AZURE_CONTAINER_STORAGE_NAME
 
 sessions = {}
+version = "unknown"
+with Path.open("pyproject.toml", "rb") as f:
+    version = tomllib.load(f).get("project", {}).get("version", "unknown")
+environment = os.environ.get("ENV", "unknown")
 
 
 class ChatBot:
@@ -270,16 +276,16 @@ class ChatBot:
             sources = query_response.get("sources", [])
             sources_json = json.dumps([str(s) for s in sources]) if sources else "[]"
 
-            entity = {
-                "PartitionKey": query.session_id,
-                "RowKey": timestamp,
-                "Timestamp": timestamp,
-                "UserMessage": query.text,
-                "AIResponse": query_response.get("output"),
-                "Sources": truncate_for_table_storage(sources_json),
-                "UserGroup": "Unknown",
+            log_content = {
+                "session_id": query.session_id,
+                "timestamp": timestamp,
+                "user_message": query.text,
+                "agent_response": query_response.get("output"),
+                "sources": sources_json,
+                "version": version,
+                "environment": environment,
             }
-            chat_history_table.upsert_entity(entity)
+            chat_history_table.upsert_entity(log_content)
 
         except Exception as e:
             error_msg = f"Error in rag-agent: {type(e).__name__}: {e!s}"
