@@ -95,6 +95,91 @@ When extracting supporting sentences, the script checks that each sentence actua
 Currently, the datasets to be processed and their corresponding excel sheets are specified directly within the `generate_assessment_dataset.py` script.
 </details>
 
+## Terraform 
+- Setup
+    - Install Terraform
+        - Windows : Run from Powershell as admin
+            ```bash
+            choco install terraform 
+            choco install azure-cli 
+            Invoke-WebRequest -Uri https://aka.ms/installazurecliwindows -OutFile .\AzureCLI.msi; Start-Process msiexec.exe -Wait -ArgumentList '/I AzureCLI.msi /quiet'; rm .\AzureCLI.msi
+
+            ```
+        - Mac :  
+            ```bash
+            brew tap hashicorp/tap
+            brew install hashicorp/tap/terraform
+            brew install azure-cli
+            ```
+
+    - Login: Select the subscription id as mentioned in `scripts\terraform\environments\{ENV}.tfvars` where `ENV` can be `dev` or `prod`.
+        ```bash 
+        make az-login
+        ```
+    - Set subscription: The subscription selected while login in is set again (is this needed?)
+        ```bash
+        make az-set-subscription
+        ```
+    - Initialise terraform
+        ```bash
+        make terraform-init
+        ```
+    - Validate terraform
+        ```bash
+        make terraform-validate
+        ```
+    - Create or select workspace (if already created)
+        - For `dev` environmemt
+            ```bash
+            make terraform-workspace-dev
+            ```
+        - For `prod` environmemt
+            ```bash
+            make terraform-workspace-prod
+            ```
+    - Create a plan (plans are output and stored as `scripts/terraform/${ENV}.plan`)
+        - For `dev` environmemt
+            ```bash
+            make terraform-plan-dev
+            ```
+        - For `prod` environmemt
+            ```bash
+            make terraform-plan-prod
+            ```
+    - Apply the plan created above
+        - For `dev` environmemt
+            ```bash
+            make terraform-apply-dev
+            ```
+        - For `prod` environmemt
+            ```bash
+            make terraform-apply-prod
+            ```
+    - Extract Output 
+        - For `dev` environmemt
+            ```bash
+            make terraform-output-dev
+            ```
+        - For `prod` environmemt
+            ```bash
+            make terraform-output-prod
+            ```
+    - Destroy the resources
+        - For `dev` environmemt
+            ```bash
+            make terraform-destroy-dev
+            ```
+        - For `prod` environmemt
+            ```bash
+            make terraform-destroy-prod
+            ```
+
+    - Additional utility commands (optional)
+        - Rewrite Terraform configuration files to a canonical format and style.
+            ```bash
+            make terraform-fmt
+            ```
+
 ## Docker
 
 <details>
