@@ -33,28 +33,64 @@ convert-mht-to-txt-innovation:
 
 
 build-image-dev:
-	@echo $@
-	@ENV=dev VERSION=$(VERSION) docker compose build
+	@ENV=dev; \
+	. ./.env.$${ENV}; \
+	ENV=$${ENV} VERSION=$(VERSION) AZURE_CONTAINER_REGISTRY_LOGIN_SERVER=$${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER} docker compose --project-name kioskbot-backend-$${ENV} build
 
 build-image-prod:
-	@echo $@
-	@ENV=prod VERSION=$(VERSION) docker compose build
+	@ENV=prod; \
+	. ./.env.$${ENV}; \
+	ENV=$${ENV} VERSION=$(VERSION) AZURE_CONTAINER_REGISTRY_LOGIN_SERVER=$${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER} docker compose --project-name kioskbot-backend-$${ENV} build
 
 compose-up-dev:
 	@echo $@
-	@ENV=dev VERSION=$(VERSION) docker compose up -d
+	@ENV=dev; \
+	. ./.env.$${ENV}; \
+	ENV=$${ENV} VERSION=$(VERSION) AZURE_CONTAINER_REGISTRY_LOGIN_SERVER=$${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER} docker compose --project-name kioskbot-backend-$${ENV} up -d
 
 compose-up-prod:
 	@echo $@
-	@ENV=prod VERSION=$(VERSION) docker compose up -d
+	@ENV=prod; \
+	. ./.env.$${ENV}; \
+	ENV=$${ENV} VERSION=$(VERSION) AZURE_CONTAINER_REGISTRY_LOGIN_SERVER=$${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER} docker compose --project-name kioskbot-backend-$${ENV} up -d
 
 compose-down-dev:
 	@echo $@
-	@ENV=dev VERSION=$(VERSION) docker compose down
+	@ENV=dev; \
+	. ./.env.$${ENV}; \
+	ENV=$${ENV} VERSION=$(VERSION) AZURE_CONTAINER_REGISTRY_LOGIN_SERVER=$${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER} docker compose --project-name kioskbot-backend-$${ENV} down
 
 compose-down-prod:
 	@echo $@
-	@ENV=prod VERSION=$(VERSION) docker compose down
+	@ENV=prod; \
+	. ./.env.$${ENV}; \
+	ENV=$${ENV} VERSION=$(VERSION) AZURE_CONTAINER_REGISTRY_LOGIN_SERVER=$${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER} docker compose --project-name kioskbot-backend-$${ENV} down
+
+push-image-dev:
+	@ENV=dev; \
+	. ./.env.$${ENV}; \
+	read -p "Username: " USERNAME; \
+	read -s -p "Password: " PASSWORD; echo; \
+	echo $$PASSWORD | docker login $${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER} -u $$USERNAME --password-stdin; \
+	if ! docker manifest inspect $${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER}/kioskbot-backend-api:${VERSION}-$${ENV} >/dev/null 2>&1; then \
+		echo "Image does not exist in registry, pushing..."; \
+		docker push $${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER}/kioskbot-backend-api:${VERSION}-$${ENV}; \
+	else \
+		echo "Image already exists in registry, skipping push."; \
+	fi
+
+push-image-prod:
+	@ENV=prod; \
+	. ./.env.$${ENV}; \
+	read -p "Username: " USERNAME; \
+	read -s -p "Password: " PASSWORD; echo; \
+	echo $$PASSWORD | docker login $${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER} -u $$USERNAME --password-stdin; \
+	if ! docker manifest inspect $${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER}/kioskbot-backend-api:${VERSION}-$${ENV} >/dev/null 2>&1; then \
+		echo "Image does not exist in registry, pushing..."; \
+		docker push $${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER}/kioskbot-backend-api:${VERSION}-$${ENV}; \
+	else \
+		echo "Image already exists in registry, skipping push."; \
+	fi
 
 unit-tests:
 	@echo $@

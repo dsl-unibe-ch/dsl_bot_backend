@@ -1,20 +1,23 @@
 """Test RAG agent."""
 
+import os
 from collections.abc import Callable
 from typing import Any
 
 import pytest
-from dotenv import load_dotenv
 from langsmith import testing as t
 from openevals.types import SimpleEvaluator
 
+from app.config import settings
 from scripts.assessment_data.generate_assessment_dataset import (
     german2english,
     open_question_answer,
 )
 from tests.conftest import invoke_agent, load_questions_groundtruth_answers
 
-load_dotenv(".env.dev")
+os.environ["LANGSMITH_API_KEY"] = settings.LANGSMITH_API_KEY
+os.environ["LANGSMITH_ENDPOINT"] = settings.LANGSMITH_ENDPOINT
+os.environ["LANGSMITH_PROJECT"] = settings.LANGSMITH_PROJECT
 
 
 @pytest.fixture(scope="session")

@@ -217,20 +217,35 @@ Currently, the datasets to be processed and their corresponding excel sheets are
         make compose-down-prod
         ```
 
+- Push the Docker image to Azure Container Registry (use username and password from the Access keys of the container registry):
+    - For dev containers
+        ```bash 
+        make push-image-dev
+        ```
+    - For prod containers
+        ```bash 
+        make push-image-prod
+        ```
+
 </details>
 
 ## Run the tests
 
 <details>
-<summary>Click to expand</summary>
+<summary>Click to expand Unit tests</summary>
 
 - Unit tests
 ```bash 
 make unit-tests
 ```
 
-
 Log in to [LangSmith](https://smith.langchain.com/), navigate to `Datasets & Experiments`, and review the test results.
+
+</details>
+
+
+<details>
+<summary>Click to expand End2End tests</summary>
 
 - End2End tests
     - Setup
@@ -242,15 +257,14 @@ Log in to [LangSmith](https://smith.langchain.com/), navigate to `Datasets & Exp
         - Note that the `PUBLIC_API` is set to the `BACKEND_URL` as mentioned in the `.env.dev`. For example `PUBLIC_API=http://127.0.0.1:8000`
     - Run tests
         - Start the frontend with `pnpm dev`.
-        - Build and then start the backend container.
+        - Start the backend container.
         - Verify that the frontend and the backend are functioning correctly by visiting `http://localhost:5173/` and ensuring that the bot is operational.
+        - Run the end to end test with:
 
             ```bash 
             make e2e-tests
             ```
         - Note that whenever the backend returns an error, the test saves the request and response details to a snapshot file in `tests/e2e/contract-snapshots` for debugging.
-
-
 </details>
 
 ## Run the demo
@@ -325,6 +339,14 @@ make scrape-unibe-innovation
 ```bash
 make convert-mht-to-txt-ideenlabor
 ```
+
+</details>
+
+## Release process
+<details>
+<summary>Create a new release</summary>
+
+- Create a new release on GitHub with the same version as in `pyproject.toml`. Note that the `Generate Release Notes` workflow will generate the release notes after the new release is created.
 
 </details>
 
