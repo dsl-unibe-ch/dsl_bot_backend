@@ -31,6 +31,7 @@ table_service = TableServiceClient.from_connection_string(
     settings.AZURE_STORAGE_CONNECTION_STRING
 )
 chat_history_table = table_service.get_table_client(settings.CHAT_HISTORY_TABLE_NAME)
+azure_container_storage_name = settings.AZURE_CONTAINER_STORAGE_NAME
 
 sessions = {}
 

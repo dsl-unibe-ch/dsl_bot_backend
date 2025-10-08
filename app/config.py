@@ -50,6 +50,8 @@ class Settings(BaseSettings):
 
     AZURE_CONTAINER_REGISTRY_LOGIN_SERVER: str | None = None
 
+    AZURE_CONTAINER_STORAGE_NAME: str
+
     @model_validator(mode="after")
     def normalize_urls(self) -> "Settings":
         """Normalize URL fields to be None if they are empty or 'None'."""
