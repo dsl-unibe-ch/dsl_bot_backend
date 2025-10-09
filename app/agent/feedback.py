@@ -1,19 +1,23 @@
 """Data model for user feedback."""
 
 import datetime
+import json
+import os
+import tomllib
+from pathlib import Path
 from uuid import UUID
+from zoneinfo import ZoneInfo
 
-from azure.data.tables import TableServiceClient
 from fastapi import HTTPException
 from pydantic import BaseModel
 
 from app.agent.schemas import FeedbackResponse
-from app.config import settings
+from app.logging_config import kioskbot_logger as logger
 
-table_service = TableServiceClient.from_connection_string(
-    settings.AZURE_STORAGE_CONNECTION_STRING
-)
-feedback_table = table_service.get_table_client(settings.FEEDBACK_TABLE_NAME)
+version = "unknown"
+with Path.open("pyproject.toml", "rb") as f:
+    version = tomllib.load(f).get("project", {}).get("version", "unknown")
+environment = os.environ.get("ENV", "unknown")
 
 
 class Feedback(BaseModel):
@@ -23,20 +27,24 @@ class Feedback(BaseModel):
     comments: str = None  # Optional additional comments
     session_id: UUID
 
-    def send_feedback_wrapper(self: "Feedback") -> FeedbackResponse:
+    def send_feedback_wrapper(
+        self: "Feedback", interaction_count: int
+    ) -> FeedbackResponse:
         """Send feedback to Azure Table Storage."""
         if self.session_id:
-            utc_timestamp = datetime.datetime.now(datetime.UTC)
-            timestamp = str(utc_timestamp.isoformat())
-            entity = {
-                "PartitionKey": self.session_id,
-                "RowKey": timestamp,
-                "Timestamp": timestamp,
-                "Feedback": self.rating,
-                "Comments": self.comments,
-                "UserGroup": "Unknown    ",
+            now = datetime.datetime.now(ZoneInfo("Europe/Berlin"))
+            timestamp = now.isoformat()
+            log_content = {
+                "session_id": str(self.session_id),
+                "timestamp": timestamp,
+                "feedback": self.rating,
+                "comments": self.comments,
+                "interaction_count": interaction_count,
+                "version": version,
+                "environment": environment,
             }
-            feedback_table.upsert_entity(entity)
+            logger.info(json.dumps(log_content))
+
             return FeedbackResponse(
                 message="Feedback received successfully",
                 session_id=self.session_id,

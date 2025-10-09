@@ -1,18 +1,11 @@
 """Demo script of kioskbot."""
 
-import logging
-
 from app.agent.chatbot_azure import ChatBot, sessions
 from app.agent.feedback import Feedback
 from app.agent.query import QueryInput
+from app.logging_config import close_kafka
+from app.logging_config import kioskbot_logger as logger
 from scripts.assessment_data.generate_assessment_dataset import german2english
-
-logger = logging.getLogger("Kioskbot")
-logger.setLevel(logging.DEBUG)
-logger.propagate = False
-handler = logging.StreamHandler()
-handler.setFormatter(logging.Formatter("%(levelname)s: %(message)s"))
-logger.addHandler(handler)
 
 
 def main() -> None:
@@ -31,9 +24,9 @@ def main() -> None:
         )
 
         query_response = chatbot.ask_chatbot_wrapper(query_input)
-        logger.debug("Output: %s", query_response["output"])
+        print(f"Output: {query_response['output']}")  # noqa: T201
         translated_text = german2english(query_response["output"])
-        logger.debug("Translated output: %s", translated_text)
+        print(f"Translated output: {translated_text}")  # noqa: T201
 
     my_feedback = Feedback(
         rating=5,
@@ -41,9 +34,11 @@ def main() -> None:
         session_id=start_session_response.session_id,
     )
 
-    feedback_response = my_feedback.send_feedback_wrapper()
+    feedback_response = my_feedback.send_feedback_wrapper(chatbot.interaction_count)
     logger.debug("Feedback response: %s", feedback_response.message)
     logger.debug("Session ID: %s", feedback_response.session_id)
+
+    close_kafka()  # closing kafka gracefully
 
 
 if __name__ == "__main__":

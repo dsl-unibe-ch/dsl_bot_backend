@@ -15,7 +15,7 @@ generate-assessment-dataset:
 	@echo $@
 	@ENV=dev PYTHONPATH=$(shell pwd) python scripts/assessment_data/generate_assessment_dataset.py
 
-run-demo:
+run-demo: build-image-dev compose-down-dev compose-up-dev
 	@echo $@
 	@ENV=dev PYTHONPATH=$(shell pwd) python demo/demo.py
 
@@ -92,10 +92,10 @@ push-image-prod:
 		echo "Image already exists in registry, skipping push."; \
 	fi
 
-unit-tests:
+unit-tests: build-image-dev compose-down-dev compose-up-dev
 	@echo $@
 	@ENV=dev PYTHONPATH=$(shell pwd) pytest -v tests/unit/
 
-e2e-tests:
+e2e-tests: build-image-dev compose-down-dev compose-up-dev
 	@echo $@
 	@ENV=dev PYTHONPATH=$(shell pwd) pytest -v tests/e2e/

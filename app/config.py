@@ -26,8 +26,6 @@ class Settings(BaseSettings):
     ALLOWED_HEADERS: list[str]
     ALLOWED_CREDENTIALS: bool
     AZURE_STORAGE_CONNECTION_STRING: str
-    CHAT_HISTORY_TABLE_NAME: str
-    FEEDBACK_TABLE_NAME: str
 
     AZURE_AI_SEARCH_API_KEY: str
     AZURE_SEARCH_ENDPOINT: str
@@ -49,6 +47,11 @@ class Settings(BaseSettings):
     AZURE_TENANT_ID: str
 
     AZURE_CONTAINER_REGISTRY_LOGIN_SERVER: str | None = None
+
+    AZURE_CONTAINER_STORAGE_NAME: str
+
+    KAFKA_BOOTSTRAP_SERVERS: str
+    KAFKA_TOPIC: str
 
     @model_validator(mode="after")
     def normalize_urls(self) -> "Settings":

@@ -2,14 +2,16 @@
 
 import inspect
 import json
-import logging
+import os
 import re
+import tomllib
 import uuid
-from datetime import UTC, datetime
+from datetime import datetime
+from pathlib import Path
+from zoneinfo import ZoneInfo
 
 import ftfy
 from azure.core.credentials import AzureKeyCredential
-from azure.data.tables import TableServiceClient
 from azure.identity import DefaultAzureCredential, get_bearer_token_provider
 from azure.search.documents import SearchClient
 from azure.search.documents.models import VectorizedQuery
@@ -23,16 +25,16 @@ from openai import AzureOpenAI
 from app.agent.prompt_templates import qa_prompt, translation_prompt
 from app.agent.query import QueryInput, QueryOutput, Source
 from app.agent.schemas import StartSessionResponse
-from app.agent.utils import truncate_for_table_storage
 from app.config import settings
+from app.logging_config import kioskbot_logger as logger
 
-logger = logging.getLogger("Kioskbot")
-table_service = TableServiceClient.from_connection_string(
-    settings.AZURE_STORAGE_CONNECTION_STRING
-)
-chat_history_table = table_service.get_table_client(settings.CHAT_HISTORY_TABLE_NAME)
+azure_container_storage_name = settings.AZURE_CONTAINER_STORAGE_NAME
 
 sessions = {}
+version = "unknown"
+with Path.open("pyproject.toml", "rb") as f:
+    version = tomllib.load(f).get("project", {}).get("version", "unknown")
+environment = os.environ.get("ENV", "unknown")
 
 
 class ChatBot:
@@ -264,21 +266,24 @@ class ChatBot:
         try:
             query_response = self.get_response_from_vectordb(query.text)
             query_response["session_id"] = query.session_id
-            utc_timestamp = datetime.now(UTC)
-            timestamp = str(utc_timestamp.isoformat())
+            now = datetime.now(ZoneInfo("Europe/Berlin"))
+            timestamp = now.isoformat()
             sources = query_response.get("sources", [])
             sources_json = json.dumps([str(s) for s in sources]) if sources else "[]"
 
-            entity = {
-                "PartitionKey": query.session_id,
-                "RowKey": timestamp,
-                "Timestamp": timestamp,
-                "UserMessage": query.text,
-                "AIResponse": query_response.get("output"),
-                "Sources": truncate_for_table_storage(sources_json),
-                "UserGroup": "Unknown",
+            log_content = {
+                "session_id": str(query.session_id),
+                "timestamp": timestamp,
+                "user_message": query.text,
+                "agent_response": query_response.get("output"),
+                "interaction_count": self.interaction_count,
+                "sources": sources_json,
+                "version": version,
+                "environment": environment,
             }
-            chat_history_table.upsert_entity(entity)
+            logger.info(
+                json.dumps(log_content)
+            )  # logger.info/debug/error/etc/ triggers KafkaLoggingHandler.emit()
 
         except Exception as e:
             error_msg = f"Error in rag-agent: {type(e).__name__}: {e!s}"
