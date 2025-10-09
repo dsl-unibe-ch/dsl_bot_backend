@@ -24,24 +24,19 @@ def main() -> None:
         consumer = KafkaConsumer(
             settings.KAFKA_TOPIC,
             bootstrap_servers=settings.KAFKA_BOOTSTRAP_SERVERS,
-            auto_offset_reset="earliest",
-            enable_auto_commit=False,
-            group_id="azure-blob-storage-writer",
-            value_deserializer=lambda x: json.loads(x.decode("utf-8")),
+            auto_offset_reset="latest",  # in case the consumer group has no committed offsets, start from the latest messages. Note that in case the group has a commited offset, this parameter is ignored # noqa: E501
+            enable_auto_commit=False,  # with `enable_auto_commit=True`, Kafka automatically commits the offset at regular intervals (e.g., every 5 seconds). However, since I want to commit offsets only after the messages are actually written to the Blob, I disable auto commit (see `consumer.commit()` below) # noqa: E501
+            group_id="azure-blob-storage-writer",  # name of the consumer group that is reading from a specific Kafka topic. Note that for a given topic, different consumers can use different group IDs. Each group ID will have its own set of committed offsets, so each consumer group tracks its own progress independently. # noqa: E501
+            value_deserializer=lambda x: json.loads(
+                x.decode("utf-8")
+            ),  # tells the KafkaConsumer how to decode the message value from Kafka.
         )
 
-        # Wait for partition assignment before processing messages. There's
-        # a race where messages produced very early can be skipped if the
-        # consumer hasn't finished joining the group and received its
-        # assignment yet. Polling until assignment ensures we start from the
-        # configured offset policy (earliest/latest) relative to the time of
-        # assignment.
         logger.info(
             "Waiting for partition assignment for consumer group: %s",
             consumer.config.get("group_id"),
         )
-
-        while not consumer.assignment():  # poll until the consumer has an assignment
+        while not consumer.assignment():  # ensuring that the Kafka consumer is assigned to topic partitions before it starts processing messages to avoid missing messages that could be produced before the consumer is ready to read. This is required only once at startup, since Kafka needs time to coordinate and assign partitions to consumers in a group. # noqa: E501
             consumer.poll(timeout_ms=100)
         logger.info("Assigned partitions: %s", consumer.assignment())
 
