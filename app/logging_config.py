@@ -12,3 +12,8 @@ producer = KafkaProducer(bootstrap_servers=settings.KAFKA_BOOTSTRAP_SERVERS)
 kafka_handler = KafkaLoggingHandler(producer, settings.KAFKA_TOPIC)
 kioskbot_logger.addHandler(kafka_handler)
 kioskbot_logger.setLevel(logging.INFO)
+
+
+def close_kafka() -> None:
+    """Close the Kafka logging handler gracefully."""
+    kafka_handler.close()

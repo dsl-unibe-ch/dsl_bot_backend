@@ -34,3 +34,9 @@ class KafkaLoggingHandler(logging.Handler):
             "lineNo": record.lineno,  #  line number in the source code where the log call was made # noqa: E501
         }
         self.producer.send(self.topic, value=json.dumps(log_entry).encode("utf-8"))
+
+    def close(self: "KafkaLoggingHandler") -> None:
+        """Close the Kafka producer."""
+        if hasattr(self, "producer") and self.producer is not None:
+            self.producer.close()
+        super().close()

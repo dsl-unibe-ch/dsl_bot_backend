@@ -26,7 +26,6 @@ class Settings(BaseSettings):
     ALLOWED_HEADERS: list[str]
     ALLOWED_CREDENTIALS: bool
     AZURE_STORAGE_CONNECTION_STRING: str
-    FEEDBACK_TABLE_NAME: str
 
     AZURE_AI_SEARCH_API_KEY: str
     AZURE_SEARCH_ENDPOINT: str

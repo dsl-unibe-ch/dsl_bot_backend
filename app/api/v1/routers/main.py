@@ -77,4 +77,6 @@ def send_feedback(feedback: Feedback) -> FeedbackResponse:
     Returns:
         FeedbackResponse: Confirmation message and session ID if feedback is stored successfully.
     """  # noqa: E501
-    return feedback.send_feedback_wrapper()
+    chatbot = sessions.get(feedback.session_id)
+    interaction_count = chatbot.interaction_count
+    return feedback.send_feedback_wrapper(interaction_count)

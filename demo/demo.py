@@ -3,6 +3,7 @@
 from app.agent.chatbot_azure import ChatBot, sessions
 from app.agent.feedback import Feedback
 from app.agent.query import QueryInput
+from app.logging_config import close_kafka
 from app.logging_config import kioskbot_logger as logger
 from scripts.assessment_data.generate_assessment_dataset import german2english
 
@@ -33,9 +34,11 @@ def main() -> None:
         session_id=start_session_response.session_id,
     )
 
-    feedback_response = my_feedback.send_feedback_wrapper()
+    feedback_response = my_feedback.send_feedback_wrapper(chatbot.interaction_count)
     logger.debug("Feedback response: %s", feedback_response.message)
     logger.debug("Session ID: %s", feedback_response.session_id)
+
+    close_kafka()  # closing kafka gracefully
 
 
 if __name__ == "__main__":
