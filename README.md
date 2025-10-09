@@ -265,6 +265,22 @@ make convert-mht-to-txt-ideenlabor
 
 </details>
 
+## Kafka
+<details>
+<summary>Click to expand</summary>
+
+- Kafka is used to stream chatbot logs in JSON format, which are then persisted to Azure Blob Storage. The target container for these logs is specified by the `AZURE_CONTAINER_STORAGE_NAME` environment variable.
+
+- The Kafka broker and Kafka consumer are both defined as services in the Docker Compose file. To start these services, follow the instructions in the [Docker](#docker) section.
+
+- To inspect messages in the Kafka broker queue, run:
+
+```bash
+docker exec -it kioskbot-backend-dev-kafka-1 /opt/kafka/bin/kafka-console-consumer.sh --bootstrap-server localhost:9094 --topic chatbot_logs --from-beginning
+```
+
+</details>
+
 ## Others
 <details>
 <summary>Click to expand</summary>

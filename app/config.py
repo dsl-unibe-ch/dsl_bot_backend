@@ -52,6 +52,9 @@ class Settings(BaseSettings):
 
     AZURE_CONTAINER_STORAGE_NAME: str
 
+    KAFKA_BOOTSTRAP_SERVERS: str
+    KAFKA_TOPIC: str
+
     @model_validator(mode="after")
     def normalize_urls(self) -> "Settings":
         """Normalize URL fields to be None if they are empty or 'None'."""

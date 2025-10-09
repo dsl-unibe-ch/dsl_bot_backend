@@ -2,7 +2,6 @@
 
 import inspect
 import json
-import logging
 import os
 import re
 import tomllib
@@ -12,7 +11,6 @@ from pathlib import Path
 
 import ftfy
 from azure.core.credentials import AzureKeyCredential
-from azure.data.tables import TableServiceClient
 from azure.identity import DefaultAzureCredential, get_bearer_token_provider
 from azure.search.documents import SearchClient
 from azure.search.documents.models import VectorizedQuery
@@ -27,12 +25,8 @@ from app.agent.prompt_templates import qa_prompt, translation_prompt
 from app.agent.query import QueryInput, QueryOutput, Source
 from app.agent.schemas import StartSessionResponse
 from app.config import settings
+from app.logging_config import kioskbot_logger as logger
 
-logger = logging.getLogger("Kioskbot")
-table_service = TableServiceClient.from_connection_string(
-    settings.AZURE_STORAGE_CONNECTION_STRING
-)
-chat_history_table = table_service.get_table_client(settings.CHAT_HISTORY_TABLE_NAME)
 azure_container_storage_name = settings.AZURE_CONTAINER_STORAGE_NAME
 
 sessions = {}
@@ -277,15 +271,18 @@ class ChatBot:
             sources_json = json.dumps([str(s) for s in sources]) if sources else "[]"
 
             log_content = {
-                "session_id": query.session_id,
+                "session_id": str(query.session_id),
                 "timestamp": timestamp,
                 "user_message": query.text,
                 "agent_response": query_response.get("output"),
+                "interaction_count": self.interaction_count,
                 "sources": sources_json,
                 "version": version,
                 "environment": environment,
             }
-            chat_history_table.upsert_entity(log_content)
+            logger.info(
+                json.dumps(log_content)
+            )  # logger.info/debug/error/etc/ triggers KafkaLoggingHandler.emit()
 
         except Exception as e:
             error_msg = f"Error in rag-agent: {type(e).__name__}: {e!s}"

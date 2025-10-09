@@ -6,6 +6,7 @@ RUN pip install uv==0.8.14
 
 COPY pyproject.toml .
 COPY app ./app
+COPY scripts/kafka_to_azure_consumer.py ./scripts/kafka_to_azure_consumer.py
 
 RUN uv pip install -r pyproject.toml --system
 
