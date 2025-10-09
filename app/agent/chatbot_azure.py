@@ -6,8 +6,9 @@ import os
 import re
 import tomllib
 import uuid
-from datetime import UTC, datetime
+from datetime import datetime
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 import ftfy
 from azure.core.credentials import AzureKeyCredential
@@ -265,8 +266,8 @@ class ChatBot:
         try:
             query_response = self.get_response_from_vectordb(query.text)
             query_response["session_id"] = query.session_id
-            utc_timestamp = datetime.now(UTC)
-            timestamp = str(utc_timestamp.isoformat())
+            now = datetime.now(ZoneInfo("Europe/Berlin"))
+            timestamp = now.isoformat()
             sources = query_response.get("sources", [])
             sources_json = json.dumps([str(s) for s in sources]) if sources else "[]"
 

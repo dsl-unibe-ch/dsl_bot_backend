@@ -2,6 +2,7 @@
 
 import datetime
 from uuid import UUID
+from zoneinfo import ZoneInfo
 
 from azure.data.tables import TableServiceClient
 from fastapi import HTTPException
@@ -26,8 +27,8 @@ class Feedback(BaseModel):
     def send_feedback_wrapper(self: "Feedback") -> FeedbackResponse:
         """Send feedback to Azure Table Storage."""
         if self.session_id:
-            utc_timestamp = datetime.datetime.now(datetime.UTC)
-            timestamp = str(utc_timestamp.isoformat())
+            now = datetime.datetime.now(ZoneInfo("Europe/Berlin"))
+            timestamp = now.isoformat()
             entity = {
                 "PartitionKey": self.session_id,
                 "RowKey": timestamp,
