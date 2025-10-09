@@ -2,25 +2,25 @@ services:
   kafka:
     image: apache/kafka:4.1.0
     ports:
-      - "9092:9092" # internal (for containers)
-      - "9094:9094" # external (for localhost)
+      - "9092:9092" # internal (for backend api running in container)
+      - "9094:9094" # external (for backend api running in localhost with demo)
     environment:
-      KAFKA_NODE_ID: 1
-      KAFKA_PROCESS_ROLES: broker,controller
-      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
-      KAFKA_LISTENERS: INTERNAL://:9092,EXTERNAL://:9094,CONTROLLER://:29093
-      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:9092,EXTERNAL://localhost:9094
-      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
-      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:29093
-      KAFKA_LOG_DIRS: /var/lib/kafka/data
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_NODE_ID: 1 # Unique ID for this Kafka broker. If running multiple brokers (e.g. different Kafka services in this docker compose file), assign a different ID to each broker service
+      KAFKA_PROCESS_ROLES: broker,controller # This Kafka service will act as both a broker (handles data storage and messaging) and a controller (manages cluster coordination and metadata)
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER # Assigns the CONTROLLER listener (port 29093) to coordinate with other Kafka brokers (in multi-brokers set up). For example, in a multi brokers set when one broker in a Kafka cluster goes offline, the controller broker detects the failure and reassigns partition leadership to another broker to maintain data availability. However, in this case where we have only one broker (single-broker setup), the CONTROLLER does nothing but it is required to be set in order to start correctly Kafka
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT # Tells Kafka which security protocol to use for each listener (PLAINTEXT means unencrypted communication). Specifically, CONTROLLER refers to the communication between controller and brokers (only relevant in multi-broker setups), INTERNAL refer to the communication between brokers and other containers/services inside Docker (e.g., backend API, consumer), and EXTERNAL refers to the communication between brokers and services outside Docker (e.g., backend API running in localhost with demo)
+      KAFKA_LISTENERS: INTERNAL://:9092,EXTERNAL://:9094,CONTROLLER://:29093 # Defines which ports the broker listens on for each type of connection: INTERNAL for container-to-container communication, EXTERNAL for host-to-container communication, and CONTROLLER for controller-to-broker coordination (used in multi-broker clusters for cluster management tasks)
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:9092,EXTERNAL://localhost:9094 # Tells Kafka what addresses to advertise to clients. INTERNAL is mapped to `kafka:9092` (for containers), and EXTERNAL is mapped to `localhost:9094` (for host)
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL # Kafka brokers use the INTERNAL listener for inter-broker communication
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:29093 # Defines which nodes participate in making cluster management decisions (here, just this node at kafka:29093)
+      KAFKA_LOG_DIRS: /var/lib/kafka/data # Directory where Kafka stores its data (topics, logs, etc.).
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1 # Number of replicas for the offsets topic
     healthcheck:
-      test: ["CMD-SHELL", "bash -c 'echo > /dev/tcp/localhost/9092'"]
-      interval: 10s
-      timeout: 10s
-      retries: 30
-      start_period: 20s
+      test: ["CMD-SHELL", "bash -c 'echo > /dev/tcp/localhost/9092'"] # run this command to check if Kafka is healthy. If Kafka is running and listening on port 9092, the command succeeds (returns exit code 0), marking the container as "healthy.". If Kafka is not running or not listening on that port, the command fails (non-zero exit code), marking the container as unhealthy.
+      interval: 10s # Docker runs the health check every 10 seconds
+      timeout: 10s # The health check must complete within 10 seconds
+      retries: 30 # Docker will retry the health check up to 30 times before marking the container as unhealthy
+      start_period: 20s # Docker waits 20 seconds after starting the container before beginning health checks
   
   kioskbot-backend-api:
     image: ${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER}/kioskbot-backend-api:${VERSION}-${ENV}
@@ -33,10 +33,10 @@ services:
       - .env.${ENV}
     environment:
       - ENV=${ENV}
-      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092 # this value overrides the one in .env.${ENV}. It is needed because when you use the backend API via Docker, the hostname is "kafka" (for container-to-container communication). However, if you use the backend API via localhost (e.g., with the demo), the hostname must be "localhost" (as set in .env.dev).
     depends_on:
       kafka:
-        condition: service_healthy
+        condition: service_healthy # Docker waits to start kioskbot-backend-api until the kafka service is marked as "healthy" (as determined by the kafka service's healthcheck).
 
   kafka-consumer:
     image: ${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER}/kioskbot-backend-api:${VERSION}-${ENV}
@@ -46,8 +46,8 @@ services:
     environment:
       - ENV=${ENV}
       - PYTHONPATH=/app
-      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092 # Because kafka-consumer runs in a container and communicates with the kafka service (also a container), the hostname must be the service name "kafka".
     depends_on:
       kafka:
-        condition: service_healthy
+        condition: service_healthy # Docker waits to start kafka-consumer until the kafka service is marked as "healthy" (as determined by the kafka service's healthcheck).
     restart: unless-stopped
