@@ -95,6 +95,98 @@ When extracting supporting sentences, the script checks that each sentence actua
 Currently, the datasets to be processed and their corresponding excel sheets are specified directly within the `generate_assessment_dataset.py` script.
 </details>
 
+## Terraform 
+<details>
+<summary>Click to expand</summary>
+
+- Setup
+    - Install Terraform
+        - Windows : Run from Powershell as admin
+            ```bash
+            choco install terraform 
+            choco install azure-cli 
+            Invoke-WebRequest -Uri https://aka.ms/installazurecliwindows -OutFile .\AzureCLI.msi; Start-Process msiexec.exe -Wait -ArgumentList '/I AzureCLI.msi /quiet'; rm .\AzureCLI.msi
+            ```
+        - Mac :  
+            ```bash
+            brew tap hashicorp/tap
+            brew install hashicorp/tap/terraform
+            brew install azure-cli
+            ```
+    - Create `scripts/terraform/azure/environments/dev.tfvars` and `scripts/terraform/azure/environments/prod.tfvars` using the templates `scripts/terraform/azure/environments/dev.tfvars.example` and `scripts/terraform/azure/environments/prod.tfvars.example` respectively.
+    - Login: Select the subscription id as mentioned in `scripts\terraform\environments\{ENV}.tfvars` where `ENV` can be `dev` or `prod`.
+        ```bash 
+        make az-login
+        ```
+    - Set subscription: The subscription selected while login in is set again explicitly.
+        ```bash
+        make az-set-subscription
+        ```
+    - Replace `"your-azure-subscription_id"` in `{ENV}.tfvars` with the actual subscription ID you are using—this should match the subscription that the command `make az-set-subscription` returned. This ensures Terraform uses the correct Azure subscription for resource creation.
+    - Initialise terraform
+        ```bash
+        make terraform-init
+        ```
+    - Validate terraform
+        ```bash
+        make terraform-validate
+        ```
+    - Create or select workspace (if already created)
+        - For `dev` environment
+            ```bash
+            make terraform-workspace-dev
+            ```
+        - For `prod` environment
+            ```bash
+            make terraform-workspace-prod
+            ```
+    - Create a plan (plans are output and stored as `scripts/terraform/azure/${ENV}.plan`)
+        - For `dev` environment
+            ```bash
+            make terraform-plan-dev
+            ```
+        - For `prod` environment
+            ```bash
+            make terraform-plan-prod
+            ```
+    - Apply the plan created above
+        - For `dev` environment
+            ```bash
+            make terraform-apply-dev
+            ```
+        - For `prod` environment
+            ```bash
+            make terraform-apply-prod
+            ```
+    - Extract Output 
+        - For `dev` environment
+            ```bash
+            make terraform-output-dev
+            ```
+        - For `prod` environment
+            ```bash
+            make terraform-output-prod
+            ```
+    - Destroy the resources
+        - For `dev` environmemt
+            ```bash
+            make terraform-destroy-dev
+            ```
+        - For `prod` environmemt
+            ```bash
+            make terraform-destroy-prod
+            ```
+    - Additional utility commands (optional)
+        - Rewrite Terraform configuration files to a canonical format and style.
+            ```bash
+            make terraform-fmt
+            ```
+        - Output the value of a single variable, For example:
+            ```bash
+            make terraform-output-var VAR=AZURE_OPENAI_ENDPOINT
+            ```
+</details>
+
 ## Docker
 
 <details>

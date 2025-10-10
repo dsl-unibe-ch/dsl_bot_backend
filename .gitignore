@@ -218,3 +218,12 @@ __marimo__/
 
 # MacOS
 .DS_Store
+
+scripts/terraform/azure/environments/dev.tfvars
+scripts/terraform/azure/environments/prod.tfvars
+scripts/terraform/azure/dev.plan
+scripts/terraform/azure/prod.plan
+scripts/terraform/azure/.terraform/
+scripts/terraform/azure/.terraform.lock.hcl
+scripts/terraform/azure/*.tfstate*
+terraform.tfstate

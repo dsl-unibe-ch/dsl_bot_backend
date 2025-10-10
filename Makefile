@@ -99,3 +99,104 @@ unit-tests: build-image-dev compose-down-dev compose-up-dev
 e2e-tests: build-image-dev compose-down-dev compose-up-dev
 	@echo $@
 	@ENV=dev PYTHONPATH=$(shell pwd) pytest -v tests/e2e/
+
+
+# ---- config ----
+TF      ?= terraform
+TF_DIR  ?= scripts/terraform/azure
+ENV     ?= dev
+TFVARS  ?= environments/$(ENV).tfvars
+AZ_SUBSCRIPTION_ID ?= $(shell az account show --query id -o tsv 2>/dev/null)
+
+# ---- phony targets ----
+.PHONY: help login set-sub init workspace plan apply destroy output fmt validate clean
+
+help:
+	@echo "Usage:"
+	@echo "  make login                 # az login"
+	@echo "  make set-sub               # set Azure subscription (needs AZ_SUBSCRIPTION_ID)"
+	@echo "  make init                  # terraform init"
+	@echo "  make workspace ENV=dev     # select/create workspace"
+	@echo "  make plan ENV=dev          # plan with environments/dev.tfvars"
+	@echo "  make apply ENV=dev         # apply with environments/dev.tfvars"
+	@echo "  make destroy ENV=dev       # destroy with environments/dev.tfvars"
+	@echo "  make output                # show outputs"
+	@echo "  make fmt validate          # housekeeping"
+	@echo "  make clean                 # remove local tf state/cache"
+
+az-login:
+	az login
+
+az-set-subscription:
+	@if [ -n "$(AZ_SUBSCRIPTION_ID)" ]; then \
+		echo "Setting subscription to $(AZ_SUBSCRIPTION_ID)"; \
+		az account set --subscription "$(AZ_SUBSCRIPTION_ID)"; \
+	else \
+		echo "AZ_SUBSCRIPTION_ID not set; skipping az account set"; \
+	fi
+
+terraform-init:
+	$(TF) -chdir=$(TF_DIR) init -upgrade
+
+terraform-workspace:
+	@$(TF) -chdir=$(TF_DIR) workspace select $(ENV) >/dev/null 2>&1 || \
+	$(TF) -chdir=$(TF_DIR) workspace new $(ENV)
+
+terraform-workspace-dev:
+	@$(MAKE) terraform-workspace ENV=dev
+
+terraform-workspace-prod:
+	@$(MAKE) terraform-workspace ENV=prod
+
+terraform-require-tfvars:
+	@test -f "$(TF_DIR)/$(TFVARS)" || (echo "ERROR: missing $(TF_DIR)/$(TFVARS)"; exit 1)
+
+terraform-plan: terraform-require-tfvars terraform-workspace
+	$(TF) -chdir=$(TF_DIR) plan -var-file=$(TFVARS) -out=$(ENV).plan
+
+terraform-plan-dev:
+	@$(MAKE) terraform-plan ENV=dev
+
+terraform-plan-prod:
+	@$(MAKE) terraform-plan ENV=prod
+
+terraform-apply: 
+	@test -f "${TF_DIR}/${ENV}.plan" || { echo "No plan at ${TF_DIR}/${ENV}.plan. Run 'make terraform-plan-${ENV}' first."; exit 1; }
+	$(TF) -chdir=$(TF_DIR) apply -auto-approve ${ENV}.plan
+
+terraform-apply-dev:
+	@$(MAKE) terraform-apply ENV=dev
+
+terraform-apply-prod:
+	@$(MAKE) terraform-apply ENV=prod
+
+terraform-destroy: terraform-require-tfvars terraform-workspace
+	$(TF) -chdir=$(TF_DIR) destroy -auto-approve -var-file=$(TFVARS)
+
+terraform-destroy-dev:
+	@$(MAKE) terraform-destroy ENV=dev
+
+terraform-destroy-prod:
+	@$(MAKE) terraform-destroy ENV=prod
+
+terraform-output:
+	@$(TF) -chdir=$(TF_DIR) workspace select $(ENV) >/dev/null 2>&1 || \
+	  { echo "Workspace '$(ENV)' not found. Run plan/apply first."; exit 1; }
+	$(TF) -chdir=$(TF_DIR) output -json
+
+terraform-output-var:
+	@$(TF) -chdir=$(TF_DIR) workspace select $(ENV) >/dev/null 2>&1 || \
+	  { echo "Workspace '$(ENV)' not found. Run plan/apply first."; exit 1; }
+	@$(TF) -chdir=$(TF_DIR) output -json | jq -r '.${VAR}.value'
+
+terraform-output-dev:  
+	@$(MAKE) terraform-output ENV=dev
+
+terraform-output-prod: 
+	@$(MAKE) terraform-output ENV=prod
+
+terraform-fmt:
+	$(TF) -chdir=$(TF_DIR) fmt -recursive
+
+terraform-validate:
+	$(TF) -chdir=$(TF_DIR) validate
