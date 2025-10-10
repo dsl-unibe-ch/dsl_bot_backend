@@ -80,3 +80,12 @@ variable "storage_account_tables"     {
   type = list(string) 
   default = [] 
 }
+
+# ----- Search Service --------
+variable "search_service_name" { type = string }
+variable "search_service_sku" { type = string }
+variable "search_service_replica_count" { type = number }
+variable "search_service_partition_count" { type = number }
+variable "search_service_hosting_mode" { type = string }
+variable "search_service_public_network_access_enabled" { type = bool }
+variable "grant_blob_reader_to_storage_account_id" { type = string }

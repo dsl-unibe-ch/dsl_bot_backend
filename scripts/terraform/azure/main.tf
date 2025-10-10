@@ -72,3 +72,18 @@ module "azurerm_storage_account" {
   storage_account_tables     = var.storage_account_tables
 }
 
+# --- Search Service ---
+
+module "azurerm_search_service" {
+  source              = "./modules/search_service"
+  subscription_id     = var.subscription_id
+  resource_group_location = var.resource_group_location
+  resource_group_name = var.resource_group_name
+  search_service_name = var.search_service_name
+  search_service_sku = var.search_service_sku
+  search_service_replica_count = var.search_service_replica_count
+  search_service_partition_count = var.search_service_partition_count
+  search_service_hosting_mode = var.search_service_hosting_mode
+  search_service_public_network_access_enabled = var.search_service_public_network_access_enabled
+  grant_blob_reader_to_storage_account_id = var.grant_blob_reader_to_storage_account_id
+}

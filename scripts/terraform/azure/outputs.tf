@@ -65,3 +65,23 @@ output "AZURE_STORAGE_ACCOUNT_PRIMARY_ACCESS_KEY" {
   sensitive = true
   value     = module.azurerm_storage_account.AZURE_STORAGE_ACCOUNT_PRIMARY_ACCESS_KEY
 }
+
+#----- Azure Search Service --------------
+
+output "AZURE_SEARCH_SERVICE_ID" {
+  value = module.azurerm_search_service.AZURE_SEARCH_SERVICE_ID
+}
+
+output "AZURE_SEARCH_SERVICE_NAME" {
+  value = module.azurerm_search_service.AZURE_SEARCH_SERVICE_NAME
+}
+
+output "AZURE_SEARCH_SERVICE_PRIMARY_ADMIN_KEY" {
+  value = module.azurerm_search_service.AZURE_SEARCH_SERVICE_PRIMARY_ADMIN_KEY
+  sensitive = true
+}
+
+output "AZURE_SEARCH_SERVICE_SECONDARY_ADMIN_KEY" {
+  value = module.azurerm_search_service.AZURE_SEARCH_SERVICE_SECONDARY_ADMIN_KEY
+  sensitive = true
+}
