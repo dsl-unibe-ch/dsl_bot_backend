@@ -103,7 +103,7 @@ e2e-tests:
 
 # ---- config ----
 TF      ?= terraform
-TF_DIR  ?= scripts/terraform
+TF_DIR  ?= scripts/terraform/azure
 ENV     ?= dev
 TFVARS  ?= environments/$(ENV).tfvars
 AZ_SUBSCRIPTION_ID ?= $(shell az account show --query id -o tsv 2>/dev/null)
@@ -182,7 +182,12 @@ terraform-destroy-prod:
 terraform-output:
 	@$(TF) -chdir=$(TF_DIR) workspace select $(ENV) >/dev/null 2>&1 || \
 	  { echo "Workspace '$(ENV)' not found. Run plan/apply first."; exit 1; }
-	$(TF) -chdir=$(TF_DIR) output
+	$(TF) -chdir=$(TF_DIR) output -json
+
+terraform-output-var:
+	@$(TF) -chdir=$(TF_DIR) workspace select $(ENV) >/dev/null 2>&1 || \
+	  { echo "Workspace '$(ENV)' not found. Run plan/apply first."; exit 1; }
+	@$(TF) -chdir=$(TF_DIR) output -json | jq -r '.${VAR}.value'
 
 terraform-output-dev:  
 	@$(MAKE) terraform-output ENV=dev

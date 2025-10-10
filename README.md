@@ -113,15 +113,16 @@ Currently, the datasets to be processed and their corresponding excel sheets are
             brew install hashicorp/tap/terraform
             brew install azure-cli
             ```
-    - Create `scripts/terraform/environments/dev.tfvars` and `scripts/terraform/environments/prod.tfvars` using the templates `scripts/terraform/environments/dev.tfvars.example` and `scripts/terraform/environments/prod.tfvars.example` respectively.
+    - Create `scripts/terraform/azure/environments/dev.tfvars` and `scripts/terraform/azure/environments/prod.tfvars` using the templates `scripts/terraform/azure/environments/dev.tfvars.example` and `scripts/terraform/azure/environments/prod.tfvars.example` respectively.
     - Login: Select the subscription id as mentioned in `scripts\terraform\environments\{ENV}.tfvars` where `ENV` can be `dev` or `prod`.
         ```bash 
         make az-login
         ```
-    - Set subscription: The subscription selected while login in is set again (is this needed?)
+    - Set subscription: The subscription selected while login in is set again explicitly.
         ```bash
         make az-set-subscription
         ```
+    - Replace `"your-azure-subscription_id"` in `{ENV}.tfvars` with the actual subscription ID you are using—this should match the subscription that the command `make az-set-subscription` returned. This ensures Terraform uses the correct Azure subscription for resource creation.
     - Initialise terraform
         ```bash
         make terraform-init
@@ -139,7 +140,7 @@ Currently, the datasets to be processed and their corresponding excel sheets are
             ```bash
             make terraform-workspace-prod
             ```
-    - Create a plan (plans are output and stored as `scripts/terraform/${ENV}.plan`)
+    - Create a plan (plans are output and stored as `scripts/terraform/azure/${ENV}.plan`)
         - For `dev` environment
             ```bash
             make terraform-plan-dev
@@ -175,11 +176,14 @@ Currently, the datasets to be processed and their corresponding excel sheets are
             ```bash
             make terraform-destroy-prod
             ```
-
     - Additional utility commands (optional)
         - Rewrite Terraform configuration files to a canonical format and style.
             ```bash
             make terraform-fmt
+            ```
+        - Output the value of a single variable, For example:
+            ```bash
+            make terraform-output-var VAR=AZURE_OPENAI_ENDPOINT
             ```
 </details>
 
