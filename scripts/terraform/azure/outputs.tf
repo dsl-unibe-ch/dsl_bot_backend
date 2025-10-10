@@ -42,3 +42,26 @@ output "AZURE_CONTAINER_REGISTRY_ID" {
   value = module.azurerm_container_registry.AZURE_CONTAINER_REGISTRY_ID
 }
 
+#----- Azure Storage Account --------------
+
+output "AZURE_STORAGE_ACCOUNT_ID" {
+  value = module.azurerm_storage_account.AZURE_STORAGE_ACCOUNT_ID
+}
+
+output "AZURE_STORAGE_ACCOUNT_NAME" {
+  value = module.azurerm_storage_account.AZURE_STORAGE_ACCOUNT_NAME
+}
+
+output "AZURE_STORAGE_ACCOUNT_PRIMARY_BLOB_ENDPOINT" {
+  value = module.azurerm_storage_account.AZURE_STORAGE_ACCOUNT_PRIMARY_BLOB_ENDPOINT
+}
+
+output "AZURE_STORAGE_ACCOUNT_PRIMARY_CONNECTION_STRING" {
+  sensitive = true
+  value     = module.azurerm_storage_account.AZURE_STORAGE_ACCOUNT_PRIMARY_CONNECTION_STRING
+}
+
+output "AZURE_STORAGE_ACCOUNT_PRIMARY_ACCESS_KEY" {
+  sensitive = true
+  value     = module.azurerm_storage_account.AZURE_STORAGE_ACCOUNT_PRIMARY_ACCESS_KEY
+}

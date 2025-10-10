@@ -6,20 +6,58 @@ variable "resource_group_location" { type = string }
 
 
 # ----- OpenAI --------
-variable "cognitive_model_account_name" { type = string }
-variable "cognitive_model_deployment_sku_name" { type = string }
-variable "cognitive_model_account_sku_name" { type = string }
-variable "cognitive_model_deployment_name" { type = string }
-variable "cognitive_model_name" { type = string }
-variable "cognitive_model_version" { type = string }
-variable "cognitive_model_account_kind" { type = string }
-
-variable "cognitive_model_embedding_deployment_name" { type = string }
-variable "cognitive_model_embedding_name" { type = string }
-variable "cognitive_model_embedding_deployment_sku_name" { type = string }
-variable "cognitive_model_embedding_version" { type = string }
+variable "cognitive_model_account_name" { 
+    description = "Cognitive model account name."
+    type = string 
+}
+variable "cognitive_model_deployment_sku_name" { 
+    description = "Cognitive model deployment SKU name."
+    type = string 
+}
+variable "cognitive_model_account_sku_name" { 
+    description = "Cognitive model account SKU name."
+    type = string 
+}
+variable "cognitive_model_deployment_name" { 
+    description = "Cognitive model deployment name."
+    type = string 
+}
+variable "cognitive_model_name" { 
+    description = "Cognitive model name."
+    type = string 
+}
+variable "cognitive_model_version" { 
+    description = "Cognitive model version."
+    type = string 
+}
+variable "cognitive_model_account_kind" { 
+    type = string 
+    description = "Cognitive model account kind."
+}
+variable "cognitive_model_embedding_deployment_name" { 
+    description = "Cognitive model embedding deployment name."
+    type = string 
+}
+variable "cognitive_model_embedding_name" { 
+    description = "Cognitive model embedding name."
+    type = string 
+}
+variable "cognitive_model_embedding_deployment_sku_name" { 
+    description = "Cognitive model embedding deployment SKU name."
+    type = string 
+}
+variable "cognitive_model_embedding_version" { 
+    description = "Cognitive model embedding version."
+    type = string 
+}
 
 # ----- AI Foundry ------
 
-variable "aif_hub_name" { type = string }
-variable "aif_project_name" { type = string }
+variable "aif_hub_name" { 
+    description = "AI Foundry hub name."
+    type = string 
+}
+variable "aif_project_name" { 
+    description = "AI Foundry project name."
+    type = string 
+}

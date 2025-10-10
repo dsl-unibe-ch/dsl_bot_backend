@@ -60,3 +60,23 @@ variable "data_endpoint_enabled" {
   type        = bool
   default     = false
 }
+variable "container_repository_name" { type = string }
+
+# ----- Storage Account --------
+variable "storage_account_name" { type = string }
+variable "storage_account_kind" { type = string }
+variable "storage_account_tier" { type = string }
+variable "storage_account_replication_type" { type = string }
+variable "storage_account_enable_hns" { type = bool }
+variable "storage_account_enable_blob_versioning" { type = bool }
+variable "storage_account_enable_change_feed" { type = bool }
+variable "storage_account_blob_soft_delete_days" { type = number }
+variable "storage_account_container_soft_delete_days" { type = number }
+variable "storage_account_containers" { 
+  type = list(string) 
+  default = [] 
+}
+variable "storage_account_tables"     { 
+  type = list(string) 
+  default = [] 
+}

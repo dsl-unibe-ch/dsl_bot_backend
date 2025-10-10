@@ -9,22 +9,27 @@ variable "resource_group_location" { type = string }
 variable "container_registry_name" {type  = string}
 variable "container_registry_sku" {type = string}
 variable "admin_enabled" {
+  description = "Admin enabled."
   type        = bool
   default     = false
 }
 variable "retention_enabled" {
+  description = "Retention enabled."
   type        = bool
   default     = false
 }
 variable "retention_days" {
+  description = "Retention days."
   type        = number
   default     = 30
 }
 variable "anonymous_pull_enabled" {
+  description = "Anonymous pull enabled."
   type        = bool
   default     = false
 }
 variable "data_endpoint_enabled" {
+  description = "Data endpoint enabled."
   type        = bool
   default     = false
 }
