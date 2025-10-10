@@ -26,3 +26,16 @@ module "openai" {
   source                                        = "./modules/openai"
 }
 
+# --- App Service Plan ---
+module "azurerm_service_plan" {
+  source              = "./modules/app_service_plan"
+  subscription_id     = var.subscription_id
+  resource_group_location = var.resource_group_location
+  app_service_plan_name  = var.app_service_plan_name
+  resource_group_name = var.resource_group_name
+  app_service_plan_os_type = var.app_service_plan_os_type    
+  app_service_plan_sku_name = var.app_service_plan_sku_name    
+  app_service_plan_worker_count = var.app_service_plan_worker_count
+}
+
+

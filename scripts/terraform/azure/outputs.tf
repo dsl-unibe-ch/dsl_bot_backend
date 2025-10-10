@@ -20,3 +20,11 @@ output "AZURE_OPENAI_CHAT_API_VERSION" {
   value = module.openai.AZURE_OPENAI_CHAT_API_VERSION
 }
 
+output "AZURE_APP_SERVICE_PLAN_ID" {
+  value = module.azurerm_service_plan.AZURE_APP_SERVICE_PLAN_ID
+}
+
+output "AZURE_APP_SERVICE_PLAN_NAME" {
+  value = module.azurerm_service_plan.AZURE_APP_SERVICE_PLAN_NAME
+}
+
