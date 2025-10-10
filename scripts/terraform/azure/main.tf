@@ -38,4 +38,17 @@ module "azurerm_service_plan" {
   app_service_plan_worker_count = var.app_service_plan_worker_count
 }
 
-
+# --- Container Registry ---
+module "azurerm_container_registry" {
+  source              = "./modules/container_registry"
+  subscription_id     = var.subscription_id
+  resource_group_location = var.resource_group_location
+  resource_group_name = var.resource_group_name
+  container_registry_name = var.container_registry_name
+  container_registry_sku = var.container_registry_sku
+  admin_enabled = var.admin_enabled
+  retention_enabled = var.retention_enabled
+  retention_days = var.retention_days
+  anonymous_pull_enabled = var.anonymous_pull_enabled
+  data_endpoint_enabled = var.data_endpoint_enabled
+}

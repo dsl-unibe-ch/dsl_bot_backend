@@ -44,3 +44,4 @@ resource "azurerm_cognitive_deployment" "embedding" {
     name = var.cognitive_model_embedding_deployment_sku_name
   }
 }
+

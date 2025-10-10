@@ -187,6 +187,16 @@ Currently, the datasets to be processed and their corresponding excel sheets are
             ```
 </details>
 
+## Deployment
+
+<details>
+
+```
+details of the deployment
+```
+
+</details>
+
 ## Docker
 
 <details>
