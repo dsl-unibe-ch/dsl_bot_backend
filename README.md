@@ -191,9 +191,34 @@ Currently, the datasets to be processed and their corresponding excel sheets are
 
 <details>
 
-```
-details of the deployment
-```
+### Resource groups
+- Dev: `rg-kb-dev-001` (see `scripts/terraform/azure/environments/dev.tfvars`)
+- Prod: `rg-kb-prod-001` (see `scripts/terraform/azure/environments/prod.tfvars`)
+
+### Naming convention
+- Pattern: `<abbr>-kb-<env>-<nnn>` where:
+  - `<abbr>`: service abbreviation (e.g., `rg` resource group, `asp` app service plan, `as` app service, `kv` key vault, `ss` search service, `ao` Azure OpenAI, `sa` storage account, `acr` container registry)
+  - `<env>`: `dev` or `prod`
+  - `<nnn>`: incremental numeric suffix, zero-padded (e.g., `001`)
+
+Examples
+- Resource group: `rg-kb-dev-001`
+- App Service Plan: `asp-kb-dev-001`
+- App Service: `as-kb-dev-001`
+- Key Vault: `kv-kb-dev-001`
+- Search Service: `ss-kb-dev-001`
+- Storage Account: `kioskbotsadev001` (global uniqueness constraints apply; uses `sa` plus env and suffix)
+- Container Registry: `kioskbotcrdev001` (global uniqueness constraints apply)
+
+### Tags
+This is optional. Currently, this is empty in the `{ENV}.tfvars` file.
+- Apply common tags via Terraform variables/maps (see module inputs):
+  - `environment`: `dev` or `prod`
+  - `project`: `kioskbot`
+  - `owner`: e.g., team or email
+  - Additional tags can be passed using the `*_tags` variables per module (e.g., `key_vault_tags`, `storage_account_tags`).
+
+All resources created by Terraform inherit the environment and project context from the corresponding `{ENV}.tfvars` file.
 
 </details>
 
