@@ -1,9 +1,13 @@
+
+#---- Owner--------
+environment = "prod"
+owner = "support.dsl@unibe.ch"
+
 #------- Global --------
 
 subscription_id         = "your-azure-subscription_id"
 resource_group_name     = "rg-kb-prod-001"
 resource_group_location = "Switzerland North"
-
 
 # ----- Cognitive Model --------
 # chat deployment
@@ -25,3 +29,74 @@ cognitive_model_embedding_deployment_sku_name = "GlobalStandard"
 
 aif_hub_name     = "aif-hub-kb-prod-001"
 aif_project_name = "aif-proj-kb-prod"
+
+# ----- App Service Plan--------
+app_service_plan_name                = "asp-kb-prod-001"
+app_service_plan_sku_name           = "P1v3"
+app_service_plan_worker_count                   = 3
+
+# ----- App Service --------
+app_service_name = "as-kb-prod-001"
+app_service_os_type = "Linux"
+app_service_app_settings = {}
+app_service_tags = {}
+app_service_identity = {}
+app_service_virtual_network_subnet_id = null
+app_service_connection_string = null
+app_service_connection_string_name = null
+app_service_connection_string_type = null
+app_service_connection_string_value = null
+container_registry_id = null
+app_service_plan_id = null
+app_name = "kioskbot-backend"
+container_image_tag = null
+container_repository = null
+
+# ----- Container Registry --------
+container_registry_name = "kioskbotcrprod001" #only arphanumeric characters and globally unique
+container_registry_sku = "Standard"
+admin_enabled = true
+retention_enabled = true
+retention_days = 30
+anonymous_pull_enabled = false
+data_endpoint_enabled = false
+container_repository_name = "kioskbot-backend-api"
+
+# ----- Storage Account --------
+storage_account_name = "kioskbotsaprod001"
+storage_account_kind = "StorageV2"
+storage_account_tier = "Standard"
+storage_account_replication_type = "LRS"
+storage_account_enable_hns = false
+storage_account_enable_blob_versioning = true
+storage_account_enable_change_feed = false
+storage_account_blob_soft_delete_days = 7
+storage_account_container_soft_delete_days = 7
+storage_account_containers = ["sc-kb-prod-001", "kioskbot-logs"]
+storage_account_tables = ["KafkaTest"]
+storage_account_tags = {}
+
+# ----- Search Service --------
+search_service_name = "ss-kb-prod-001"
+search_service_sku = "basic"
+search_service_replica_count = 3
+search_service_partition_count = 1
+search_service_hosting_mode = "default"
+search_service_public_network_access_enabled = true
+grant_blob_reader_to_storage_account_id = null
+
+# ----- Key Vault --------
+key_vault_name = "kv-kb-prod-001"
+key_vault_sku_name = "standard"
+key_vault_soft_delete_days = 90
+key_vault_purge_protection_enabled = true
+key_vault_enable_rbac = true
+key_vault_public_network_access_enabled = true
+key_vault_network_default_action = "Allow"
+key_vault_network_bypass = "AzureServices"
+key_vault_network_ip_rules = []
+key_vault_network_subnet_ids = []
+key_vault_access_policies = []
+key_vault_secrets = {}
+key_vault_rbac_role_assignments = []
+key_vault_tags = {}

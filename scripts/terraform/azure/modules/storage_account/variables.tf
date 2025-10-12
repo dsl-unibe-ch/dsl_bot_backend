@@ -1,5 +1,10 @@
 #------- Global --------
 
+variable "storage_account_tags" {
+  description = "Tags to apply."
+  type        = map(string)
+  default     = {}
+}
 variable "subscription_id" { type = string }
 variable "resource_group_name" { type = string }
 variable "resource_group_location" { type = string }
@@ -123,8 +128,4 @@ variable "storage_account_network_bypass" {
   default     = ["AzureServices"]
 }
 
-variable "storage_account_tags" {
-  description = "Tags to apply."
-  type        = map(string)
-  default     = {}
-}
+ 

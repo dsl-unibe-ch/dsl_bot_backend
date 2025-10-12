@@ -1,17 +1,18 @@
 #------- Global --------
 
+variable "key_vault_tags" {
+  description = "Tags map."
+  type        = map(string)
+  default     = {}
+}
 variable "subscription_id" { type = string }
 variable "resource_group_name" { type = string }
 variable "resource_group_location" { type = string }
+variable "tenant_id" { type = string }
 
 # ----- Key Vault -----
 variable "key_vault_name" {
   description = "Key Vault name (globally unique in tenant)."
-  type        = string
-}
-
-variable "key_vault_tenant_id" {
-  description = "Tenant (directory) ID."
   type        = string
 }
 
@@ -119,8 +120,4 @@ variable "key_vault_rbac_role_assignments" {
   default = []
 }
 
-variable "key_vault_tags" {
-  description = "Tags map."
-  type        = map(string)
-  default     = {}
-}
+ 

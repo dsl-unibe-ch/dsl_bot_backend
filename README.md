@@ -211,14 +211,10 @@ Examples
 - Container Registry: `kioskbotcrdev001` (global uniqueness constraints apply)
 
 ### Tags
-This is optional. Currently, this is empty in the `{ENV}.tfvars` file.
-- Apply common tags via Terraform variables/maps (see module inputs):
-  - `environment`: `dev` or `prod`
-  - `project`: `kioskbot`
-  - `owner`: e.g., team or email
-  - Additional tags can be passed using the `*_tags` variables per module (e.g., `key_vault_tags`, `storage_account_tags`).
-
-All resources created by Terraform inherit the environment and project context from the corresponding `{ENV}.tfvars` file.
+Common tags are applied via a shared local map and passed to modules:
+- In `{ENV}.tfvars`, set `environment = "dev|prod"` and optionally `owner`.
+- These are injected into resources by Terraform automatically through module inputs.
+- If you need resource-specific extra tags, you can still set resource-level tags in the module; they will override common tags on key conflicts.
 
 </details>
 

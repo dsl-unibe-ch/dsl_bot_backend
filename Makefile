@@ -135,6 +135,10 @@ az-set-subscription:
 		echo "AZ_SUBSCRIPTION_ID not set; skipping az account set"; \
 	fi
 
+az-get-tenant-id:
+	@az account show --query tenantId -o tsv
+	
+
 terraform-init:
 	$(TF) -chdir=$(TF_DIR) init -upgrade
 

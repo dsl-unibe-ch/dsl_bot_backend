@@ -4,6 +4,9 @@ resource "azurerm_resource_group" "rg" {
   location = var.resource_group_location
 }
 
+# Discover current tenant for cross-module use (e.g., Key Vault)
+data "azurerm_client_config" "current" {}
+
 #---- version from pyproject ------
 data "external" "pyproject" {
   program = ["bash", "${path.module}/scripts/read_pyproject_version.sh"]
@@ -11,15 +14,20 @@ data "external" "pyproject" {
   query = {
     # if not provided, default to repo root `pyproject.toml`
     path   = var.pyproject_path != null ? var.pyproject_path : "${path.root}/pyproject.toml"
-    prefix = ""  # change to "v" if you want a leading v
+    prefix = "" 
   }
 }
 
 locals {
   image_tag                           = try(data.external.pyproject.result.image_tag, null)
   container_repository_effective      = coalesce(var.container_repository, var.container_repository_name, null)
+  tenant_id_effective                 = coalesce(var.key_vault_tenant_id, data.azurerm_client_config.current.tenant_id)
+  default_tags = {
+    environment = var.environment
+    project     = "kioskbot"
+    owner       = var.owner
+  }
 }
-
 
 # --- OpenAI ---
 
@@ -88,6 +96,7 @@ module "azurerm_storage_account" {
   storage_account_container_soft_delete_days = var.storage_account_container_soft_delete_days
   storage_account_containers = var.storage_account_containers
   storage_account_tables     = var.storage_account_tables
+  storage_account_tags       = local.default_tags
 }
 
 # --- Search Service ---
@@ -104,6 +113,7 @@ module "azurerm_search_service" {
   search_service_hosting_mode = var.search_service_hosting_mode
   search_service_public_network_access_enabled = var.search_service_public_network_access_enabled
   grant_blob_reader_to_storage_account_id = var.grant_blob_reader_to_storage_account_id
+  tags = local.default_tags
 }
 
 # --- Key Vault ---
@@ -113,7 +123,7 @@ module "azurerm_key_vault" {
   resource_group_location = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
   key_vault_name = var.key_vault_name
-  key_vault_tenant_id = var.key_vault_tenant_id
+  tenant_id = local.tenant_id_effective
   key_vault_sku_name = var.key_vault_sku_name
   key_vault_soft_delete_days = var.key_vault_soft_delete_days
   key_vault_purge_protection_enabled = var.key_vault_purge_protection_enabled
@@ -126,7 +136,7 @@ module "azurerm_key_vault" {
   key_vault_access_policies = var.key_vault_access_policies
   key_vault_secrets = var.key_vault_secrets
   key_vault_rbac_role_assignments = var.key_vault_rbac_role_assignments
-  key_vault_tags = var.key_vault_tags
+  key_vault_tags = local.default_tags
 }
 
 # --- check if <repo>:<tag> exists in ACR ---
