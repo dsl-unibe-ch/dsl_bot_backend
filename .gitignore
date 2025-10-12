@@ -227,3 +227,5 @@ scripts/terraform/azure/.terraform/
 scripts/terraform/azure/.terraform.lock.hcl
 scripts/terraform/azure/*.tfstate*
 terraform.tfstate
+scripts/crawler/data/
+scripts/crawler/jobs/

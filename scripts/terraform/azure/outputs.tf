@@ -32,6 +32,29 @@ output "AZURE_APP_SERVICE_PLAN_NAME" {
   value = module.azurerm_service_plan.AZURE_APP_SERVICE_PLAN_NAME
 }
 
+output "AZURE_APP_SERVICE_PLAN_SKU" {
+  value = module.azurerm_service_plan.AZURE_APP_SERVICE_PLAN_SKU
+}
+
+#----- Azure App Service --------------
+
+output "AZURE_APP_SERVICE_ID" {
+  value = try(module.azurerm_app_service[0].AZURE_APP_SERVICE_ID, null)
+}
+
+output "AZURE_APP_SERVICE_DEFAULT_HOSTNAME" {
+  value = try(module.azurerm_app_service[0].AZURE_APP_SERVICE_DEFAULT_HOSTNAME, null)
+}
+
+output "AZURE_APP_SERVICE_IDENTITY_PRINCIPAL_ID" {
+  value = try(module.azurerm_app_service[0].AZURE_APP_SERVICE_IDENTITY_PRINCIPAL_ID, null)
+}
+
+output "AZURE_APP_SERVICE_SLOT_ID" {
+  value = try(module.azurerm_app_service[0].AZURE_APP_SERVICE_SLOT_ID, null)
+}
+
+
 #----- Azure Container Registry --------------
 
 output "AZURE_CONTAINER_REGISTRY_LOGIN_SERVER" {
@@ -84,4 +107,17 @@ output "AZURE_SEARCH_SERVICE_PRIMARY_ADMIN_KEY" {
 output "AZURE_SEARCH_SERVICE_SECONDARY_ADMIN_KEY" {
   value = module.azurerm_search_service.AZURE_SEARCH_SERVICE_SECONDARY_ADMIN_KEY
   sensitive = true
+}
+
+#----- Azure Key Vault --------------
+output "AZURE_KEY_VAULT_ID" {
+  value = module.azurerm_key_vault.AZURE_KEY_VAULT_ID
+}
+
+output "AZURE_KEY_VAULT_NAME" {
+  value = module.azurerm_key_vault.AZURE_KEY_VAULT_NAME
+}
+
+output "AZURE_KEY_VAULT_URI" {
+  value = module.azurerm_key_vault.AZURE_KEY_VAULT_URI
 }

@@ -4,6 +4,23 @@ resource "azurerm_resource_group" "rg" {
   location = var.resource_group_location
 }
 
+#---- version from pyproject ------
+data "external" "pyproject" {
+  program = ["bash", "${path.module}/scripts/read_pyproject_version.sh"]
+
+  query = {
+    # if not provided, default to repo root `pyproject.toml`
+    path   = var.pyproject_path != null ? var.pyproject_path : "${path.root}/pyproject.toml"
+    prefix = ""  # change to "v" if you want a leading v
+  }
+}
+
+locals {
+  image_tag                           = try(data.external.pyproject.result.image_tag, null)
+  container_repository_effective      = coalesce(var.container_repository, var.container_repository_name, null)
+}
+
+
 # --- OpenAI ---
 
 module "openai" {
@@ -30,20 +47,21 @@ module "openai" {
 module "azurerm_service_plan" {
   source              = "./modules/app_service_plan"
   subscription_id     = var.subscription_id
-  resource_group_location = var.resource_group_location
+  resource_group_location = azurerm_resource_group.rg.location
   app_service_plan_name  = var.app_service_plan_name
-  resource_group_name = var.resource_group_name
+  resource_group_name = azurerm_resource_group.rg.name
   app_service_plan_os_type = var.app_service_plan_os_type    
   app_service_plan_sku_name = var.app_service_plan_sku_name    
   app_service_plan_worker_count = var.app_service_plan_worker_count
 }
 
+
 # --- Container Registry ---
 module "azurerm_container_registry" {
   source              = "./modules/container_registry"
   subscription_id     = var.subscription_id
-  resource_group_location = var.resource_group_location
-  resource_group_name = var.resource_group_name
+  resource_group_location = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
   container_registry_name = var.container_registry_name
   container_registry_sku = var.container_registry_sku
   admin_enabled = var.admin_enabled
@@ -57,8 +75,8 @@ module "azurerm_container_registry" {
 module "azurerm_storage_account" {
   source              = "./modules/storage_account"
   subscription_id     = var.subscription_id
-  resource_group_location = var.resource_group_location
-  resource_group_name = var.resource_group_name
+  resource_group_location = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
   storage_account_name = var.storage_account_name
   storage_account_kind = var.storage_account_kind
   storage_account_tier = var.storage_account_tier
@@ -77,8 +95,8 @@ module "azurerm_storage_account" {
 module "azurerm_search_service" {
   source              = "./modules/search_service"
   subscription_id     = var.subscription_id
-  resource_group_location = var.resource_group_location
-  resource_group_name = var.resource_group_name
+  resource_group_location = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
   search_service_name = var.search_service_name
   search_service_sku = var.search_service_sku
   search_service_replica_count = var.search_service_replica_count
@@ -87,3 +105,59 @@ module "azurerm_search_service" {
   search_service_public_network_access_enabled = var.search_service_public_network_access_enabled
   grant_blob_reader_to_storage_account_id = var.grant_blob_reader_to_storage_account_id
 }
+
+# --- Key Vault ---
+module "azurerm_key_vault" {
+  source              = "./modules/keyvault"
+  subscription_id     = var.subscription_id
+  resource_group_location = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+  key_vault_name = var.key_vault_name
+  key_vault_tenant_id = var.key_vault_tenant_id
+  key_vault_sku_name = var.key_vault_sku_name
+  key_vault_soft_delete_days = var.key_vault_soft_delete_days
+  key_vault_purge_protection_enabled = var.key_vault_purge_protection_enabled
+  key_vault_enable_rbac = var.key_vault_enable_rbac
+  key_vault_public_network_access_enabled = var.key_vault_public_network_access_enabled
+  key_vault_network_default_action = var.key_vault_network_default_action
+  key_vault_network_bypass = var.key_vault_network_bypass
+  key_vault_network_ip_rules = var.key_vault_network_ip_rules
+  key_vault_network_subnet_ids = var.key_vault_network_subnet_ids
+  key_vault_access_policies = var.key_vault_access_policies
+  key_vault_secrets = var.key_vault_secrets
+  key_vault_rbac_role_assignments = var.key_vault_rbac_role_assignments
+  key_vault_tags = var.key_vault_tags
+}
+
+# --- check if <repo>:<tag> exists in ACR ---
+data "external" "acr_image_exists" {
+  program = ["bash", "${path.module}/scripts/check_acr_image.sh"]
+  query = {
+    registry   = var.container_registry_name
+    repository = local.container_repository_effective
+    tag        = local.image_tag
+  }
+}
+
+locals {
+  image_exists = try(data.external.acr_image_exists.result.exists, "false") == "true"
+}
+
+# --- App Service ---
+module "azurerm_app_service" {
+  count                  = local.image_exists ? 1 : 0
+  source              = "./modules/app_service"
+  container_registry_id = var.container_registry_id
+  app_service_plan_name = var.app_service_plan_name
+  app_service_plan_id = var.app_service_plan_id
+  app_service_plan_sku_name = module.azurerm_service_plan.AZURE_APP_SERVICE_PLAN_SKU
+  resource_group_name = azurerm_resource_group.rg.name
+  resource_group_location = azurerm_resource_group.rg.location
+  container_image_tag = coalesce(var.container_image_tag, local.image_tag)
+  app_name = var.app_name
+  subscription_id = var.subscription_id
+  container_registry_name = var.container_registry_name
+  container_repository = local.container_repository_effective
+  container_registry_login_server = module.azurerm_container_registry.AZURE_CONTAINER_REGISTRY_LOGIN_SERVER
+}
+
