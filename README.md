@@ -99,6 +99,12 @@ Currently, the datasets to be processed and their corresponding excel sheets are
 <details>
 <summary>Click to expand</summary>
 
+The `terraform` setup is separated on two levels. 
+1. `global` contains the resources for `container_registry`, `storage_account` and `keyvault` under a global resource group.
+2. `dev` and `prod` each have their own resource groups containing respective `app_service_plan`, `app_service`, `openai` and `search_services` resources.
+The reason for this two-level separation is to have some common resources shared between `dev` and `prod` under `global` which cannot be destroyed.
+
+
 - Setup
     - Install Terraform
         - Windows : Run from Powershell as admin
@@ -113,8 +119,8 @@ Currently, the datasets to be processed and their corresponding excel sheets are
             brew install hashicorp/tap/terraform
             brew install azure-cli
             ```
-    - Create `scripts/terraform/azure/environments/dev.tfvars` and `scripts/terraform/azure/environments/prod.tfvars` using the templates `scripts/terraform/azure/environments/dev.tfvars.example` and `scripts/terraform/azure/environments/prod.tfvars.example` respectively.
-    - Login: Select the subscription id as mentioned in `scripts\terraform\environments\{ENV}.tfvars` where `ENV` can be `dev` or `prod`.
+    - Under the folder `scripts/terraform/azure/environments/`, create `dev.tfvars`, `prod.tfvars` and `global.tfvars` using the templates `dev.tfvars.example`, `prod.tfvars.example` and `global.tfvars.example`respectively.
+    - Login: Select the subscription id as mentioned in `scripts\terraform\environments\{ENV}.tfvars` where `ENV` can be `dev`, `prod` or `global`. Note that all these three `.tfvars` should have the same subscription id.
         ```bash 
         make az-login
         ```
@@ -132,6 +138,10 @@ Currently, the datasets to be processed and their corresponding excel sheets are
         make terraform-validate
         ```
     - Create or select workspace (if already created)
+        - For `global` environment
+             ```bash
+            make terraform-workspace-global
+            ```
         - For `dev` environment
             ```bash
             make terraform-workspace-dev
@@ -139,6 +149,7 @@ Currently, the datasets to be processed and their corresponding excel sheets are
         - For `prod` environment
             ```bash
             make terraform-workspace-prod
+        
             ```
     - Create a plan (plans are output and stored as `scripts/terraform/azure/${ENV}.plan`)
         - For `dev` environment
@@ -148,7 +159,10 @@ Currently, the datasets to be processed and their corresponding excel sheets are
         - For `prod` environment
             ```bash
             make terraform-plan-prod
-            ```
+        - For `global` environment
+            ```bash
+            make terraform-plan-global
+            
     - Apply the plan created above
         - For `dev` environment
             ```bash
@@ -158,7 +172,11 @@ Currently, the datasets to be processed and their corresponding excel sheets are
             ```bash
             make terraform-apply-prod
             ```
-    - Extract Output 
+        - For `global` environment
+            ```bash
+            make terraform-apply-global
+            ```
+    - Extract Output (The output is used to populate the {ENV}.env files)
         - For `dev` environment
             ```bash
             make terraform-output-dev
@@ -167,12 +185,20 @@ Currently, the datasets to be processed and their corresponding excel sheets are
             ```bash
             make terraform-output-prod
             ```
+        - For `global` environment
+            ```bash
+            make terraform-output-global
+            ```
     - Destroy the resources
         - For `dev` environmemt
             ```bash
             make terraform-destroy-dev
             ```
         - For `prod` environmemt
+            ```bash
+            make terraform-destroy-prod
+            ```
+        - For `global` environmemt destroying is not possible by design. Therefore, following command will echo an error. 
             ```bash
             make terraform-destroy-prod
             ```
@@ -194,6 +220,7 @@ Currently, the datasets to be processed and their corresponding excel sheets are
 ### Resource groups
 - Dev: `rg-kb-dev-001` (see `scripts/terraform/azure/environments/dev.tfvars`)
 - Prod: `rg-kb-prod-001` (see `scripts/terraform/azure/environments/prod.tfvars`)
+- Global: `rg-kb-global-001` (see `scripts/terraform/azure/environments/global.tfvars`)
 
 ### Naming convention
 - Pattern: `<abbr>-kb-<env>-<nnn>` where:

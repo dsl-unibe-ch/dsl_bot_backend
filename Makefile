@@ -123,6 +123,10 @@ help:
 	@echo "  make output                # show outputs"
 	@echo "  make fmt validate          # housekeeping"
 	@echo "  make clean                 # remove local tf state/cache"
+	@echo "\nGlobal workspace (never destroy):"
+	@echo "  make terraform-plan-global   # plan shared Storage & ACR"
+	@echo "  make terraform-apply-global  # apply shared Storage & ACR"
+	@echo "  make terraform-output-global # outputs for global"
 
 az-login:
 	az login
@@ -152,6 +156,9 @@ terraform-workspace-dev:
 terraform-workspace-prod:
 	@$(MAKE) terraform-workspace ENV=prod
 
+terraform-workspace-global:
+	@$(MAKE) terraform-workspace ENV=global
+
 terraform-require-tfvars:
 	@test -f "$(TF_DIR)/$(TFVARS)" || (echo "ERROR: missing $(TF_DIR)/$(TFVARS)"; exit 1)
 
@@ -164,6 +171,9 @@ terraform-plan-dev:
 terraform-plan-prod:
 	@$(MAKE) terraform-plan ENV=prod
 
+terraform-plan-global:
+	@$(MAKE) terraform-plan ENV=global
+
 terraform-apply: 
 	@test -f "${TF_DIR}/${ENV}.plan" || { echo "No plan at ${TF_DIR}/${ENV}.plan. Run 'make terraform-plan-${ENV}' first."; exit 1; }
 	$(TF) -chdir=$(TF_DIR) apply -auto-approve ${ENV}.plan
@@ -174,6 +184,9 @@ terraform-apply-dev:
 terraform-apply-prod:
 	@$(MAKE) terraform-apply ENV=prod
 
+terraform-apply-global:
+	@$(MAKE) terraform-apply ENV=global
+
 terraform-destroy: terraform-require-tfvars terraform-workspace
 	$(TF) -chdir=$(TF_DIR) destroy -auto-approve -var-file=$(TFVARS)
 
@@ -183,10 +196,16 @@ terraform-destroy-dev:
 terraform-destroy-prod:
 	@$(MAKE) terraform-destroy ENV=prod
 
+# Explicitly no 'destroy-global' target; protect global workspace
+terraform-destroy-global:
+	@echo "ERROR: The global workspace must never be destroyed. Aborting." && exit 1
+
 terraform-output:
 	@$(TF) -chdir=$(TF_DIR) workspace select $(ENV) >/dev/null 2>&1 || \
 	  { echo "Workspace '$(ENV)' not found. Run plan/apply first."; exit 1; }
-	$(TF) -chdir=$(TF_DIR) output -json
+	@mkdir -p $(TF_DIR)/outputs
+	@$(TF) -chdir=$(TF_DIR) output -json | jq -r 'to_entries[] | "\(.key)=\(.value.value)"' | tee $(TF_DIR)/outputs/$(ENV).output
+	@echo "Wrote outputs to $(TF_DIR)/outputs/$(ENV).output"
 
 terraform-output-var:
 	@$(TF) -chdir=$(TF_DIR) workspace select $(ENV) >/dev/null 2>&1 || \
@@ -199,8 +218,12 @@ terraform-output-dev:
 terraform-output-prod: 
 	@$(MAKE) terraform-output ENV=prod
 
+terraform-output-global:
+	@$(MAKE) terraform-output ENV=global
+
 terraform-fmt:
 	$(TF) -chdir=$(TF_DIR) fmt -recursive
 
 terraform-validate:
 	$(TF) -chdir=$(TF_DIR) validate
+

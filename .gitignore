@@ -221,8 +221,11 @@ __marimo__/
 
 scripts/terraform/azure/environments/dev.tfvars
 scripts/terraform/azure/environments/prod.tfvars
+scripts/terraform/azure/environments/global.tfvars
+scripts/terraform/azure/outputs/
 scripts/terraform/azure/dev.plan
 scripts/terraform/azure/prod.plan
+scripts/terraform/azure/global.plan
 scripts/terraform/azure/.terraform/
 scripts/terraform/azure/.terraform.lock.hcl
 scripts/terraform/azure/*.tfstate*
