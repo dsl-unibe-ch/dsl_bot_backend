@@ -32,3 +32,13 @@ output "AZURE_OPENAI_SEARCH_EMBEDDING_MODEL_NAME" {
 output "AZURE_OPENAI_SEARCH_EMBEDDING_API_VERSION" {
   value = var.cognitive_model_embedding_api_version
 }
+
+output "AZURE_OPENAI_PRIMARY_KEY" {
+  value     = azurerm_cognitive_account.openai.primary_access_key
+  sensitive = true
+}
+
+output "AZURE_OPENAI_SECONDARY_KEY" {
+  value     = azurerm_cognitive_account.openai.secondary_access_key
+  sensitive = true
+}

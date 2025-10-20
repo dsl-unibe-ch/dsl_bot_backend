@@ -32,6 +32,16 @@ output "AZURE_OPENAI_SEARCH_EMBEDDING_API_VERSION" {
   value = try(module.openai[0].AZURE_OPENAI_SEARCH_EMBEDDING_API_VERSION, null)
 }
 
+output "AZURE_OPENAI_PRIMARY_KEY"{
+  value = try(module.openai[0].AZURE_OPENAI_PRIMARY_KEY, null)
+  sensitive = true
+}
+
+output "AZURE_OPENAI_SECONDARY_KEY"{
+  value = try(module.openai[0].AZURE_OPENAI_SECONDARY_KEY, null)
+  sensitive = true
+}
+
 #----- Azure App Service Plan --------------
 
 output "AZURE_APP_SERVICE_PLAN_ID" {
