@@ -22,6 +22,16 @@ output "AZURE_OPENAI_CHAT_API_VERSION" {
   value = try(module.openai[0].AZURE_OPENAI_CHAT_API_VERSION, null)
 }
 
+output "AZURE_OPENAI_SEARCH_EMBEDDING_DEPLOYMENT" {
+  value = try(module.openai[0].AZURE_OPENAI_SEARCH_EMBEDDING_DEPLOYMENT, null)
+}
+output "AZURE_OPENAI_SEARCH_EMBEDDING_MODEL_NAME" {
+  value = try(module.openai[0].AZURE_OPENAI_SEARCH_EMBEDDING_MODEL_NAME, null)
+}
+output "AZURE_OPENAI_SEARCH_EMBEDDING_API_VERSION" {
+  value = try(module.openai[0].AZURE_OPENAI_SEARCH_EMBEDDING_API_VERSION, null)
+}
+
 #----- Azure App Service Plan --------------
 
 output "AZURE_APP_SERVICE_PLAN_ID" {
@@ -122,6 +132,15 @@ output "AZURE_SEARCH_SERVICE_PRIMARY_ADMIN_KEY" {
 output "AZURE_SEARCH_SERVICE_SECONDARY_ADMIN_KEY" {
   value     = try(module.azurerm_search_service[0].AZURE_SEARCH_SERVICE_SECONDARY_ADMIN_KEY, null)
   sensitive = true
+}
+
+# Endpoint
+output "AZURE_SEARCH_ENDPOINT" {
+  value = try(module.azurerm_search_service[0].AZURE_SEARCH_ENDPOINT, null)
+}
+
+output "AZURE_AI_SEARCH_INDEX_NAME" {
+  value = try(module.azurerm_search_service[0].AZURE_SEARCH_INDEX_NAME, null)
 }
 
 #----- Azure Key Vault --------------

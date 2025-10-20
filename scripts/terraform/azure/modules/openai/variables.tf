@@ -51,6 +51,19 @@ variable "cognitive_model_embedding_version" {
     type = string 
 }
 
+# ----- API Versions (for SDK/REST) ------
+variable "cognitive_model_api_version" {
+  description = "Azure OpenAI Chat/Completions API version to use (e.g., 2024-02-01)."
+  type        = string
+  default     = "2024-02-01"
+}
+
+variable "cognitive_model_embedding_api_version" {
+  description = "Azure OpenAI Embeddings API version to use (e.g., 2024-02-01)."
+  type        = string
+  default     = "2024-02-01"
+}
+
 # ----- AI Foundry ------
 
 variable "aif_hub_name" { 

@@ -52,8 +52,8 @@ resource "azurerm_role_assignment" "acr_pull_to_app" {
 }
 
 resource "azurerm_linux_web_app_slot" "slot" {
-  count          = var.app_service_enable_slot ? 1 : 0
-  name           = var.app_service_slot_name
+  count          = length(var.app_service_slot_names) > 0 ? length(var.app_service_slot_names) : (var.app_service_enable_slot ? 1 : 0)
+  name           = length(var.app_service_slot_names) > 0 ? var.app_service_slot_names[count.index] : var.app_service_slot_name
   app_service_id = azurerm_linux_web_app.app.id
 
   site_config {
@@ -70,7 +70,7 @@ resource "azurerm_linux_web_app_slot" "slot" {
     {
       WEBSITES_ENABLE_APP_SERVICE_STORAGE = "false"
       WEBSITES_PORT                       = tostring(var.container_port)
-      SLOT_NAME                           = var.app_service_slot_name
+      SLOT_NAME                           = length(var.app_service_slot_names) > 0 ? var.app_service_slot_names[count.index] : var.app_service_slot_name
     },
     var.app_insights_connection_string != null ? {
       APPLICATIONINSIGHTS_CONNECTION_STRING = var.app_insights_connection_string

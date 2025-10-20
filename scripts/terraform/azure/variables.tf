@@ -297,6 +297,12 @@ variable "grant_blob_reader_to_storage_account_id" {
   default = null
 }
 
+variable "search_index_name" {
+  description = "Optional: name of an existing index to reference or propagate to modules."
+  type        = string
+  default     = null
+}
+
 # ----- Key Vault --------
 variable "key_vault_name" {
   type    = string

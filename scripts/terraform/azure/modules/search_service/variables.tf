@@ -65,3 +65,10 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+# Optional: create a basic index
+variable "search_index_name" {
+  description = "If set, creates a basic index with 'id' and 'content' fields."
+  type        = string
+  default     = null
+}

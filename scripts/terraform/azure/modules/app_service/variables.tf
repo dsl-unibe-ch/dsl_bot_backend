@@ -56,6 +56,12 @@ variable "app_service_slot_name"           {
     default = "staging" 
 }
 
+# Multiple slots (if provided, overrides the single-slot toggle above)
+variable "app_service_slot_names" {
+  type    = list(string)
+  default = []
+}
+
 # (optional) App Insights – pass the connection string if you have one
 variable "app_insights_connection_string" {
   type    = string

@@ -138,6 +138,7 @@ module "azurerm_search_service" {
   search_service_hosting_mode = var.search_service_hosting_mode
   search_service_public_network_access_enabled = var.search_service_public_network_access_enabled
   grant_blob_reader_to_storage_account_id = var.grant_blob_reader_to_storage_account_id
+  search_index_name = var.search_index_name
   tags = local.default_tags
 }
 
@@ -199,5 +200,6 @@ module "azurerm_app_service" {
     try(module.azurerm_container_registry[0].AZURE_CONTAINER_REGISTRY_LOGIN_SERVER, null),
     try(data.azurerm_container_registry.acr[0].login_server, null)
   )
+  app_service_slot_names       = var.environment == "prod" ? ["staging", "prod"] : []
 }
 

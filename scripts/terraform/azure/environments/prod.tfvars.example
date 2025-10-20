@@ -67,4 +67,5 @@ search_service_replica_count = 3
 search_service_partition_count = 1
 search_service_hosting_mode = "default"
 search_service_public_network_access_enabled = true
+search_index_name = "kb-quality-prod"
 grant_blob_reader_to_storage_account_id = null

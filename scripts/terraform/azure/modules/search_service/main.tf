@@ -34,3 +34,6 @@ resource "azurerm_role_assignment" "search_sa_blob_reader" {
   principal_id         = azurerm_search_service.this.identity[0].principal_id
 }
 
+# Optional: simple index when name provided
+// Index creation is not supported by the azurerm provider. Create via CLI/SDK if needed.
+
