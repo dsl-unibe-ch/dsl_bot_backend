@@ -23,6 +23,7 @@ output "AZURE_SEARCH_ENDPOINT" {
   sensitive = false
 }
 
+
 output "AZURE_SEARCH_INDEX_NAME" {
   value = var.search_index_name
 }

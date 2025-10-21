@@ -47,7 +47,6 @@ app_service_connection_string_value = null
 container_registry_id = null
 app_service_plan_id = null
 app_name = "kioskbot-backend"
-container_image_tag = "prod"
 container_repository_name = "kioskbot-backend-api"
 container_registry_sku = "Standard"
 

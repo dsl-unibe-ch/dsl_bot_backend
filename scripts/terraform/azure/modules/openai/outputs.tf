@@ -1,5 +1,10 @@
-output "AZURE_OPENAI_ENDPOINT" {
+output "AZURE_OPENAI_VECTORIZER_ENDPOINT" {
   value     = "https://${azurerm_cognitive_account.openai.name}.openai.azure.com"
+  sensitive = true
+}
+
+output "AZURE_OPENAI_ENDPOINT" {
+  value     = azurerm_cognitive_account.openai.endpoint
   sensitive = true
 }
 

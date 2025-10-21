@@ -7,9 +7,13 @@ lint:
 	@echo $@
 	$(PYTHON) -m ruff check --fix app demo tests scripts
 
-etl-pipeline-azure-search:
+etl-pipeline-azure-search-dev:
 	@echo $@
 	@ENV=dev PYTHONPATH=$(shell pwd) python scripts/rag_data/etl_azure_search.py	
+
+etl-pipeline-azure-search-prod:
+	@echo $@
+	@ENV=prod PYTHONPATH=$(shell pwd) python scripts/rag_data/etl_azure_search.py
 
 generate-assessment-dataset:
 	@echo $@

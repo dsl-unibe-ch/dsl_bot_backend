@@ -26,6 +26,7 @@ if [[ -z "$VERSION" ]]; then
 fi
 
 # Sanitize for docker tag: allowed [A-Za-z0-9_.-]
-IMAGE_TAG=$(printf '%s' "${PREFIX}${VERSION}" | sed -E 's/[^A-Za-z0-9_.-]+/-/g')
+# Build as <version><prefix> so e.g. 0.1.0-dev
+IMAGE_TAG=$(printf '%s' "${VERSION}${PREFIX}" | sed -E 's/[^A-Za-z0-9_.-]+/-/g')
 
-jq -n --arg version "$VERSION" --arg image_tag "$IMAGE_TAG" '{version:$version, image_tag:$image_tag}'
+jq -n --arg image_tag "$IMAGE_TAG" '{image_tag:$image_tag}'

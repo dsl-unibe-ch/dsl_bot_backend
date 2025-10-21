@@ -12,7 +12,6 @@ from zoneinfo import ZoneInfo
 
 import ftfy
 from azure.core.credentials import AzureKeyCredential
-from azure.identity import DefaultAzureCredential, get_bearer_token_provider
 from azure.search.documents import SearchClient
 from azure.search.documents.models import VectorizedQuery
 from fastapi import HTTPException
@@ -42,9 +41,8 @@ class ChatBot:
 
     def __init__(self) -> None:
         """Initialize the ChatBot with Azure clients and prompt chains."""
-        search_credential = AzureKeyCredential(settings.AZURE_AI_SEARCH_API_KEY)
-        token_provider = get_bearer_token_provider(
-            DefaultAzureCredential(), "https://cognitiveservices.azure.com/.default"
+        search_credential = AzureKeyCredential(
+            settings.AZURE_SEARCH_SERVICE_PRIMARY_ADMIN_KEY
         )
 
         self.search_client = SearchClient(
@@ -56,13 +54,13 @@ class ChatBot:
             azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
             azure_deployment=settings.AZURE_OPENAI_SEARCH_EMBEDDING_DEPLOYMENT,
             api_version=settings.AZURE_OPENAI_SEARCH_EMBEDDING_API_VERSION,
-            azure_ad_token_provider=token_provider,
+            api_key=settings.AZURE_OPENAI_PRIMARY_KEY,
         )
         self.chat_client = AzureChatOpenAI(
             azure_deployment=settings.AZURE_OPENAI_CHAT_DEPLOYMENT,
             api_version=settings.AZURE_OPENAI_CHAT_API_VERSION,
             azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
-            azure_ad_token_provider=token_provider,
+            api_key=settings.AZURE_OPENAI_PRIMARY_KEY,
         )
         self.qa_chain = create_stuff_documents_chain(
             llm=self.chat_client, prompt=qa_prompt, document_variable_name="context"

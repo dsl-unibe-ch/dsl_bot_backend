@@ -1,6 +1,7 @@
 """Configuration file of tests."""
 
 import json
+import os
 import uuid
 from collections.abc import Callable
 from pathlib import Path
@@ -14,6 +15,13 @@ from openevals.types import SimpleEvaluator
 from app.agent.chatbot_azure import ChatBot
 from app.agent.query import QueryInput
 from app.config import settings
+
+os.environ.setdefault("LANGSMITH_TRACING", str(settings.LANGSMITH_TRACING).lower())
+os.environ.setdefault("LANGSMITH_TEST_TRACKING", "true")
+os.environ.setdefault("LANGSMITH_API_KEY", settings.LANGSMITH_API_KEY)
+os.environ.setdefault("LANGSMITH_PROJECT", settings.LANGSMITH_PROJECT)
+if getattr(settings, "LANGSMITH_ENDPOINT", None):
+    os.environ.setdefault("LANGSMITH_ENDPOINT", settings.LANGSMITH_ENDPOINT)
 
 
 def load_questions_groundtruth_answers() -> dict:

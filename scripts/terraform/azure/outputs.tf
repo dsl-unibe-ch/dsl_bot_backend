@@ -1,5 +1,10 @@
 #----- Azure Openai --------------
 
+output "AZURE_OPENAI_VECTORIZER_ENDPOINT" {
+  value     = try(module.openai[0].AZURE_OPENAI_VECTORIZER_ENDPOINT, null)
+  sensitive = true
+}
+
 output "AZURE_OPENAI_ENDPOINT" {
   value     = try(module.openai[0].AZURE_OPENAI_ENDPOINT, null)
   sensitive = true

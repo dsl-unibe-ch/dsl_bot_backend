@@ -244,7 +244,11 @@ Common tags are applied via a shared local map and passed to modules:
 - If you need resource-specific extra tags, you can still set resource-level tags in the module; they will override common tags on key conflicts.
 
 ### Steps for deployment
-1. Docker push the `dev` and `prod` containers to the `container_registry`.
+1. Create the global resources. 
+2. Docker push the `dev` and `prod` containers to the `container_registry`.
+3. Assign yourself `PIM_Azure_mg-dsl-informationskiosk-owner` on Azure PIM.
+4. Create the dev and prod deployments. 
+2. Increase the `Tokens-Per-Minute` manually to the maximum inside the OpenAI model deployments in the portal as Terraform doesn’t expose such a `Tokens-Per-Minute` for azurerm_cognitive_deployment.
 2. Create and Populate the indexes in the `search_service` for `dev` and `prod` by following the steps in **ETL pipeline for Azure Search**. 
 3. Run e2e tests on `dev` deployment and `staging` slot of the `prod`. 
     1. Replace `PUBLIC_API` on the local frontend with the `app_service` deployment endpoint.

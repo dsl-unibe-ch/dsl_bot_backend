@@ -6,6 +6,7 @@ import logging
 import uuid
 from zoneinfo import ZoneInfo
 
+from azure.core.exceptions import ResourceExistsError
 from azure.storage.blob import BlobServiceClient
 from kafka import KafkaConsumer
 
@@ -41,9 +42,21 @@ def main() -> None:
         logger.info("Assigned partitions: %s", consumer.assignment())
 
         container_name = settings.AZURE_CONTAINER_STORAGE_NAME
-        connection_string = settings.AZURE_STORAGE_CONNECTION_STRING
+        connection_string = settings.AZURE_STORAGE_ACCOUNT_PRIMARY_CONNECTION_STRING
 
         logger.info("Starting Kafka consumer for topic: %s", settings.KAFKA_TOPIC)
+
+        # Initialize Blob client once and ensure container exists
+        blob_service_client = BlobServiceClient.from_connection_string(
+            connection_string
+        )
+        container_client = blob_service_client.get_container_client(container_name)
+        try:
+            if not container_client.exists():
+                container_client.create_container()
+                logger.info("Created container: %s", container_name)
+        except ResourceExistsError:
+            logger.info("Container already exists: %s", container_name)
 
         for message in consumer:
             try:
@@ -52,9 +65,6 @@ def main() -> None:
 
                 session_id = log_content["session_id"]
                 unique_id = str(uuid.uuid4())
-                blob_service_client = BlobServiceClient.from_connection_string(
-                    connection_string
-                )
                 now = datetime.datetime.now(ZoneInfo("Europe/Berlin"))
                 year = now.strftime("%Y")
                 month = now.strftime("%m")

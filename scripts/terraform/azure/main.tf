@@ -12,14 +12,12 @@ data "external" "pyproject" {
   program = ["bash", "${path.module}/scripts/read_pyproject_version.sh"]
 
   query = {
-    # if not provided, default to repo root `pyproject.toml`
-    path   = var.pyproject_path != null ? var.pyproject_path : "${path.root}/pyproject.toml"
-    prefix = "" 
+    path   = "${path.root}/../../../pyproject.toml"
+    prefix = "-${var.environment}"
   }
 }
-
 locals {
-  image_tag                       = var.container_image_tag != null && var.container_image_tag != "" ? var.container_image_tag : try(data.external.pyproject.result.image_tag, null)
+  image_tag                       = data.external.pyproject.result.image_tag
   container_repository_effective  = var.container_repository_name
   tenant_id_effective             = coalesce(var.key_vault_tenant_id, data.azurerm_client_config.current.tenant_id)
   default_tags = {
@@ -166,32 +164,17 @@ module "azurerm_key_vault" {
   key_vault_tags = local.default_tags
 }
 
-# --- check if <repo>:<tag> exists in ACR ---
-data "external" "acr_image_exists" {
-  count   = var.environment == "global" ? 0 : 1
-  program = ["bash", "${path.module}/scripts/check_acr_image.sh"]
-  query = {
-    registry   = var.container_registry_name
-    repository = local.container_repository_effective
-    tag        = local.image_tag
-  }
-}
-
-locals {
-  image_exists = var.environment == "global" ? false : try(data.external.acr_image_exists[0].result.exists, "false") == "true"
-}
-
 # --- App Service ---
 module "azurerm_app_service" {
-  count                        = local.image_exists ? 1 : 0
+  count                        = var.environment == "global" ? 0 : 1
   source                       = "./modules/app_service"
-  container_registry_id        = var.container_registry_id
-  app_service_plan_name        = var.app_service_plan_name
-  app_service_plan_id          = var.app_service_plan_id
+  container_registry_id        = data.azurerm_container_registry.acr[0].id
+  app_service_plan_name        = module.azurerm_service_plan[0].AZURE_APP_SERVICE_PLAN_NAME 
+  app_service_plan_id          = module.azurerm_service_plan[0].AZURE_APP_SERVICE_PLAN_ID 
   app_service_plan_sku_name    = module.azurerm_service_plan[0].AZURE_APP_SERVICE_PLAN_SKU
   resource_group_name          = azurerm_resource_group.rg.name
   resource_group_location      = azurerm_resource_group.rg.location
-  container_image_tag          = coalesce(var.container_image_tag, local.image_tag)
+  container_image_tag          = local.image_tag
   app_name                     = var.app_name
   subscription_id              = var.subscription_id
   container_registry_name      = var.container_registry_name

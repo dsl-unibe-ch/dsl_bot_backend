@@ -6,7 +6,6 @@ import time
 from pathlib import Path
 
 import pandas as pd
-from azure.identity import DefaultAzureCredential, get_bearer_token_provider
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import AzureChatOpenAI
 from openai import AzureOpenAI
@@ -43,9 +42,6 @@ class QuestionAnswerList(BaseModel):
 
 number_of_questions = 100
 open_question_answer = "The document does not provide an answer to this question."
-token_provider = get_bearer_token_provider(
-    DefaultAzureCredential(), "https://cognitiveservices.azure.com/.default"
-)
 
 
 def german2english(text: str) -> str:
@@ -71,7 +67,7 @@ def german2english(text: str) -> str:
         azure_deployment=settings.AZURE_OPENAI_CHAT_DEPLOYMENT,
         api_version=settings.AZURE_OPENAI_CHAT_API_VERSION,
         azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
-        azure_ad_token_provider=token_provider,
+        api_key=settings.AZURE_OPENAI_PRIMARY_KEY,
     )
 
     translation_chain = translation_prompt | chat_client
@@ -85,7 +81,7 @@ def generate_questions_answers(text: str) -> list:
 
     client = AzureOpenAI(
         azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
-        azure_ad_token_provider=token_provider,
+        api_key=settings.AZURE_OPENAI_PRIMARY_KEY,
         api_version=settings.AZURE_OPENAI_CHAT_API_VERSION,
     )
 

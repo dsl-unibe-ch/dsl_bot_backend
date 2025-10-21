@@ -8,7 +8,6 @@ from pathlib import Path
 import pandas as pd
 from azure.core.credentials import AzureKeyCredential
 from azure.core.exceptions import HttpResponseError
-from azure.identity import DefaultAzureCredential, get_bearer_token_provider
 from azure.search.documents import SearchClient
 from azure.search.documents.indexes import SearchIndexClient
 from azure.search.documents.indexes.models import (
@@ -74,7 +73,7 @@ def get_embedding(embedding_client: AzureOpenAI, text: str) -> list:
     return resp.data[0].embedding
 
 
-def generate_title(chunk: str, token_provider: str) -> str:
+def generate_title(chunk: str) -> str:
     """Generate a title for a given text chunk using Azure OpenAI."""
     title_generation_system_prompt = """Given the following document chunk, generate a concise and informative title that summarizes its main topic or purpose.
 
@@ -93,7 +92,7 @@ def generate_title(chunk: str, token_provider: str) -> str:
         azure_deployment=settings.AZURE_OPENAI_CHAT_DEPLOYMENT,
         api_version=settings.AZURE_OPENAI_CHAT_API_VERSION,
         azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
-        azure_ad_token_provider=token_provider,
+        api_key=settings.AZURE_OPENAI_PRIMARY_KEY,
     )
 
     title_generation_chain = title_generation_prompt | chat_client
@@ -113,14 +112,12 @@ def run_etl(  # noqa: PLR0915
     Returns a dict with summary information.
     """
     # text splitter used to chunk documents
-    token_provider = get_bearer_token_provider(
-        DefaultAzureCredential(), "https://cognitiveservices.azure.com/.default"
-    )
+
     embedding_client = AzureOpenAI(
         azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
         azure_deployment=settings.AZURE_OPENAI_SEARCH_EMBEDDING_DEPLOYMENT,
         api_version=settings.AZURE_OPENAI_SEARCH_EMBEDDING_API_VERSION,
-        azure_ad_token_provider=token_provider,
+        api_key=settings.AZURE_OPENAI_PRIMARY_KEY,
     )
 
     azure_embeddings = AzureEmbeddingWrapper(embedding_client)
@@ -129,16 +126,16 @@ def run_etl(  # noqa: PLR0915
     # initialize azure search client
     index_client = SearchIndexClient(
         settings.AZURE_SEARCH_ENDPOINT,
-        AzureKeyCredential(settings.AZURE_AI_SEARCH_API_KEY),
+        AzureKeyCredential(settings.AZURE_SEARCH_SERVICE_PRIMARY_ADMIN_KEY),
     )
 
     # configure vectorizer
     vectorizer = AzureOpenAIVectorizer(
         vectorizer_name="myTextEmbedding3LargeVectorizer",
         parameters=AzureOpenAIVectorizerParameters(
-            resource_url=settings.AZURE_OPENAI_ENDPOINT,
+            resource_url=settings.AZURE_OPENAI_VECTORIZER_ENDPOINT,
             deployment_name=settings.AZURE_OPENAI_SEARCH_EMBEDDING_DEPLOYMENT,
-            api_key=settings.AZURE_OPENAI_CHAT_KEY,
+            api_key=settings.AZURE_OPENAI_PRIMARY_KEY,
             model_name=settings.AZURE_OPENAI_SEARCH_EMBEDDING_DEPLOYMENT,
         ),
     )
@@ -265,7 +262,7 @@ def run_etl(  # noqa: PLR0915
             chunk_content = chunk.page_content.strip()
             if not chunk_content:
                 continue
-            title_for_chunk = generate_title(chunk_content, token_provider)
+            title_for_chunk = generate_title(chunk_content)
             vector = get_embedding(embedding_client, chunk_content)
 
             document = {
@@ -288,9 +285,11 @@ def run_etl(  # noqa: PLR0915
             documents.append(document)
             chunk_id += 1
 
-    # store the data locally as json (for debugging purposes)
+    environment = getattr(settings, "ENV", "dev")
     with Path.open(
-        processed_data_path / f"{xlsx_file_name}_azure_semantic_search.json", "w"
+        processed_data_path
+        / f"{xlsx_file_name}_azure_semantic_search_{environment}.json",
+        "w",
     ) as f:
         json.dump(documents, f, indent=2, ensure_ascii=False)
 
@@ -298,7 +297,7 @@ def run_etl(  # noqa: PLR0915
     search_client = SearchClient(
         settings.AZURE_SEARCH_ENDPOINT,
         index_name,
-        AzureKeyCredential(settings.AZURE_AI_SEARCH_API_KEY),
+        AzureKeyCredential(settings.AZURE_SEARCH_SERVICE_PRIMARY_ADMIN_KEY),
     )
     upload_result = None
     try:
