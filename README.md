@@ -244,13 +244,38 @@ Common tags are applied via a shared local map and passed to modules:
 - If you need resource-specific extra tags, you can still set resource-level tags in the module; they will override common tags on key conflicts.
 
 ### Steps for deployment
-1. Create the global resources. 
+
+1. Create the global resources under the `global` resource group. 
+2. Create a new ssh key for the Kubernetes VM 
+    ```bash
+    ssh-keygen -t rsa -b 2048 -f ~/.ssh/id_rsa_aks -C "Your_Email_Address"
+    ```
+3. Copy the public ssh key with `cat ~/.ssh/id_rsa_aks.pub` and assign it to `aks_admin_ssh_public_keys` in `scripts\terraform\azure\environments\prod.tfvars` and `scripts\terraform\azure\environments\prod.tfvars`.
+
 2. Docker push the `dev` and `prod` containers to the `container_registry`.
-3. Assign yourself `PIM_Azure_mg-dsl-informationskiosk-owner` on Azure PIM.
+3. Assign yourself `PIM_Azure_mg-dsl-informationskiosk-owner` on Azure PIM as otherwise the app service cannot pull the image from he container registry. Make sure you `az logout` and `make az-login` again.
 4. Create the dev and prod deployments. 
-2. Increase the `Tokens-Per-Minute` manually to the maximum inside the OpenAI model deployments in the portal as Terraform doesn’t expose such a `Tokens-Per-Minute` for azurerm_cognitive_deployment.
-2. Create and Populate the indexes in the `search_service` for `dev` and `prod` by following the steps in **ETL pipeline for Azure Search**. 
-3. Run e2e tests on `dev` deployment and `staging` slot of the `prod`. 
+6. Set the environment variables for the azure with 
+    1. `./scripts/push_env_to_webapp.sh -e .env.dev -g rg-kb-dev-001 -n kioskbot-backend-dev-web` for `dev`
+    2.  `./scripts/push_env_to_webapp.sh -e .env.prod -g rg-kb-prod-001 -n kioskbot-backend-prod-web -s staging` for `prod` 
+7. Apply the docker compose to the app.
+    2. Export the following variables as the docker-compose cannot access the environment variables in the web app service.
+        ```
+        export AZURE_CONTAINER_REGISTRY_LOGIN_SERVER=crkbglobal001.azurecr.io
+        export VERSION=0.1.0
+        ```
+    1. for `dev`
+        ```bash
+        export ENV=dev
+        envsubst < docker-compose.yml > docker-compose.azure.dev.yml
+        az webapp config container set --resource-group rg-kb-dev-001 --name kioskbot-backend-dev-web --multicontainer-config-type compose --multicontainer-config-file ./docker-compose.azure.dev.yml
+        az webapp restart -g rg-kb-dev-001 -n kioskbot-backend-dev-web
+        ```
+
+    az webapp config container set --resource-group rg-kb-dev-001 --name kioskbot-backend-web --multicontainer-config-type compose --multicontainer-config-file ./docker-compose.yml
+7. Increase the `Tokens-Per-Minute` manually to the maximum inside the OpenAI model deployments in the portal as Terraform doesn’t expose such a `Tokens-Per-Minute` for azurerm_cognitive_deployment.
+8. Create and Populate the indexes in the `search_service` for `dev` and `prod` by following the steps in **ETL pipeline for Azure Search**.  
+9. Run e2e tests on `dev` deployment and `staging` slot of the `prod`. 
     1. Replace `PUBLIC_API` on the local frontend with the `app_service` deployment endpoint.
     2. Allow the `app_service` deployment to be reachable by frontend.
     3. Run e2e tests.

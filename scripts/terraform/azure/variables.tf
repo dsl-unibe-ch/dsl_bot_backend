@@ -361,3 +361,106 @@ variable "key_vault_access_policies" {
   type    = list(object({ tenant_id = string, object_id = string, key_permissions = list(string), secret_permissions = list(string), certificate_permissions = list(string), storage_permissions = list(string) }))
   default = []
 }
+
+# ----- Virtual Machine (removed in favor of AKS) -----
+
+# ----- AKS (Kubernetes Cluster) -----
+variable "aks_enabled" {
+  type    = bool
+  default = false
+}
+variable "aks_cluster_name" {
+  type    = string
+  default = null
+}
+variable "aks_dns_prefix" {
+  type    = string
+  default = null
+}
+variable "aks_admin_username" {
+  type    = string
+  default = "azureuser"
+}
+variable "aks_admin_ssh_public_keys" {
+  type    = list(string)
+  default = []
+}
+variable "aks_node_pool_name" {
+  type    = string
+  default = "systempool"
+}
+variable "aks_node_count" {
+  type    = number
+  default = 1
+}
+variable "aks_node_vm_size" {
+  type    = string
+  default = null
+}
+variable "aks_node_os_disk_size_gb" {
+  type    = number
+  default = 128
+}
+variable "aks_node_os_sku" {
+  type    = string
+  default = "Ubuntu"
+}
+variable "aks_configure_network_profile" {
+  type    = bool
+  default = false
+}
+variable "aks_network_plugin" {
+  type    = string
+  default = "kubenet"
+}
+variable "aks_version" {
+  type    = string
+  default = null
+}
+
+variable "aks_node_resource_group_name" {
+  description = "Custom name for the AKS managed resource group (node resource group)."
+  type        = string
+  default     = null
+}
+
+# AKS Network (bring-your-own subnet)
+variable "aks_vnet_name" {
+  type    = string
+  default = null
+}
+variable "aks_vnet_address_space" {
+  type    = list(string)
+  default = []
+}
+variable "aks_subnet_name" {
+  type    = string
+  default = null
+}
+variable "aks_subnet_address_prefix" {
+  type    = string
+  default = null
+}
+variable "aks_network_security_group_name" {
+  type    = string
+  default = null
+}
+variable "aks_network_security_rules" {
+  description = "NSG rules list for AKS subnet"
+  type = list(object({
+    name                         = string
+    priority                     = number
+    direction                    = string
+    access                       = string
+    protocol                     = string
+    source_port_range            = optional(string)
+    destination_port_range       = optional(string)
+    source_port_ranges           = optional(list(string))
+    destination_port_ranges      = optional(list(string))
+    source_address_prefix        = optional(string)
+    source_address_prefixes      = optional(list(string))
+    destination_address_prefix   = optional(string)
+    destination_address_prefixes = optional(list(string))
+  }))
+  default = []
+}

@@ -1,3 +1,20 @@
+# --- Network for AKS (BYO VNet/Subnet to satisfy policy) ---
+module "network_aks" {
+  count                   = var.environment == "global" ? 0 : 1
+  source                  = "./modules/network_aks"
+  subscription_id         = var.subscription_id
+  resource_group_location = azurerm_resource_group.rg.location
+  resource_group_name     = azurerm_resource_group.rg.name
+
+  tags = local.default_tags
+
+  vnet_name               = var.aks_vnet_name
+  vnet_address_space      = var.aks_vnet_address_space
+  subnet_name             = var.aks_subnet_name
+  subnet_address_prefix   = var.aks_subnet_address_prefix
+  network_security_group_name = var.aks_network_security_group_name
+  network_security_rules      = var.aks_network_security_rules
+}
 # --- Resource group ---
 resource "azurerm_resource_group" "rg" {
   name     = var.resource_group_name
@@ -51,17 +68,17 @@ module "openai" {
 }
 
 # --- App Service Plan ---
-module "azurerm_service_plan" {
-  count                   = var.environment == "global" ? 0 : 1
-  source              = "./modules/app_service_plan"
-  subscription_id     = var.subscription_id
-  resource_group_location = azurerm_resource_group.rg.location
-  app_service_plan_name  = var.app_service_plan_name
-  resource_group_name = azurerm_resource_group.rg.name
-  app_service_plan_os_type = var.app_service_plan_os_type    
-  app_service_plan_sku_name = var.app_service_plan_sku_name    
-  app_service_plan_worker_count = var.app_service_plan_worker_count
-}
+# module "azurerm_service_plan" {
+#  count                   = var.environment == "global" ? 0 : 1
+#  source              = "./modules/app_service_plan"
+#  subscription_id     = var.subscription_id
+#  resource_group_location = azurerm_resource_group.rg.location
+#  app_service_plan_name  = var.app_service_plan_name
+#  resource_group_name = azurerm_resource_group.rg.name
+#  app_service_plan_os_type = var.app_service_plan_os_type    
+#  app_service_plan_sku_name = var.app_service_plan_sku_name    
+#  app_service_plan_worker_count = var.app_service_plan_worker_count
+#}
 
 
 # --- Container Registry ---
@@ -140,6 +157,34 @@ module "azurerm_search_service" {
   tags = local.default_tags
 }
 
+# --- AKS (Kubernetes Cluster) ---
+module "kubernetes_cluster" {
+  count                   = var.environment == "global" ? 0 : 1
+  source                  = "./modules/kubernetes_cluster"
+  subscription_id         = var.subscription_id
+  resource_group_location = azurerm_resource_group.rg.location
+  resource_group_name     = azurerm_resource_group.rg.name
+
+  tags = local.default_tags
+
+  cluster_name   = var.aks_cluster_name
+  dns_prefix     = var.aks_dns_prefix
+  admin_username = var.aks_admin_username
+  admin_ssh_public_keys = var.aks_admin_ssh_public_keys
+
+  default_node_pool_name          = var.aks_node_pool_name
+  default_node_pool_node_count    = var.aks_node_count
+  default_node_pool_vm_size       = var.aks_node_vm_size
+  default_node_pool_os_disk_size_gb = var.aks_node_os_disk_size_gb
+  default_node_pool_os_sku        = var.aks_node_os_sku
+  vnet_subnet_id                  = module.network_aks[0].AKS_SUBNET_ID
+
+  configure_network_profile = var.aks_configure_network_profile
+  network_plugin            = var.aks_network_plugin
+  kubernetes_version        = var.aks_version
+  node_resource_group_name  = var.aks_node_resource_group_name
+}
+
 # --- Key Vault ---
 module "azurerm_key_vault" {
   count                  = var.environment == "global" ? 1 : 0
@@ -165,24 +210,25 @@ module "azurerm_key_vault" {
 }
 
 # --- App Service ---
-module "azurerm_app_service" {
-  count                        = var.environment == "global" ? 0 : 1
-  source                       = "./modules/app_service"
-  container_registry_id        = data.azurerm_container_registry.acr[0].id
-  app_service_plan_name        = module.azurerm_service_plan[0].AZURE_APP_SERVICE_PLAN_NAME 
-  app_service_plan_id          = module.azurerm_service_plan[0].AZURE_APP_SERVICE_PLAN_ID 
-  app_service_plan_sku_name    = module.azurerm_service_plan[0].AZURE_APP_SERVICE_PLAN_SKU
-  resource_group_name          = azurerm_resource_group.rg.name
-  resource_group_location      = azurerm_resource_group.rg.location
-  container_image_tag          = local.image_tag
-  app_name                     = var.app_name
-  subscription_id              = var.subscription_id
-  container_registry_name      = var.container_registry_name
-  container_repository         = local.container_repository_effective
-  container_registry_login_server = coalesce(
-    try(module.azurerm_container_registry[0].AZURE_CONTAINER_REGISTRY_LOGIN_SERVER, null),
-    try(data.azurerm_container_registry.acr[0].login_server, null)
-  )
-  app_service_slot_names       = var.environment == "prod" ? ["staging", "prod"] : []
-}
+#module "azurerm_app_service" {
+#  count                        = var.environment == "global" ? 0 : 1
+#  source                       = "./modules/app_service"
+#  count                        = var.environment == "global" ? 0 : 1
+#  container_registry_id        = data.azurerm_container_registry.acr[0].id
+#  app_service_plan_name        = module.azurerm_service_plan[0].AZURE_APP_SERVICE_PLAN_NAME 
+#  app_service_plan_id          = module.azurerm_service_plan[0].AZURE_APP_SERVICE_PLAN_ID 
+#  app_service_plan_sku_name    = module.azurerm_service_plan[0].AZURE_APP_SERVICE_PLAN_SKU
+#  resource_group_name          = azurerm_resource_group.rg.name
+#  resource_group_location      = azurerm_resource_group.rg.location
+#  container_image_tag          = local.image_tag
+#  app_name                     = var.app_name
+#  subscription_id              = var.subscription_id
+#  container_registry_name      = var.container_registry_name
+#  container_repository         = local.container_repository_effective
+#  container_registry_login_server = coalesce(
+#    try(module.azurerm_container_registry[0].AZURE_CONTAINER_REGISTRY_LOGIN_SERVER, null),
+#    try(data.azurerm_container_registry.acr[0].login_server, null)
+#  )
+#  app_service_slot_names       = var.environment == "prod" ? ["staging", "prod"] : []
+#}
 

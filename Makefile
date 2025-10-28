@@ -125,6 +125,9 @@ help:
 	@echo "  make apply ENV=dev         # apply with environments/dev.tfvars"
 	@echo "  make destroy ENV=dev       # destroy with environments/dev.tfvars"
 	@echo "  make output                # show outputs"
+	@echo "  make kubeconfig ENV=dev    # write kubeconfig file from TF output"
+	@echo "  make deploy-dev            # plan/apply dev and write kubeconfig"
+	@echo "  make deploy-prod           # plan/apply prod and write kubeconfig"
 	@echo "  make fmt validate          # housekeeping"
 	@echo "  make clean                 # remove local tf state/cache"
 	@echo "\nGlobal workspace (never destroy):"
@@ -145,7 +148,6 @@ az-set-subscription:
 
 az-get-tenant-id:
 	@az account show --query tenantId -o tsv
-	
 
 terraform-init:
 	$(TF) -chdir=$(TF_DIR) init -upgrade
@@ -204,6 +206,7 @@ terraform-destroy-prod:
 terraform-destroy-global:
 	@echo "ERROR: The global workspace must never be destroyed. Aborting." && exit 1
 
+
 terraform-output:
 	@$(TF) -chdir=$(TF_DIR) workspace select $(ENV) >/dev/null 2>&1 || \
 	  { echo "Workspace '$(ENV)' not found. Run plan/apply first."; exit 1; }
@@ -230,4 +233,28 @@ terraform-fmt:
 
 terraform-validate:
 	$(TF) -chdir=$(TF_DIR) validate
+
+kubeconfig:
+	@$(TF) -chdir=$(TF_DIR) workspace select $(ENV) >/dev/null 2>&1 || \
+	  { echo "Workspace '$(ENV)' not found. Run plan/apply first."; exit 1; }
+	@mkdir -p $(TF_DIR)/outputs
+	@$(TF) -chdir=$(TF_DIR) output -raw kube_config_raw > $(TF_DIR)/outputs/$(ENV).kubeconfig
+	@echo "Wrote kubeconfig to $(TF_DIR)/outputs/$(ENV).kubeconfig"
+
+kubeconfig-dev:
+	@$(MAKE) kubeconfig ENV=dev
+
+kubeconfig-prod:
+	@$(MAKE) kubeconfig ENV=prod
+
+## One-shot deploy: plan, apply, then write kubeconfig
+deploy-dev:
+	@$(MAKE) terraform-plan-dev
+	@$(MAKE) terraform-apply-dev
+	@$(MAKE) kubeconfig-dev
+
+deploy-prod:
+	@$(MAKE) terraform-plan-prod
+	@$(MAKE) terraform-apply-prod
+	@$(MAKE) kubeconfig-prod
 

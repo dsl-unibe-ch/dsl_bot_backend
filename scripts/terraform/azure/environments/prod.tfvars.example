@@ -68,3 +68,40 @@ search_service_hosting_mode = "default"
 search_service_public_network_access_enabled = true
 search_index_name = "kb-quality-prod"
 grant_blob_reader_to_storage_account_id = null
+
+
+# ----- AKS cluster -----
+aks_cluster_name     = "aks-kb-prod-001"
+aks_dns_prefix       = "kbprod"
+aks_admin_username   = "azureuser"
+aks_admin_ssh_public_keys = [
+  "ssh-rsa-your-public-key""
+]
+aks_node_pool_name   = "systempool"
+aks_node_count       = 1
+aks_node_vm_size     = "Standard_B4ls_v2"
+aks_node_os_disk_size_gb = 128
+aks_node_os_sku      = "Ubuntu"
+aks_configure_network_profile = false
+aks_network_plugin   = "kubenet"
+aks_node_resource_group_name = "rg-kb-prod-001-node"
+
+# ---- AKS Network (BYO to satisfy NSG policy) ----
+aks_vnet_name                 = "vnet-aks-kb-prod-001"
+aks_vnet_address_space        = ["10.41.0.0/16"]
+aks_subnet_name               = "snet-aks-kb-prod-001"
+aks_subnet_address_prefix     = "10.41.1.0/24"
+aks_network_security_group_name = "nsg-aks-kb-prod-001"
+aks_network_security_rules = [
+  {
+    name                       = "allow-nodeport"
+    priority                   = 1001
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    source_address_prefix      = "*"
+    destination_port_ranges    = ["30000-32767"]
+    destination_address_prefix = "*"
+  }
+]
