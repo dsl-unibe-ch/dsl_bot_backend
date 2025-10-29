@@ -118,7 +118,7 @@ AZ_SUBSCRIPTION_ID ?= $(shell az account show --query id -o tsv 2>/dev/null)
 help:
 	@echo "Usage:"
 	@echo "  make login                 # az login"
-	@echo "  make set-sub               # set Azure subscription (needs AZ_SUBSCRIPTION_ID)"
+	@echo "  make set-subscription               # set Azure subscription (needs AZ_SUBSCRIPTION_ID)"
 	@echo "  make init                  # terraform init"
 	@echo "  make workspace ENV=dev     # select/create workspace"
 	@echo "  make plan ENV=dev          # plan with environments/dev.tfvars"
