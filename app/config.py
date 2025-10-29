@@ -42,7 +42,6 @@ class Settings(BaseSettings):
     LANGSMITH_ENDPOINT: str
     LANGSMITH_API_KEY: str
     LANGSMITH_PROJECT: str
-    AZURE_OPENAI_CHAT_KEY: str
 
     AZURE_CONTAINER_REGISTRY_LOGIN_SERVER: str | None = None
 

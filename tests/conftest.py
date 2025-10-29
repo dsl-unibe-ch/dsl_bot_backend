@@ -39,7 +39,7 @@ def judge_model() -> AzureChatOpenAI:
         azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
         azure_deployment=settings.AZURE_OPENAI_CHAT_DEPLOYMENT,
         api_version=settings.AZURE_OPENAI_CHAT_API_VERSION,
-        api_key=settings.AZURE_OPENAI_CHAT_KEY,
+        api_key=settings.AZURE_OPENAI_PRIMARY_KEY,
         openai_api_type="azure_ad",
         max_tokens=300,
         temperature=0.5,
