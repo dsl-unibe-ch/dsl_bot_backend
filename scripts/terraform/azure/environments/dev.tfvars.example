@@ -65,7 +65,8 @@ aks_configure_network_profile = false
 aks_network_plugin   = "kubenet"
 aks_node_resource_group_name = "rg-kb-dev-001-node"
 
-# ---- AKS Network (BYO to satisfy NSG policy) ----
+# ---- AKS Network ----
+# BYO to comply with UniBe Cloud policy to allows inbound TCP from anywhere to any node in the AKS subnet on Kubernetes’ default NodePort range (30000–32767)
 aks_vnet_name                 = "vnet-aks-kb-dev-001"
 aks_vnet_address_space        = ["10.40.0.0/16"]
 aks_subnet_name               = "snet-aks-kb-dev-001"
