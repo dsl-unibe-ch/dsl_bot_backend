@@ -272,7 +272,7 @@ Common tags are applied via a shared local map and passed to modules:
         az webapp restart -g rg-kb-dev-001 -n kioskbot-backend-dev-web
         ```
     az webapp config container set --resource-group rg-kb-dev-001 --name kioskbot-backend-web --multicontainer-config-type compose --multicontainer-config-file ./docker-compose.yml
-7. Increase the `Tokens-Per-Minute` manually to the maximum inside the OpenAI model deployments in the portal as Terraform doesn’t expose such a `Tokens-Per-Minute` for azurerm_cognitive_deployment.
+7. Increase the `Tokens-Per-Minute` manually to the maximum inside the OpenAI model deployments in the portal as Terraform doesn’t expose such a `Tokens-Per-Minute` for azurerm_cognitive_deployment. Pay attention that there are two resource groups and the maximum limit needs to share between both. 
 8. Create and Populate the indexes in the `search_service` for `dev` and `prod` by following the steps in **ETL pipeline for Azure Search**.  
 9. Run e2e tests on `dev` deployment and `staging` slot of the `prod`. 
     1. Replace `PUBLIC_API` on the local frontend with the `app_service` deployment endpoint.
