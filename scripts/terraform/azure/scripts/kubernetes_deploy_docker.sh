@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+# This script is used to deploy the docker image to the kubernetes cluster
+
+
 set -euo pipefail
 
 usage() {

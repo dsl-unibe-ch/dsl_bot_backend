@@ -12,11 +12,6 @@ resource "azurerm_search_service" "this" {
   replica_count   = var.search_service_replica_count   # 1..12 (depends on SKU)
   partition_count = var.search_service_partition_count # 1..12 (depends on SKU)
 
-  # Single or HighDensity (HD only for some SKUs; default "default")
-  hosting_mode = var.search_service_hosting_mode
-
-  # Lock down public access if you plan to use Private Endpoints
-  public_network_access_enabled = var.search_service_public_network_access_enabled
 
   # Enable MSI so you can assign RBAC (e.g., Storage Blob Data Reader)
   identity {

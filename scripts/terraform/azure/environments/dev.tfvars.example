@@ -23,16 +23,11 @@ cognitive_model_embedding_name                = "text-embedding-3-large"
 cognitive_model_embedding_version             = "1"
 cognitive_model_embedding_deployment_sku_name = "GlobalStandard"
 
-
-# ----- AI Foundry ------
-
-aif_hub_name     = "aif-hub-kb-dev-001"
-aif_project_name = "aif-proj-kb-dev"
-
 # ----- Container Registry reference (global) --------
 container_registry_name = "crkbglobal001"
 # if ACR is in global RG different from dev RG, set override:
 container_registry_resource_group_name = "rg-kb-global-001"
+container_repository_name = "kioskbot-backend-api"
 
 # ----- Reference global Storage --------
 storage_account_name = "sakbglobal001"
@@ -40,13 +35,10 @@ storage_account_resource_group_name = "rg-kb-global-001"
 
 # ----- Search Service --------
 search_service_name = "ss-kb-dev-001"
-search_service_sku = "basic"
-search_service_replica_count = 3
+search_service_sku = "free"
+search_service_replica_count = 1
 search_service_partition_count = 1
-search_service_hosting_mode = "default"
-search_service_public_network_access_enabled = true
 search_index_name = "kb-quality-dev"
-grant_blob_reader_to_storage_account_id = null
 
 
 # ----- AKS cluster -----

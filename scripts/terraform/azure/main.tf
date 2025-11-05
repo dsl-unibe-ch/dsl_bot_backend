@@ -23,17 +23,8 @@ resource "azurerm_resource_group" "rg" {
 # Discover current tenant for cross-module use (e.g., Key Vault)
 data "azurerm_client_config" "current" {}
 
-#---- version from pyproject ------
-data "external" "pyproject" {
-  program = ["bash", "${path.module}/scripts/read_pyproject_version.sh"]
-
-  query = {
-    path   = "${path.root}/../../../pyproject.toml"
-    prefix = "-${var.environment}"
-  }
-}
 locals {
-  image_tag                       = data.external.pyproject.result.image_tag
+  image_tag                       = trimspace(file("${path.module}/environments/${var.environment}.deployment_container_version"))
   container_repository_effective  = var.container_repository_name
   tenant_id_effective             = coalesce(var.key_vault_tenant_id, data.azurerm_client_config.current.tenant_id)
   default_tags = {
@@ -47,7 +38,6 @@ locals {
 
 module "openai" {
   count                                        = var.environment == "global" ? 0 : 1
-  subscription_id                               = var.subscription_id
   resource_group_location                       = azurerm_resource_group.rg.location
   resource_group_name                           = azurerm_resource_group.rg.name
   cognitive_model_account_kind                  = var.cognitive_model_account_kind
@@ -61,8 +51,6 @@ module "openai" {
   cognitive_model_embedding_name                = var.cognitive_model_embedding_name
   cognitive_model_embedding_version             = var.cognitive_model_embedding_version
   cognitive_model_embedding_deployment_sku_name = var.cognitive_model_embedding_deployment_sku_name
-  aif_hub_name                                  = var.aif_hub_name
-  aif_project_name                              = var.aif_project_name
   source                                        = "./modules/openai"
 }
 
@@ -70,22 +58,18 @@ module "openai" {
 module "azurerm_container_registry" {
   count                   = var.environment == "global" ? 1 : 0
   source                  = "./modules/container_registry"
-  subscription_id         = var.subscription_id
   resource_group_location = azurerm_resource_group.rg.location
+  container_registry_resource_group_name = var.container_registry_resource_group_name
   resource_group_name     = azurerm_resource_group.rg.name
   container_registry_name = var.container_registry_name
   container_registry_sku  = var.container_registry_sku
-  admin_enabled           = var.admin_enabled
-  retention_enabled       = var.retention_enabled
-  retention_days          = var.retention_days
-  anonymous_pull_enabled  = var.anonymous_pull_enabled
-  data_endpoint_enabled   = var.data_endpoint_enabled
+  container_repository_name = var.container_repository_name
 }
 
 data "azurerm_container_registry" "acr" {
   count               = var.environment == "global" ? 0 : 1
   name                = var.container_registry_name
-  resource_group_name = coalesce(var.container_registry_resource_group_name, var.resource_group_name)
+  resource_group_name = var.container_registry_resource_group_name
 }
 
 # --- Storage Account ---
@@ -99,28 +83,15 @@ module "azurerm_storage_account" {
   storage_account_kind         = var.storage_account_kind
   storage_account_tier         = var.storage_account_tier
   storage_account_replication_type = var.storage_account_replication_type
-  storage_account_enable_hns   = var.storage_account_enable_hns
-  storage_account_enable_blob_versioning = var.storage_account_enable_blob_versioning
-  storage_account_enable_change_feed     = var.storage_account_enable_change_feed
-  storage_account_blob_soft_delete_days  = var.storage_account_blob_soft_delete_days
-  storage_account_container_soft_delete_days = var.storage_account_container_soft_delete_days
   storage_account_containers   = var.storage_account_containers
   storage_account_tables       = var.storage_account_tables
-  storage_account_queues       = var.storage_account_queues
-  storage_account_enable_static_website = var.storage_account_enable_static_website
-  storage_account_static_website_index  = var.storage_account_static_website_index
-  storage_account_static_website_error  = var.storage_account_static_website_error
-  storage_account_network_default_action = var.storage_account_network_default_action
-  storage_account_network_ip_rules       = var.storage_account_network_ip_rules
-  storage_account_network_subnet_ids     = var.storage_account_network_subnet_ids
-  storage_account_network_bypass         = var.storage_account_network_bypass
   storage_account_tags         = local.default_tags
 }
 
 data "azurerm_storage_account" "sa" {
   count               = var.environment == "global" ? 0 : 1
   name                = var.storage_account_name
-  resource_group_name = coalesce(var.storage_account_resource_group_name, var.resource_group_name)
+  resource_group_name = var.storage_account_resource_group_name
 }
 
 # --- Search Service ---
@@ -135,8 +106,6 @@ module "azurerm_search_service" {
   search_service_sku = var.search_service_sku
   search_service_replica_count = var.search_service_replica_count
   search_service_partition_count = var.search_service_partition_count
-  search_service_hosting_mode = var.search_service_hosting_mode
-  search_service_public_network_access_enabled = var.search_service_public_network_access_enabled
   grant_blob_reader_to_storage_account_id = var.grant_blob_reader_to_storage_account_id
   search_index_name = var.search_index_name
   tags = local.default_tags
@@ -174,22 +143,11 @@ module "kubernetes_cluster" {
 module "azurerm_key_vault" {
   count                  = var.environment == "global" ? 1 : 0
   source              = "./modules/keyvault"
-  subscription_id     = var.subscription_id
   resource_group_location = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
   key_vault_name = var.key_vault_name
   tenant_id = local.tenant_id_effective
   key_vault_sku_name = var.key_vault_sku_name
   key_vault_soft_delete_days = var.key_vault_soft_delete_days
-  key_vault_purge_protection_enabled = var.key_vault_purge_protection_enabled
-  key_vault_enable_rbac = var.key_vault_enable_rbac
-  key_vault_public_network_access_enabled = var.key_vault_public_network_access_enabled
-  key_vault_network_default_action = var.key_vault_network_default_action
-  key_vault_network_bypass = var.key_vault_network_bypass
-  key_vault_network_ip_rules = var.key_vault_network_ip_rules
-  key_vault_network_subnet_ids = var.key_vault_network_subnet_ids
-  key_vault_access_policies = var.key_vault_access_policies
-  key_vault_secrets = var.key_vault_secrets
-  key_vault_rbac_role_assignments = var.key_vault_rbac_role_assignments
   key_vault_tags = local.default_tags
 }

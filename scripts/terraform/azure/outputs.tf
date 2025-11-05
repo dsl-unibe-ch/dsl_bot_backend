@@ -47,38 +47,6 @@ output "AZURE_OPENAI_SECONDARY_KEY"{
   sensitive = true
 }
 
-#----- Azure App Service Plan --------------
-
-#output "AZURE_APP_SERVICE_PLAN_ID" {
-#  value = try(module.azurerm_service_plan[0].AZURE_APP_SERVICE_PLAN_ID, null)
-#}
-
-#output "AZURE_APP_SERVICE_PLAN_NAME" {
-#  value = try(module.azurerm_service_plan[0].AZURE_APP_SERVICE_PLAN_NAME, null)
-#}
-
-#output "AZURE_APP_SERVICE_PLAN_SKU" {
-#  value = try(module.azurerm_service_plan[0].AZURE_APP_SERVICE_PLAN_SKU, null)
-#}
-
-#----- Azure App Service --------------
-
-#output "AZURE_APP_SERVICE_ID" {
-#  value = try(module.azurerm_app_service[0].AZURE_APP_SERVICE_ID, null)
-#}
-
-#output "AZURE_APP_SERVICE_DEFAULT_HOSTNAME" {
-#  value = try(module.azurerm_app_service[0].AZURE_APP_SERVICE_DEFAULT_HOSTNAME, null)
-#}
-
-#output "AZURE_APP_SERVICE_IDENTITY_PRINCIPAL_ID" {
-#  value = try(module.azurerm_app_service[0].AZURE_APP_SERVICE_IDENTITY_PRINCIPAL_ID, null)
-#}
-
-#output "AZURE_APP_SERVICE_SLOT_ID" {
-#  value = try(module.azurerm_app_service[0].AZURE_APP_SERVICE_SLOT_ID, null)
-#}
-
 
 #----- Azure Container Registry --------------
 

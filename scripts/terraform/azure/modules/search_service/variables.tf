@@ -28,31 +28,6 @@ variable "search_service_partition_count" {
   default     = 1
 }
 
-variable "search_service_hosting_mode" {
-  description = "Hosting mode: default or highDensity (HD supported only on certain SKUs)."
-  type        = string
-  default     = "default"
-}
-
-variable "search_service_public_network_access_enabled" {
-  description = "Enable public network access (set false when using Private Endpoints)."
-  type        = bool
-  default     = true
-}
-
-# Optional: semantic search tier ("free" or "standard") 
-# variable "semantic_search_sku" {
-#   description = "Semantic search tier: free or standard (region/SKU dependent)."
-#   type        = string
-#   default     = null
-# }
-
-# Optional: Key Vault key id for CMK — customer managed key encryption
-# variable "kv_key_id" {
-#   description = "Key Vault Key ID for customer managed key encryption."
-#   type        = string
-#   default     = null
-# }
 
 variable "grant_blob_reader_to_storage_account_id" {
   description = "If set, grants Search MSI 'Storage Blob Data Reader' on this Storage Account ID."

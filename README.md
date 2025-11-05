@@ -256,6 +256,7 @@ Common tags are applied via a shared local map and passed to modules:
 
 ### Steps for Deployment
 1. Docker push the `dev` and `prod` containers to the `container_registry`.
+2. Update the image version under `scripts\terraform\azure\environments\dev|prod.deployment_container_version`.
 2. Assign yourself `PIM_Azure_mg-dsl-informationskiosk-owner` on Azure PIM as otherwise the app service cannot pull the image from he container registry. Make sure you `az logout` and `make az-login` again.
 3. [Optional] If index is not already present,  create and populate the respective index in the `search_service` for `dev` and `prod` by following the steps in **ETL pipeline for Azure Search**.  
 4. Deploy VM [**To Do**]
