@@ -13,7 +13,6 @@ module "network_aks" {
   subnet_name             = var.aks_subnet_name
   subnet_address_prefix   = var.aks_subnet_address_prefix
   network_security_group_name = var.aks_network_security_group_name
-  network_security_rules      = var.aks_network_security_rules
 }
 # --- Resource group ---
 resource "azurerm_resource_group" "rg" {
@@ -66,20 +65,6 @@ module "openai" {
   aif_project_name                              = var.aif_project_name
   source                                        = "./modules/openai"
 }
-
-# --- App Service Plan ---
-# module "azurerm_service_plan" {
-#  count                   = var.environment == "global" ? 0 : 1
-#  source              = "./modules/app_service_plan"
-#  subscription_id     = var.subscription_id
-#  resource_group_location = azurerm_resource_group.rg.location
-#  app_service_plan_name  = var.app_service_plan_name
-#  resource_group_name = azurerm_resource_group.rg.name
-#  app_service_plan_os_type = var.app_service_plan_os_type    
-#  app_service_plan_sku_name = var.app_service_plan_sku_name    
-#  app_service_plan_worker_count = var.app_service_plan_worker_count
-#}
-
 
 # --- Container Registry ---
 module "azurerm_container_registry" {
@@ -208,27 +193,3 @@ module "azurerm_key_vault" {
   key_vault_rbac_role_assignments = var.key_vault_rbac_role_assignments
   key_vault_tags = local.default_tags
 }
-
-# --- App Service ---
-#module "azurerm_app_service" {
-#  count                        = var.environment == "global" ? 0 : 1
-#  source                       = "./modules/app_service"
-#  count                        = var.environment == "global" ? 0 : 1
-#  container_registry_id        = data.azurerm_container_registry.acr[0].id
-#  app_service_plan_name        = module.azurerm_service_plan[0].AZURE_APP_SERVICE_PLAN_NAME 
-#  app_service_plan_id          = module.azurerm_service_plan[0].AZURE_APP_SERVICE_PLAN_ID 
-#  app_service_plan_sku_name    = module.azurerm_service_plan[0].AZURE_APP_SERVICE_PLAN_SKU
-#  resource_group_name          = azurerm_resource_group.rg.name
-#  resource_group_location      = azurerm_resource_group.rg.location
-#  container_image_tag          = local.image_tag
-#  app_name                     = var.app_name
-#  subscription_id              = var.subscription_id
-#  container_registry_name      = var.container_registry_name
-#  container_repository         = local.container_repository_effective
-#  container_registry_login_server = coalesce(
-#    try(module.azurerm_container_registry[0].AZURE_CONTAINER_REGISTRY_LOGIN_SERVER, null),
-#    try(data.azurerm_container_registry.acr[0].login_server, null)
-#  )
-#  app_service_slot_names       = var.environment == "prod" ? ["staging", "prod"] : []
-#}
-

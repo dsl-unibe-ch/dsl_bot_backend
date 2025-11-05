@@ -10,11 +10,10 @@ if [[ -z "$PYPROJECT_PATH" || ! -f "$PYPROJECT_PATH" ]]; then
   exit 0
 fi
 
-# Extract version from [project] or [tool.poetry] tables
+# Extract version from [project] table
 VERSION=$(awk '
   BEGIN{sec=""}
   /^[[:space:]]*\[project\][[:space:]]*$/ {sec="project"}
-  /^[[:space:]]*\[tool\.poetry\][[:space:]]*$/ {sec="poetry"}
   sec!="" && $0 ~ /^[[:space:]]*version[[:space:]]*=/ {
     if (match($0, /version[[:space:]]*=[[:space:]]*"([^"]+)"/, m)) { print m[1]; exit }
   }

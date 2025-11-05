@@ -92,16 +92,3 @@ aks_vnet_address_space        = ["10.41.0.0/16"]
 aks_subnet_name               = "snet-aks-kb-prod-001"
 aks_subnet_address_prefix     = "10.41.1.0/24"
 aks_network_security_group_name = "nsg-aks-kb-prod-001"
-aks_network_security_rules = [
-  {
-    name                       = "allow-nodeport"
-    priority                   = 1001
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "TCP"
-    source_port_range          = "*"
-    source_address_prefix      = "*"
-    destination_port_ranges    = ["30000-32767"]
-    destination_address_prefix = "*"
-  }
-]
