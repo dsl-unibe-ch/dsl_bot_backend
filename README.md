@@ -99,10 +99,11 @@ Currently, the datasets to be processed and their corresponding excel sheets are
 <details>
 <summary>Click to expand</summary>
 
-The `terraform` setup is separated on two levels. 
+The `terraform` setup is separated on three levels. 
 1. `global` contains the resources for `container_registry`, `storage_account` and `keyvault` under a global resource group.
-2. `dev` and `prod` each have their own resource groups containing respective `app_service_plan`, `app_service`, `openai` and `search_services` resources.
-The reason for this two-level separation is to have some common resources shared between `dev` and `prod` under `global` which cannot be destroyed.
+2. `dev` and `prod` each have their own resource groups containing respective `openai`, `network_aks` and `search_services` resources.
+3. `dev-node` and `prod-node` each have a kubernetes cluster intended for usage in `dev` and `prod` environments respectively 
+The reason for this three-level separation is to have some common resources shared between `dev` and `prod` environments under `global` which cannot be destroyed.
 
 
 - Setup
@@ -200,7 +201,7 @@ The reason for this two-level separation is to have some common resources shared
             ```
         - For `global` environmemt destroying is not possible by design. Therefore, following command will echo an error. 
             ```bash
-            make terraform-destroy-prod
+            make terraform-destroy-global
             ```
     - Additional utility commands (optional)
         - Rewrite Terraform configuration files to a canonical format and style.
@@ -213,7 +214,7 @@ The reason for this two-level separation is to have some common resources shared
             ```
 </details>
 
-## Deployment
+## Infrastructure and Deployment
 
 <details>
 
@@ -230,8 +231,6 @@ The reason for this two-level separation is to have some common resources shared
 
 Examples
 - Resource group: `rg-kb-dev-001`
-- App Service Plan: `asp-kb-dev-001`
-- App Service: `as-kb-dev-001`
 - Key Vault: `kv-kb-dev-001`
 - Search Service: `ss-kb-dev-001`
 - Storage Account: `kioskbotsadev001` (global uniqueness constraints apply; uses `sa` plus env and suffix)
@@ -243,7 +242,7 @@ Common tags are applied via a shared local map and passed to modules:
 - These are injected into resources by Terraform automatically through module inputs.
 - If you need resource-specific extra tags, you can still set resource-level tags in the module; they will override common tags on key conflicts.
 
-### Steps for deployment
+### Steps for provisioning Infrastructure
 
 1. Create the global resources under the `global` resource group. 
 2. Create a new ssh key for the Kubernetes VM 
@@ -251,33 +250,21 @@ Common tags are applied via a shared local map and passed to modules:
     ssh-keygen -t rsa -b 2048 -f ~/.ssh/id_rsa_aks -C "Your_Email_Address"
     ```
 3. Copy the public ssh key with `cat ~/.ssh/id_rsa_aks.pub` and assign it to `aks_admin_ssh_public_keys` in `scripts\terraform\azure\environments\prod.tfvars` and `scripts\terraform\azure\environments\prod.tfvars`.
-
-2. Docker push the `dev` and `prod` containers to the `container_registry`.
-3. Assign yourself `PIM_Azure_mg-dsl-informationskiosk-owner` on Azure PIM as otherwise the app service cannot pull the image from he container registry. Make sure you `az logout` and `make az-login` again.
 4. Create the dev and prod deployments. 
-6. Set the environment variables for the azure with 
-    1. `./scripts/push_env_to_webapp.sh -e .env.dev -g rg-kb-dev-001 -n kioskbot-backend-dev-web` for `dev`
-    2.  `./scripts/push_env_to_webapp.sh -e .env.prod -g rg-kb-prod-001 -n kioskbot-backend-prod-web -s staging` for `prod` 
-7. Apply the docker compose to the app.
-    2. Export the following variables as the docker-compose cannot access the environment variables in the web app service.
-        ```
-        export AZURE_CONTAINER_REGISTRY_LOGIN_SERVER=crkbglobal001.azurecr.io
-        export VERSION=0.1.0
-        ```
-    1. for `dev`
-        ```bash
-        export ENV=dev
-        envsubst < docker-compose.yml > docker-compose.azure.dev.yml
-        az webapp config container set --resource-group rg-kb-dev-001 --name kioskbot-backend-dev-web --multicontainer-config-type compose --multicontainer-config-file ./docker-compose.azure.dev.yml
-        az webapp restart -g rg-kb-dev-001 -n kioskbot-backend-dev-web
-        ```
-    az webapp config container set --resource-group rg-kb-dev-001 --name kioskbot-backend-web --multicontainer-config-type compose --multicontainer-config-file ./docker-compose.yml
-7. Increase the `Tokens-Per-Minute` manually to the maximum inside the OpenAI model deployments in the portal as Terraform doesn’t expose such a `Tokens-Per-Minute` for azurerm_cognitive_deployment. Pay attention that there are two resource groups and the maximum limit needs to share between both. 
-8. Create and Populate the indexes in the `search_service` for `dev` and `prod` by following the steps in **ETL pipeline for Azure Search**.  
-9. Run e2e tests on `dev` deployment and `staging` slot of the `prod`. 
-    1. Replace `PUBLIC_API` on the local frontend with the `app_service` deployment endpoint.
-    2. Allow the `app_service` deployment to be reachable by frontend.
+5. Increase the `Tokens-Per-Minute` manually to the maximum inside the OpenAI model deployments in the portal as Terraform doesn’t expose such a `Tokens-Per-Minute` for azurerm_cognitive_deployment. Pay attention that there are two resource groups and the maximum limit needs to share between both. 
+
+
+### Steps for Deployment
+1. Docker push the `dev` and `prod` containers to the `container_registry`.
+2. Assign yourself `PIM_Azure_mg-dsl-informationskiosk-owner` on Azure PIM as otherwise the app service cannot pull the image from he container registry. Make sure you `az logout` and `make az-login` again.
+3. [Optional] If index is not already present,  create and populate the respective index in the `search_service` for `dev` and `prod` by following the steps in **ETL pipeline for Azure Search**.  
+4. Deploy VM [**To Do**]
+5. Run e2e tests on `dev` deployment and `staging` slot of the `prod`. 
+    1. Set the IP of the VM to the `PUBLIC_API` on the local frontend.
+    2. Ensure that the VM is reachable from the local frontend. 
     3. Run e2e tests.
+
+
 
 </details>
 
