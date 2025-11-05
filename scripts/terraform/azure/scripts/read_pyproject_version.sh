@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+
+# This script is used to read the version of the container image from the pyproject.toml file
 set -euo pipefail
 
 INPUT=$(cat)
