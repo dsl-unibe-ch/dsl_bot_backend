@@ -140,6 +140,10 @@ variable "container_registry_sku" {
   type    = string
   default = null
 }
+variable "container_registry_tags" { 
+  type = map(string) 
+  default = {}
+}
 
 variable "container_registry_resource_group_name" {
   type    = string
@@ -175,6 +179,12 @@ variable "storage_account_resource_group_name" {
 variable "storage_account_containers" { 
   type = list(string) 
   default = [] 
+}
+
+variable "storage_account_tags" {
+  description = "Tags to apply."
+  type        = map(string)
+  default     = {}
 }
 
 # ----- Search Service --------
@@ -225,6 +235,11 @@ variable "key_vault_soft_delete_days" {
   default = null
 }
 
+variable "key_vault_tags" {
+  description = "Tags to apply."
+  type        = map(string)
+  default     = {}
+}
 # ----- AKS (Kubernetes Cluster) -----
 
 variable "aks_cluster_name" {

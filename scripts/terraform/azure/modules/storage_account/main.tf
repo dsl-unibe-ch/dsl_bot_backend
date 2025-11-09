@@ -9,13 +9,12 @@ resource "azurerm_storage_account" "this" {
   allow_nested_items_to_be_public = false
   cross_tenant_replication_enabled = false
   shared_access_key_enabled        = true
-
+  tags = var.storage_account_tags
 
   # Blob-specific hardening & hygiene
   blob_properties {
     last_access_time_enabled = true
   }
-  tags = var.storage_account_tags
 }
 
 

@@ -12,11 +12,6 @@ storage_account_name                          = "sakbglobal001"
 storage_account_kind                          = "StorageV2"
 storage_account_tier                          = "Standard"
 storage_account_replication_type              = "ZRS"
-storage_account_enable_hns                    = false
-storage_account_enable_blob_versioning        = true
-storage_account_enable_change_feed            = false
-storage_account_blob_soft_delete_days         = 30
-storage_account_container_soft_delete_days    = 30
 storage_account_containers                    = [
   "kioskbot-logs-dev-001",
   "kioskbot-logs-prod-001",
@@ -28,26 +23,17 @@ storage_account_tags                          = {
   "owner"       = "support.dsl@unibe.ch"
 }
 
-# Optional network rules (open by default)
-storage_account_network_default_action = "Allow"
-storage_account_network_ip_rules       = []
-storage_account_network_subnet_ids     = []
-storage_account_network_bypass         = ["AzureServices"]
 
 
 # ----- Container Registry --------
 container_registry_name  = "crkbglobal001"
 container_registry_sku   = "Standard"
-admin_enabled            = true
-retention_enabled        = true
-retention_days           = 30
-anonymous_pull_enabled   = false
-data_endpoint_enabled    = false
 container_repository_name = "kioskbot-backend-api"
 container_registry_tags   = {
   "environment" = "global"
   "owner"       = "support.dsl@unibe.ch"
 }
+container_registry_resource_group_name = "rg-kb-global-001"
 
 # ----- Key Vault --------
 key_vault_name = "kv-kb-global-001"

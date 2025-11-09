@@ -24,7 +24,9 @@ resource "azurerm_resource_group" "rg" {
 data "azurerm_client_config" "current" {}
 
 locals {
-  image_tag                       = trimspace(file("${path.module}/environments/${var.environment}.deployment_container_version"))
+  # Global has no app deployments; skip image tag resolution entirely.
+  # For non-global envs: prefer explicit var, else read env-specific tag file, else empty string.
+  image_tag                       = var.environment == "global" ? "" : trimspace(file("${path.module}/environments/${var.environment}.deployment_container_version"))
   tenant_id_effective             = data.azurerm_client_config.current.tenant_id
   default_tags = {
     environment = var.environment
@@ -63,6 +65,7 @@ module "azurerm_container_registry" {
   container_registry_name = var.container_registry_name
   container_registry_sku  = var.container_registry_sku
   container_repository_name = var.container_repository_name
+  container_registry_tags = var.container_registry_tags
 }
 
 data "azurerm_container_registry" "acr" {
@@ -83,7 +86,7 @@ module "azurerm_storage_account" {
   storage_account_tier         = var.storage_account_tier
   storage_account_replication_type = var.storage_account_replication_type
   storage_account_containers   = var.storage_account_containers
-  storage_account_tags         = local.default_tags
+  storage_account_tags         = var.storage_account_tags
 }
 
 data "azurerm_storage_account" "sa" {
@@ -146,5 +149,5 @@ module "azurerm_key_vault" {
   key_vault_name = var.key_vault_name
   tenant_id = local.tenant_id_effective
   key_vault_sku_name = var.key_vault_sku_name
-  key_vault_tags = local.default_tags
+  key_vault_tags = var.key_vault_tags
 }

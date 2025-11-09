@@ -7,7 +7,6 @@ resource "azurerm_key_vault" "this" {
   resource_group_name         = var.resource_group_name
   tenant_id                   = var.tenant_id
   sku_name                    = var.key_vault_sku_name            # "standard" or "premium"
-
-
   tags = var.key_vault_tags
+  purge_protection_enabled = true
 }
