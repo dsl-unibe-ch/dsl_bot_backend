@@ -39,11 +39,4 @@ variable "storage_account_containers" {
   type        = list(string)
   default     = []
 }
-
-variable "storage_account_tables" {
-  description = "List of tables to create."
-  type        = list(string)
-  default     = []
-}
-
  

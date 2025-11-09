@@ -68,13 +68,6 @@ variable "app_insights_connection_string" {
   default = null
 }
 
-
-# Optional: override path to pyproject.toml (default uses repo root)
-variable "pyproject_path" { 
-  type = string
-  default = null 
-}
-
 # Toggle assigning AcrPull to the Web App MSI
 variable "grant_acr_pull" { 
   type = bool

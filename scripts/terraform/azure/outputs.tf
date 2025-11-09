@@ -1,49 +1,49 @@
 #----- Azure Openai --------------
 
 output "AZURE_OPENAI_VECTORIZER_ENDPOINT" {
-  value     = try(module.openai[0].AZURE_OPENAI_VECTORIZER_ENDPOINT, null)
+  value     = module.openai[0].AZURE_OPENAI_VECTORIZER_ENDPOINT
   sensitive = true
 }
 
 output "AZURE_OPENAI_ENDPOINT" {
-  value     = try(module.openai[0].AZURE_OPENAI_ENDPOINT, null)
+  value     = module.openai[0].AZURE_OPENAI_ENDPOINT
   sensitive = true
 }
 
 output "AZURE_OPENAI_ACCOUNT_ID" {
-  value     = try(module.openai[0].AZURE_OPENAI_ACCOUNT_ID, null)
+  value     = module.openai[0].AZURE_OPENAI_ACCOUNT_ID
   sensitive = true
 }
 
 output "AZURE_OPENAI_CHAT_DEPLOYMENT" {
-  value = try(module.openai[0].AZURE_OPENAI_CHAT_DEPLOYMENT, null)
+  value = module.openai[0].AZURE_OPENAI_CHAT_DEPLOYMENT
 }
 
 output "AZURE_OPENAI_CHAT_MODEL_NAME" {
-  value = try(module.openai[0].AZURE_OPENAI_CHAT_MODEL_NAME, null)
+  value = module.openai[0].AZURE_OPENAI_CHAT_MODEL_NAME
 }
 
 output "AZURE_OPENAI_CHAT_API_VERSION" {
-  value = try(module.openai[0].AZURE_OPENAI_CHAT_API_VERSION, null)
+  value = module.openai[0].AZURE_OPENAI_CHAT_API_VERSION
 }
 
 output "AZURE_OPENAI_SEARCH_EMBEDDING_DEPLOYMENT" {
-  value = try(module.openai[0].AZURE_OPENAI_SEARCH_EMBEDDING_DEPLOYMENT, null)
+  value = module.openai[0].AZURE_OPENAI_SEARCH_EMBEDDING_DEPLOYMENT
 }
 output "AZURE_OPENAI_SEARCH_EMBEDDING_MODEL_NAME" {
-  value = try(module.openai[0].AZURE_OPENAI_SEARCH_EMBEDDING_MODEL_NAME, null)
+  value = module.openai[0].AZURE_OPENAI_SEARCH_EMBEDDING_MODEL_NAME
 }
 output "AZURE_OPENAI_SEARCH_EMBEDDING_API_VERSION" {
-  value = try(module.openai[0].AZURE_OPENAI_SEARCH_EMBEDDING_API_VERSION, null)
+  value = module.openai[0].AZURE_OPENAI_SEARCH_EMBEDDING_API_VERSION
 }
 
 output "AZURE_OPENAI_PRIMARY_KEY"{
-  value = try(module.openai[0].AZURE_OPENAI_PRIMARY_KEY, null)
+  value = module.openai[0].AZURE_OPENAI_PRIMARY_KEY
   sensitive = true
 }
 
 output "AZURE_OPENAI_SECONDARY_KEY"{
-  value = try(module.openai[0].AZURE_OPENAI_SECONDARY_KEY, null)
+  value = module.openai[0].AZURE_OPENAI_SECONDARY_KEY
   sensitive = true
 }
 
@@ -51,96 +51,86 @@ output "AZURE_OPENAI_SECONDARY_KEY"{
 #----- Azure Container Registry --------------
 
 output "AZURE_CONTAINER_REGISTRY_LOGIN_SERVER" {
-  value = coalesce(
-    try(module.azurerm_container_registry[0].AZURE_CONTAINER_REGISTRY_LOGIN_SERVER, null),
-    try(data.azurerm_container_registry.acr[0].login_server, null)
-  )
+  value = coalesce(module.azurerm_container_registry[0].AZURE_CONTAINER_REGISTRY_LOGIN_SERVER,data.azurerm_container_registry.acr[0].login_server)
+  sensitive = true
 }
 
 output "AZURE_CONTAINER_REGISTRY_ID" {
-  value = coalesce(
-    try(module.azurerm_container_registry[0].AZURE_CONTAINER_REGISTRY_ID, null),
-    try(data.azurerm_container_registry.acr[0].id, null)
-  )
+  value = coalesce(module.azurerm_container_registry[0].AZURE_CONTAINER_REGISTRY_ID, data.azurerm_container_registry.acr[0].id)
+  sensitive = true
 }
 
 #----- Azure Storage Account --------------
 
 output "AZURE_STORAGE_ACCOUNT_ID" {
-  value = coalesce(
-    try(module.azurerm_storage_account[0].AZURE_STORAGE_ACCOUNT_ID, null),
-    try(data.azurerm_storage_account.sa[0].id, null)
-  )
+  value = coalesce(module.azurerm_storage_account[0].AZURE_STORAGE_ACCOUNT_ID, data.azurerm_storage_account.sa[0].id)
+  sensitive = true
 }
 
 output "AZURE_STORAGE_ACCOUNT_NAME" {
-  value = coalesce(
-    try(module.azurerm_storage_account[0].AZURE_STORAGE_ACCOUNT_NAME, null),
-    try(data.azurerm_storage_account.sa[0].name, null)
-  )
+  value = coalesce(module.azurerm_storage_account[0].AZURE_STORAGE_ACCOUNT_NAME, data.azurerm_storage_account.sa[0].name)
+  sensitive = true
 }
 
 output "AZURE_STORAGE_ACCOUNT_PRIMARY_BLOB_ENDPOINT" {
-  value = coalesce(
-    try(module.azurerm_storage_account[0].AZURE_STORAGE_ACCOUNT_PRIMARY_BLOB_ENDPOINT, null),
-    try(data.azurerm_storage_account.sa[0].primary_blob_endpoint, null)
-  )
+  value = coalesce(module.azurerm_storage_account[0].AZURE_STORAGE_ACCOUNT_PRIMARY_BLOB_ENDPOINT, data.azurerm_storage_account.sa[0].primary_blob_endpoint)
+  sensitive = true
 }
 
 output "AZURE_STORAGE_ACCOUNT_PRIMARY_CONNECTION_STRING" {
   sensitive = true
-  value     = try(module.azurerm_storage_account[0].AZURE_STORAGE_ACCOUNT_PRIMARY_CONNECTION_STRING, null)
+  value     = module.azurerm_storage_account[0].AZURE_STORAGE_ACCOUNT_PRIMARY_CONNECTION_STRING
 }
 
 output "AZURE_STORAGE_ACCOUNT_PRIMARY_ACCESS_KEY" {
   sensitive = true
-  value     = try(module.azurerm_storage_account[0].AZURE_STORAGE_ACCOUNT_PRIMARY_ACCESS_KEY, null)
+  value     = module.azurerm_storage_account[0].AZURE_STORAGE_ACCOUNT_PRIMARY_ACCESS_KEY
 }
 
 #----- Azure Search Service --------------
 
 output "AZURE_SEARCH_SERVICE_ID" {
-  value = try(module.azurerm_search_service[0].AZURE_SEARCH_SERVICE_ID, null)
+  value = module.azurerm_search_service[0].AZURE_SEARCH_SERVICE_ID
 }
 
 output "AZURE_SEARCH_SERVICE_NAME" {
-  value = try(module.azurerm_search_service[0].AZURE_SEARCH_SERVICE_NAME, null)
+  value = module.azurerm_search_service[0].AZURE_SEARCH_SERVICE_NAME
 }
 
 output "AZURE_SEARCH_SERVICE_PRIMARY_ADMIN_KEY" {
-  value     = try(module.azurerm_search_service[0].AZURE_SEARCH_SERVICE_PRIMARY_ADMIN_KEY, null)
+  value     = module.azurerm_search_service[0].AZURE_SEARCH_SERVICE_PRIMARY_ADMIN_KEY
   sensitive = true
 }
 
 output "AZURE_SEARCH_SERVICE_SECONDARY_ADMIN_KEY" {
-  value     = try(module.azurerm_search_service[0].AZURE_SEARCH_SERVICE_SECONDARY_ADMIN_KEY, null)
+  value     = module.azurerm_search_service[0].AZURE_SEARCH_SERVICE_SECONDARY_ADMIN_KEY
   sensitive = true
 }
 
 # Endpoint
 output "AZURE_SEARCH_ENDPOINT" {
-  value = try(module.azurerm_search_service[0].AZURE_SEARCH_ENDPOINT, null)
+  value = module.azurerm_search_service[0].AZURE_SEARCH_ENDPOINT
 }
 
 output "AZURE_AI_SEARCH_INDEX_NAME" {
-  value = try(module.azurerm_search_service[0].AZURE_SEARCH_INDEX_NAME, null)
+  value = module.azurerm_search_service[0].AZURE_SEARCH_INDEX_NAME
 }
 
 #----- Azure Key Vault --------------
 output "AZURE_KEY_VAULT_ID" {
-  value = try(module.azurerm_key_vault[0].AZURE_KEY_VAULT_ID, null)
+  value = module.azurerm_key_vault[0].AZURE_KEY_VAULT_ID
 }
 
 output "AZURE_KEY_VAULT_NAME" {
-  value = try(module.azurerm_key_vault[0].AZURE_KEY_VAULT_NAME, null)
+  value = module.azurerm_key_vault[0].AZURE_KEY_VAULT_NAME
 }
 
 output "AZURE_KEY_VAULT_URI" {
-  value = try(module.azurerm_key_vault[0].AZURE_KEY_VAULT_URI, null)
+  value = module.azurerm_key_vault[0].AZURE_KEY_VAULT_URI
 }
 
 #----- Kubernetes (AKS) --------------
 output "kube_config_raw" {
-  value     = try(module.kubernetes_cluster[0].KUBE_CONFIG_RAW, null)
+  value     = module.kubernetes_cluster[0].KUBE_CONFIG_RAW
   sensitive = true
 }

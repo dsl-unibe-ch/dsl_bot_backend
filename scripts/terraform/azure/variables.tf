@@ -53,23 +53,6 @@ variable "cognitive_model_embedding_version" {
   default = null
 }
 
-# ----- AI Foundry ------
-
-variable "aif_hub_name" {
-  type    = string
-  default = null
-}
-variable "aif_project_name" {
-  type    = string
-  default = null
-}
-
-# ----- Tooling paths ------
-variable "pyproject_path" {
-  description = "Path to pyproject.toml (optional). Defaults to repo root pyproject.toml"
-  type        = string
-  default     = null
-}
 
 # ----- Global tagging ------
 variable "environment" { type = string }
@@ -193,11 +176,6 @@ variable "storage_account_containers" {
   type = list(string) 
   default = [] 
 }
-variable "storage_account_tables"     { 
-  type = list(string) 
-  default = [] 
-}
-
 
 # ----- Search Service --------
 variable "search_service_name" {
@@ -247,13 +225,8 @@ variable "key_vault_soft_delete_days" {
   default = null
 }
 
-# ----- Virtual Machine (removed in favor of AKS) -----
-
 # ----- AKS (Kubernetes Cluster) -----
-variable "aks_enabled" {
-  type    = bool
-  default = false
-}
+
 variable "aks_cluster_name" {
   type    = string
   default = null
@@ -329,23 +302,4 @@ variable "aks_subnet_address_prefix" {
 variable "aks_network_security_group_name" {
   type    = string
   default = null
-}
-variable "aks_network_security_rules" {
-  description = "NSG rules list for AKS subnet"
-  type = list(object({
-    name                         = string
-    priority                     = number
-    direction                    = string
-    access                       = string
-    protocol                     = string
-    source_port_range            = optional(string)
-    destination_port_range       = optional(string)
-    source_port_ranges           = optional(list(string))
-    destination_port_ranges      = optional(list(string))
-    source_address_prefix        = optional(string)
-    source_address_prefixes      = optional(list(string))
-    destination_address_prefix   = optional(string)
-    destination_address_prefixes = optional(list(string))
-  }))
-  default = []
 }

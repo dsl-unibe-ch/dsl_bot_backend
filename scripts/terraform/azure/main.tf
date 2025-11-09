@@ -1,4 +1,4 @@
-# --- Network for AKS (BYO VNet/Subnet to satisfy policy) ---
+# --- Network for AKS (BYO VNet/Subnet to satisfy UniBE policy) ---
 module "network_aks" {
   count                   = var.environment == "global" ? 0 : 1
   source                  = "./modules/network_aks"
@@ -25,8 +25,7 @@ data "azurerm_client_config" "current" {}
 
 locals {
   image_tag                       = trimspace(file("${path.module}/environments/${var.environment}.deployment_container_version"))
-  container_repository_effective  = var.container_repository_name
-  tenant_id_effective             = coalesce(var.key_vault_tenant_id, data.azurerm_client_config.current.tenant_id)
+  tenant_id_effective             = data.azurerm_client_config.current.tenant_id
   default_tags = {
     environment = var.environment
     project     = "kioskbot"
@@ -84,7 +83,6 @@ module "azurerm_storage_account" {
   storage_account_tier         = var.storage_account_tier
   storage_account_replication_type = var.storage_account_replication_type
   storage_account_containers   = var.storage_account_containers
-  storage_account_tables       = var.storage_account_tables
   storage_account_tags         = local.default_tags
 }
 
@@ -148,6 +146,5 @@ module "azurerm_key_vault" {
   key_vault_name = var.key_vault_name
   tenant_id = local.tenant_id_effective
   key_vault_sku_name = var.key_vault_sku_name
-  key_vault_soft_delete_days = var.key_vault_soft_delete_days
   key_vault_tags = local.default_tags
 }

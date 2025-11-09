@@ -30,7 +30,7 @@ resource "azurerm_network_security_group" "this" {
 }
 
 resource "azapi_resource" "subnet" {
-  type      = "Microsoft.Network/virtualNetworks/subnets@2023-09-01"
+  type      = "Microsoft.Network/virtualNetworks/subnets@2025-01-01" # Versions from https://learn.microsoft.com/en-us/azure/templates/microsoft.network/virtualnetworks/subnets?pivots=deployment-language-bicep
   name      = var.subnet_name
   parent_id = azurerm_virtual_network.this.id
   body = {

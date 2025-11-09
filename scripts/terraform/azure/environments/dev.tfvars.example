@@ -35,7 +35,7 @@ storage_account_resource_group_name = "rg-kb-global-001"
 
 # ----- Search Service --------
 search_service_name = "ss-kb-dev-001"
-search_service_sku = "free"
+search_service_sku = "basic"
 search_service_replica_count = 1
 search_service_partition_count = 1
 search_index_name = "kb-quality-dev"

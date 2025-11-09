@@ -21,10 +21,4 @@ variable "key_vault_sku_name" {
   default     = "standard"
 }
 
-variable "key_vault_soft_delete_days" {
-  description = "Soft delete retention in days (7..90)."
-  type        = number
-  default     = 90
-}
-
  

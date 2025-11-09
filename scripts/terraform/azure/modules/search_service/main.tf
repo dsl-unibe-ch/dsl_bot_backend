@@ -3,15 +3,11 @@ resource "azurerm_search_service" "this" {
   name                = var.search_service_name
   resource_group_name = var.resource_group_name
   location            = var.resource_group_location
-
-  # SKU options include: free, basic, standard, standard2, standard3,
-  # storage_optimized_l1, storage_optimized_l2
   sku = var.search_service_sku
 
   # Capacity
   replica_count   = var.search_service_replica_count   # 1..12 (depends on SKU)
   partition_count = var.search_service_partition_count # 1..12 (depends on SKU)
-
 
   # Enable MSI so you can assign RBAC (e.g., Storage Blob Data Reader)
   identity {
@@ -28,7 +24,3 @@ resource "azurerm_role_assignment" "search_sa_blob_reader" {
   role_definition_name = "Storage Blob Data Reader"
   principal_id         = azurerm_search_service.this.identity[0].principal_id
 }
-
-# Optional: simple index when name provided
-// Index creation is not supported by the azurerm provider. Create via CLI/SDK if needed.
-

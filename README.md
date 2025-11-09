@@ -120,8 +120,8 @@ The reason for this three-level separation is to have some common resources shar
             brew install hashicorp/tap/terraform
             brew install azure-cli
             ```
-    - Under the folder `scripts/terraform/azure/environments/`, create `dev.tfvars`, `prod.tfvars` and `global.tfvars` using the templates `dev.tfvars.example`, `prod.tfvars.example` and `global.tfvars.example`respectively.
-    - Login: Select the subscription id as mentioned in `scripts\terraform\environments\{ENV}.tfvars` where `ENV` can be `dev`, `prod` or `global`. Note that all these three `.tfvars` should have the same subscription id.
+    - Under the folder `scripts/terraform/azure/environments/`, create `dev.tfvars`, `prod.tfvars` and `global.tfvars` using the templates `dev.tfvars.example`, `prod.tfvars.example` and `global.tfvars.example` respectively.
+    - Login: Select the subscription id.
         ```bash 
         make az-login
         ```
@@ -177,7 +177,7 @@ The reason for this three-level separation is to have some common resources shar
             ```bash
             make terraform-apply-global
             ```
-    - Extract Output (The output is used to populate the {ENV}.env files)
+    - Extract Output (The output is used to populate the `{ENV}.env` files)
         - For `dev` environment
             ```bash
             make terraform-output-dev
@@ -199,7 +199,7 @@ The reason for this three-level separation is to have some common resources shar
             ```bash
             make terraform-destroy-prod
             ```
-        - For `global` environmemt destroying is not possible by design. Therefore, following command will echo an error. 
+        - For `global` environment destroying is not possible by design. Therefore, following command will echo an error. 
             ```bash
             make terraform-destroy-global
             ```
@@ -244,25 +244,25 @@ Common tags are applied via a shared local map and passed to modules:
 
 ### Steps for provisioning Infrastructure
 
-1. Create the global resources under the `global` resource group. 
+1. Create the global resources under the `global` resource group by following the steps in section [Terraform](#terraform). More specifically, follow the terraform process for init, workspace, plan, apply and output for the respective environment.
 2. Create a new ssh key for the Kubernetes VM 
     ```bash
     ssh-keygen -t rsa -b 2048 -f ~/.ssh/id_rsa_aks -C "Your_Email_Address"
     ```
 3. Copy the public ssh key with `cat ~/.ssh/id_rsa_aks.pub` and assign it to `aks_admin_ssh_public_keys` in `scripts\terraform\azure\environments\prod.tfvars` and `scripts\terraform\azure\environments\prod.tfvars`.
-4. Create the dev and prod deployments. 
-5. Increase the `Tokens-Per-Minute` manually to the maximum inside the OpenAI model deployments in the portal as Terraform doesn’t expose such a `Tokens-Per-Minute` for azurerm_cognitive_deployment. Pay attention that there are two resource groups and the maximum limit needs to share between both. 
+4. Create the dev and prod deployments by following the steps in section [Terraform](#terraform). More specifically, follow the terraform process for init, workspace, plan, apply and output.
+5. Increase the `Tokens-Per-Minute` manually in the Azure portal to the maximum inside the OpenAI model deployments in the portal as Terraform doesn’t expose such a `Tokens-Per-Minute` for azurerm_cognitive_deployment. Pay attention that there are two resource groups and the maximum limit needs to share between both. 
 
 
 ### Steps for Deployment
-1. Docker push the `dev` and `prod` containers to the `container_registry`.
+1. Push the Docker the `dev` and `prod` images to the `container_registry` by following the steps in section [Docker](#docker).
 2. Update the image version under `scripts\terraform\azure\environments\dev|prod.deployment_container_version`.
 2. Assign yourself `PIM_Azure_mg-dsl-informationskiosk-owner` on Azure PIM as otherwise the app service cannot pull the image from he container registry. Make sure you `az logout` and `make az-login` again.
 3. [Optional] If index is not already present,  create and populate the respective index in the `search_service` for `dev` and `prod` by following the steps in **ETL pipeline for Azure Search**.  
 4. Deploy VM [**To Do**]
 5. Run e2e tests on `dev` deployment and `staging` slot of the `prod`. 
-    1. Set the IP of the VM to the `PUBLIC_API` on the local frontend.
-    2. Ensure that the VM is reachable from the local frontend. 
+    1. Set the IP of the user node pool to the `PUBLIC_API` on the local frontend.
+    2. Ensure that the VM is reachable from the local frontend by interacting with the frontend locally. 
     3. Run e2e tests.
 
 

@@ -27,10 +27,3 @@ resource "azurerm_storage_container" "containers" {
   container_access_type = "private"
 }
 
-# Tables (optional)
-resource "azurerm_storage_table" "tables" {
-  for_each             = toset(var.storage_account_tables)
-  name                 = each.value
-  storage_account_name = azurerm_storage_account.this.name
-}
-

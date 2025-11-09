@@ -23,13 +23,17 @@ storage_account_containers                    = [
   "kioskbot-docker-compose",
   "sc-kb-global-001"
 ]
-storage_account_tables                        = []
+storage_account_tags                          = {
+  "environment" = "global"
+  "owner"       = "support.dsl@unibe.ch"
+}
 
 # Optional network rules (open by default)
 storage_account_network_default_action = "Allow"
 storage_account_network_ip_rules       = []
 storage_account_network_subnet_ids     = []
 storage_account_network_bypass         = ["AzureServices"]
+
 
 # ----- Container Registry --------
 container_registry_name  = "crkbglobal001"
@@ -40,19 +44,15 @@ retention_days           = 30
 anonymous_pull_enabled   = false
 data_endpoint_enabled    = false
 container_repository_name = "kioskbot-backend-api"
-
+container_registry_tags   = {
+  "environment" = "global"
+  "owner"       = "support.dsl@unibe.ch"
+}
 
 # ----- Key Vault --------
 key_vault_name = "kv-kb-global-001"
 key_vault_sku_name = "standard"
-key_vault_soft_delete_days = 90
-key_vault_purge_protection_enabled = true
-key_vault_enable_rbac = true
-key_vault_public_network_access_enabled = true
-key_vault_network_default_action = "Allow"
-key_vault_network_bypass = "AzureServices"
-key_vault_network_ip_rules = []
-key_vault_network_subnet_ids = []
-key_vault_access_policies = []
-key_vault_secrets = {}
-key_vault_rbac_role_assignments = []
+key_vault_tags = {
+  "environment" = "global"
+  "owner"       = "support.dsl@unibe.ch"
+}

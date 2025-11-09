@@ -35,7 +35,7 @@ storage_account_resource_group_name = "rg-kb-global-001"
 
 # ----- Search Service --------
 search_service_name = "ss-kb-prod-001"
-search_service_sku = "basic" #Per subscription, only 1 free ss is allowed. Therefore dev.tfvars has the free and prod.tfvars has the basic subscription.
+search_service_sku = "basic"
 search_service_replica_count = 1
 search_service_partition_count = 1
 search_index_name = "kb-quality-prod"
