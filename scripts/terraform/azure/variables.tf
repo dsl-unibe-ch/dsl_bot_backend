@@ -157,10 +157,6 @@ variable "key_vault_sku_name" {
   type    = string
   default = null
 }
-variable "key_vault_soft_delete_days" {
-  type    = number
-  default = null
-}
 
 variable "key_vault_tags" {
   description = "Tags to apply."
