@@ -104,7 +104,7 @@ The `terraform` setup is separated on three levels.
 2. `dev` and `prod` each have their own resource groups containing respective `openai`, `network_aks` and `search_services` resources.
 3. `dev-node` and `prod-node` each have a kubernetes cluster intended for usage in `dev` and `prod` environments respectively. 
 
-The reason for this three-level separation is to have some common resources shared between `dev` and `prod` environments under `global` which cannot be destroyed. The 'global' resources shoud be created before 'dev' and 'prod'.
+The reason for this three-level separation is to have some common resources shared between `dev` and `prod` environments under `global` which cannot be destroyed. The `global` resources shoud be created before `dev` and `prod`.
 
 
 - Setup
