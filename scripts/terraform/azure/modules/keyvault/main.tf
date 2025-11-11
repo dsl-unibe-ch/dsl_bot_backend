@@ -8,5 +8,5 @@ resource "azurerm_key_vault" "this" {
   tenant_id                   = var.tenant_id
   sku_name                    = var.key_vault_sku_name            # "standard" or "premium"
   tags = var.key_vault_tags
-  purge_protection_enabled = true
+  purge_protection_enabled = true # When set to true, prevents the key vault from being permanently deleted. Value must be set to true to comply with the UniBE policy.
 }
