@@ -13,8 +13,7 @@ storage_account_kind                          = "StorageV2"
 storage_account_tier                          = "Standard"
 storage_account_replication_type              = "ZRS"
 storage_account_containers                    = [
-  "kioskbot-logs-dev-001",
-  "kioskbot-logs-prod-001",
+  "kioskbot-logs",
   "kioskbot-docker-compose",
   "sc-kb-global-001"
 ]
