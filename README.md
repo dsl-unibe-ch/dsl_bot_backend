@@ -225,7 +225,7 @@ The reason for this three-level separation is to have some common resources shar
 
 ### Naming convention
 - Pattern: `<abbr>-kb-<env>-<nnn>` where:
-  - `<abbr>`: service abbreviation (e.g., `rg` resource group, `asp` app service plan, `as` app service, `kv` key vault, `ss` search service, `ao` Azure OpenAI, `sa` storage account, `acr` container registry)
+  - `<abbr>`: service abbreviation (e.g., `rg` resource group, `kv` key vault, `ss` search service, `ao` Azure OpenAI, `sa` storage account, `acr` container registry)
   - `<env>`: `dev` or `prod`
   - `<nnn>`: incremental numeric suffix, zero-padded (e.g., `001`)
 
@@ -257,7 +257,7 @@ Common tags are applied via a shared local map and passed to modules:
 ### Steps for Deployment
 1. Push the Docker the `dev` and `prod` images to the `container_registry` by following the steps in section [Docker](#docker).
 2. Update the image version under `scripts\terraform\azure\environments\dev|prod.deployment_container_version`.
-2. Assign yourself `PIM_Azure_mg-dsl-informationskiosk-owner` on Azure PIM as otherwise the app service cannot pull the image from he container registry. Make sure you `az logout` and `make az-login` again.
+2. Assign yourself `PIM_Azure_mg-dsl-informationskiosk-owner` on Azure PIM to be authorized to pull the image from he container registry. Make sure you `az logout` and `make az-login` again.
 3. [Optional] If index is not already present,  create and populate the respective index in the `search_service` for `dev` and `prod` by following the steps in **ETL pipeline for Azure Search**.  
 4. Deploy VM [**To Do**]
 5. Run e2e tests on `dev` deployment and `staging` slot of the `prod`. 
