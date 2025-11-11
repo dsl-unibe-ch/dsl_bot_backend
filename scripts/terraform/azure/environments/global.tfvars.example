@@ -15,7 +15,7 @@ storage_account_replication_type              = "ZRS"
 storage_account_containers                    = [
   "kioskbot-logs",
   "kioskbot-docker-compose",
-  "sc-kb-global-001"
+  "kioskbot-customers-data"
 ]
 storage_account_tags                          = {
   "environment" = "global"

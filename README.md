@@ -102,7 +102,8 @@ Currently, the datasets to be processed and their corresponding excel sheets are
 The `terraform` setup is separated on three levels. 
 1. `global` contains the resources for `container_registry`, `storage_account` and `keyvault` under a global resource group.
 2. `dev` and `prod` each have their own resource groups containing respective `openai`, `network_aks` and `search_services` resources.
-3. `dev-node` and `prod-node` each have a kubernetes cluster intended for usage in `dev` and `prod` environments respectively 
+3. `dev-node` and `prod-node` each have a kubernetes cluster intended for usage in `dev` and `prod` environments respectively. 
+
 The reason for this three-level separation is to have some common resources shared between `dev` and `prod` environments under `global` which cannot be destroyed.
 
 
@@ -116,102 +117,136 @@ The reason for this three-level separation is to have some common resources shar
             ```
         - Mac :  
             ```bash
-            brew tap hashicorp/tap
-            brew install hashicorp/tap/terraform
-            brew install azure-cli
+            brew install tfenv
+            tfenv install 1.13.3
+            tfenv use 1.13.3
+            terraform version
             ```
     - Under the folder `scripts/terraform/azure/environments/`, create `dev.tfvars`, `prod.tfvars` and `global.tfvars` using the templates `dev.tfvars.example`, `prod.tfvars.example` and `global.tfvars.example` respectively.
+
+    - Create a new ssh key for the Kubernetes VM 
+        ```bash
+        ssh-keygen -t rsa -b 2048 -f ~/.ssh/id_rsa_aks -C "Your_Email_Address"
+        ```
+    
+    - Copy the public ssh key with `cat ~/.ssh/id_rsa_aks.pub` and assign it to `aks_admin_ssh_public_keys` in `scripts\terraform\azure\environments\dev.tfvars` and `scripts\terraform\azure\environments\prod.tfvars`.
+
     - Login: Select the subscription id.
         ```bash 
         make az-login
         ```
+    
     - Set subscription: The subscription selected while login in is set again explicitly.
         ```bash
         make az-set-subscription
         ```
+    
     - Replace `"your-azure-subscription_id"` in `{ENV}.tfvars` with the actual subscription ID you are using—this should match the subscription that the command `make az-set-subscription` returned. This ensures Terraform uses the correct Azure subscription for resource creation.
+    
     - Initialise terraform
         ```bash
         make terraform-init
         ```
+    
     - Validate terraform
         ```bash
         make terraform-validate
         ```
-    - Create or select workspace (if already created)
-        - For `global` environment
-             ```bash
+
+    - Create the `global` environment
+        - Create or select workspace (if already created)
+            ```bash
             make terraform-workspace-global
             ```
-        - For `dev` environment
-            ```bash
-            make terraform-workspace-dev
-            ```
-        - For `prod` environment
-            ```bash
-            make terraform-workspace-prod
         
-            ```
-    - Create a plan (plans are output and stored as `scripts/terraform/azure/${ENV}.plan`)
-        - For `dev` environment
-            ```bash
-            make terraform-plan-dev
-            ```
-        - For `prod` environment
-            ```bash
-            make terraform-plan-prod
-        - For `global` environment
+        - Create a plan (plans are output and stored as `scripts/terraform/azure/${ENV}.plan`)
             ```bash
             make terraform-plan-global
-            
-    - Apply the plan created above
-        - For `dev` environment
-            ```bash
-            make terraform-apply-dev
             ```
-        - For `prod` environment
-            ```bash
-            make terraform-apply-prod
-            ```
-        - For `global` environment
+
+        - Apply the plan created above
             ```bash
             make terraform-apply-global
             ```
+
+    - Create the `dev` environment
+        - Create or select workspace (if already created)
+            ```bash
+            make terraform-workspace-dev
+            ```
+
+        - Create a plan (plans are output and stored as `scripts/terraform/azure/${ENV}.plan`)
+            ```bash
+            make terraform-plan-dev
+            ```
+
+        - Apply the plan created above
+            ```bash
+            make terraform-apply-dev
+            ```
+
+    - Create the `prod` environment
+        - Create or select workspace (if already created)
+            ```bash
+            make terraform-workspace-prod
+            ```
+
+        - Create a plan (plans are output and stored as `scripts/terraform/azure/${ENV}.plan`)
+            ```bash
+            make terraform-plan-prod
+            ```
+
+        - Apply the plan created above
+            ```bash
+            make terraform-apply-prod
+            ```
+    
     - Extract Output (The output is used to populate the `{ENV}.env` files)
-        - For `dev` environment
-            ```bash
-            make terraform-output-dev
-            ```
-        - For `prod` environment
-            ```bash
-            make terraform-output-prod
-            ```
         - For `global` environment
             ```bash
             make terraform-output-global
             ```
+        
+        - For `dev` environment
+            ```bash
+            make terraform-output-dev
+            ```
+        
+        - For `prod` environment
+            ```bash
+            make terraform-output-prod
+            ```
+            
     - Destroy the resources
-        - For `dev` environmemt
-            ```bash
-            make terraform-destroy-dev
-            ```
-        - For `prod` environmemt
-            ```bash
-            make terraform-destroy-prod
-            ```
         - For `global` environment destroying is not possible by design. Therefore, following command will echo an error. 
             ```bash
             make terraform-destroy-global
             ```
+        
+        - For `dev` environment
+            ```bash
+            make terraform-destroy-dev
+            ```
+        
+        - For `prod` environment
+            ```bash
+            make terraform-destroy-prod
+            ```
+        
+    
     - Additional utility commands (optional)
         - Rewrite Terraform configuration files to a canonical format and style.
             ```bash
             make terraform-fmt
             ```
+        
         - Output the value of a single variable, For example:
             ```bash
             make terraform-output-var VAR=AZURE_OPENAI_ENDPOINT
             ```
+            
+    - Increase the `Tokens-Per-Minute` manually in the Azure portal to the maximum inside the OpenAI model deployments in the portal as Terraform doesn’t expose such a `Tokens-Per-Minute` for azurerm_cognitive_deployment. Pay attention that there are two resource groups and the maximum limit needs to share between both. 
+
 </details>
 
 ## Infrastructure and Deployment
@@ -241,18 +276,6 @@ Common tags are applied via a shared local map and passed to modules:
 - In `{ENV}.tfvars`, set `environment = "dev|prod"` and optionally `owner`.
 - These are injected into resources by Terraform automatically through module inputs.
 - If you need resource-specific extra tags, you can still set resource-level tags in the module; they will override common tags on key conflicts.
-
-### Steps for provisioning Infrastructure
-
-1. Create the global resources under the `global` resource group by following the steps in section [Terraform](#terraform). More specifically, follow the terraform process for init, workspace, plan, apply and output for the respective environment.
-2. Create a new ssh key for the Kubernetes VM 
-    ```bash
-    ssh-keygen -t rsa -b 2048 -f ~/.ssh/id_rsa_aks -C "Your_Email_Address"
-    ```
-3. Copy the public ssh key with `cat ~/.ssh/id_rsa_aks.pub` and assign it to `aks_admin_ssh_public_keys` in `scripts\terraform\azure\environments\prod.tfvars` and `scripts\terraform\azure\environments\prod.tfvars`.
-4. Create the dev and prod deployments by following the steps in section [Terraform](#terraform). More specifically, follow the terraform process for init, workspace, plan, apply and output.
-5. Increase the `Tokens-Per-Minute` manually in the Azure portal to the maximum inside the OpenAI model deployments in the portal as Terraform doesn’t expose such a `Tokens-Per-Minute` for azurerm_cognitive_deployment. Pay attention that there are two resource groups and the maximum limit needs to share between both. 
-
 
 ### Steps for Deployment
 1. Push the Docker the `dev` and `prod` images to the `container_registry` by following the steps in section [Docker](#docker).
