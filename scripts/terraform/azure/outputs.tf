@@ -139,3 +139,7 @@ output "kube_config_raw" {
   value     = try(module.kubernetes_cluster[0].KUBE_CONFIG_RAW, null)
   sensitive = true
 }
+
+output "AZURE_AKS_ADDITIONAL_NODE_POOLS" {
+  value = try(module.kubernetes_cluster[0].AZURE_AKS_ADDITIONAL_NODE_POOLS, null)
+}

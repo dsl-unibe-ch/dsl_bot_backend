@@ -241,3 +241,16 @@ variable "aks_network_security_group_name" {
   type    = string
   default = null
 }
+
+variable "aks_additional_node_pools" {
+  type = map(object({
+    vm_size             = string
+    node_count          = number
+    os_disk_size_gb     = number
+    os_sku              = string
+    mode                = string
+    auto_scaling_enabled = optional(bool)
+    min_count            = optional(number)
+    max_count            = optional(number)
+  }))
+}

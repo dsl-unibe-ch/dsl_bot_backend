@@ -138,6 +138,12 @@ module "kubernetes_cluster" {
   network_plugin            = var.aks_network_plugin
   kubernetes_version        = var.aks_version
   node_resource_group_name  = var.aks_node_resource_group_name
+
+  additional_node_pools = {
+    for pool_name, pool in var.aks_additional_node_pools : pool_name => merge(pool, {
+      vnet_subnet_id = module.network_aks[0].AKS_SUBNET_ID # required to comply with UniBe policy
+    })
+  }
 }
 
 # --- Key Vault ---

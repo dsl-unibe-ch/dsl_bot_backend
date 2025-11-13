@@ -39,4 +39,16 @@ variable "tags" {
   default = {}
 }
 
-
+variable "additional_node_pools" {
+  type = map(object({
+    vm_size            = string
+    node_count         = number
+    os_disk_size_gb    = number
+    os_sku             = string
+    mode               = string
+    vnet_subnet_id     = string # required to comply with UniBe policy
+    auto_scaling_enabled = optional(bool)
+    min_count           = optional(number)
+    max_count           = optional(number)
+  }))
+}
