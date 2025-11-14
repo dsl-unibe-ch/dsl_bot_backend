@@ -111,6 +111,8 @@ TF_DIR  ?= scripts/terraform/azure
 ENV     ?= dev
 TFVARS  ?= environments/$(ENV).tfvars
 AZ_SUBSCRIPTION_ID ?= $(shell az account show --query id -o tsv 2>/dev/null)
+KUBECONFIG ?= $(HOME)/.kube/config
+DASHBOARD_CHART_VERSION = 7.14.0
 
 # ---- phony targets ----
 .PHONY: help login set-sub init workspace plan apply destroy output fmt validate clean
@@ -130,6 +132,11 @@ help:
 	@echo "  make deploy-prod           # plan/apply prod and write kubeconfig"
 	@echo "  make fmt validate          # housekeeping"
 	@echo "  make clean                 # remove local tf state/cache"
+	@echo "\nKubernetes Dashboard (Helm CLI):"
+	@echo "  make helm-dashboard-install     # install/upgrade dashboard"
+	@echo "  make helm-dashboard-status      # show dashboard release status"
+	@echo "  make helm-dashboard-port        # port-forward 8443->443"
+	@echo "  make helm-dashboard-uninstall   # uninstall dashboard"
 	@echo "\nGlobal workspace (never destroy):"
 	@echo "  make terraform-plan-global   # plan shared Storage & ACR"
 	@echo "  make terraform-apply-global  # apply shared Storage & ACR"
@@ -257,4 +264,31 @@ deploy-prod:
 	@$(MAKE) terraform-plan-prod
 	@$(MAKE) terraform-apply-prod
 	@$(MAKE) kubeconfig-prod
+
+# ---- Kubernetes Dashboard via Helm CLI ----
+.PHONY: helm-dashboard-install helm-dashboard-status helm-dashboard-port helm-dashboard-uninstall
+
+helm-dashboard-install:
+	@echo $@
+	KUBECONFIG=$(KUBECONFIG) helm upgrade --install kubernetes-dashboard kubernetes-dashboard \
+	  --repo https://kubernetes.github.io/dashboard/ \
+	  --namespace kubernetes-dashboard --create-namespace \
+	  --version $(DASHBOARD_CHART_VERSION) \
+	  --set metricsScraper.enabled=true \
+	  --wait
+
+helm-dashboard-status:
+	@echo $@
+	KUBECONFIG=$(KUBECONFIG) helm status kubernetes-dashboard -n kubernetes-dashboard || true
+
+helm-dashboard-port:
+	@echo $@
+	KUBECONFIG=$(KUBECONFIG) kubectl -n kubernetes-dashboard port-forward svc/kubernetes-dashboard-kong-proxy 8443:443
+
+helm-dashboard-uninstall:
+	@echo $@
+	KUBECONFIG=$(KUBECONFIG) helm uninstall kubernetes-dashboard -n kubernetes-dashboard || true
+	KUBECONFIG=$(KUBECONFIG) kubectl delete ns kubernetes-dashboard --ignore-not-found=true
+
+
 

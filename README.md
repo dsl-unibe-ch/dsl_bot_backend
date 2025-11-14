@@ -249,6 +249,74 @@ The reason for this three-level separation is to have some common resources shar
 
 </details>
 
+## Kubernetes Dashboard (Helm CLI)
+<details>
+<summary>Click to expand</summary>
+
+- Prerequisites:
+     - Install Helm
+        - Windows : Run from Powershell as admin
+            ```bash
+            choco install kubernetes-helm
+            ```
+        - Mac : 
+            ```
+            brew install helm
+            ```
+            
+    - `az login` and set the correct subscription.
+    - Fetch kubeconfig for your AKS cluster:
+        - `az account set --subscription "<subscription-id>"`
+        - `az aks get-credentials --resource-group <rg-name> --name <aks-name> --overwrite-existing` (e.g., `az aks get-credentials --resource-group rg-kb-dev-001 --name aks-kb-dev-001 --overwrite-existing`)
+    - Verify access: `kubectl get ns`
+
+- Install or upgrade the dashboard:
+    - `make helm-dashboard-install`
+    - Version pinning: the chart version is pinned for reproducibility via `DASHBOARD_CHART_VERSION` in the `Makefile`
+
+- Access locally (port-forward):
+    - `make helm-dashboard-port`
+    - Open https://localhost:8443 in your browser.
+
+- Login options:
+    - Kubeconfig: Select “Kubeconfig” in the dashboard login; it uses your current `kubectl` context.
+    - Optional admin token for testing only (not recommended for production):
+        1. Create an admin ServiceAccount and binding:
+            ```bash
+            kubectl apply -f - <<'YAML'
+            apiVersion: v1
+            kind: ServiceAccount
+            metadata:
+              name: dashboard-admin
+              namespace: kubernetes-dashboard
+            ---
+            apiVersion: rbac.authorization.k8s.io/v1
+            kind: ClusterRoleBinding
+            metadata:
+              name: dashboard-admin
+            roleRef:
+              apiGroup: rbac.authorization.k8s.io
+              kind: ClusterRole
+              name: cluster-admin
+            subjects:
+            - kind: ServiceAccount
+              name: dashboard-admin
+              namespace: kubernetes-dashboard
+            YAML
+            ```
+        2. Generate a token and paste it into the dashboard login:
+             ```bash
+             kubectl -n kubernetes-dashboard create token dashboard-admin
+             ```
+
+- Check release status:
+    - `make helm-dashboard-status`
+
+- Uninstall:
+    - `make helm-dashboard-uninstall`
+
+</details>
+
 ## Infrastructure and Deployment
 
 <details>
