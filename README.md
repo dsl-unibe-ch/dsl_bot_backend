@@ -249,7 +249,7 @@ The reason for this three-level separation is to have some common resources shar
 
 </details>
 
-## Kubernetes Dashboard (Helm CLI)
+## Kubernetes Dashboard
 <details>
 <summary>Click to expand</summary>
 
@@ -264,9 +264,16 @@ The reason for this three-level separation is to have some common resources shar
             brew install helm
             ```
             
-    - `az login` and set the correct subscription.
+    - Login: Select the subscription id.
+        ```bash 
+        make az-login
+        ```
+    
+    - Set subscription: The subscription selected while login in is set again explicitly.
+        ```bash
+        make az-set-subscription
+        ```
     - Fetch kubeconfig for your AKS cluster:
-        - `az account set --subscription "<subscription-id>"`
         - `az aks get-credentials --resource-group <rg-name> --name <aks-name> --overwrite-existing` (e.g., `az aks get-credentials --resource-group rg-kb-dev-001 --name aks-kb-dev-001 --overwrite-existing`)
     - Verify access: `kubectl get ns`
 
