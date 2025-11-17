@@ -14,9 +14,6 @@ variable "default_node_pool_vm_size" { type = string }
 variable "default_node_pool_os_disk_size_gb" { type = number }
 variable "default_node_pool_os_sku" { type = string }
 
-variable "configure_network_profile" { type = bool }
-variable "network_plugin" { type = string }
-
 # Optional: bring your own subnet to satisfy policies
 variable "vnet_subnet_id" {
   type    = string
@@ -25,11 +22,6 @@ variable "vnet_subnet_id" {
 
 # Optional: name of the managed resource group AKS uses for infra
 variable "node_resource_group_name" {
-  type    = string
-  default = null
-}
-
-variable "kubernetes_version" {
   type    = string
   default = null
 }

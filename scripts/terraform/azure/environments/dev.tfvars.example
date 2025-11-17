@@ -53,8 +53,6 @@ aks_node_count       = 1
 aks_node_vm_size     = "Standard_A2_v2"
 aks_node_os_disk_size_gb = 128
 aks_node_os_sku      = "Ubuntu"
-aks_configure_network_profile = false
-aks_network_plugin   = "kubenet"
 aks_node_resource_group_name = "rg-kb-dev-001-node"
 
 # ----- AKS user node pools -----

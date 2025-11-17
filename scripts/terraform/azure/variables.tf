@@ -201,18 +201,6 @@ variable "aks_node_os_sku" {
   type    = string
   default = "Ubuntu"
 }
-variable "aks_configure_network_profile" {
-  type    = bool
-  default = false
-}
-variable "aks_network_plugin" {
-  type    = string
-  default = "kubenet"
-}
-variable "aks_version" {
-  type    = string
-  default = null
-}
 
 variable "aks_node_resource_group_name" {
   description = "Custom name for the AKS managed resource group (node resource group)."

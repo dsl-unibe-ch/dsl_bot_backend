@@ -31,16 +31,6 @@ resource "azurerm_kubernetes_cluster" "this" {
     only_critical_addons_enabled = true # restrict default/system node pool to only critical k8s addons / components (e.g., metric server, cluster autoscaler, etc.)
   }
 
-  dynamic "network_profile" {
-    for_each = var.configure_network_profile ? [1] : []
-    content {
-      network_plugin = var.network_plugin
-      # Keep other settings default unless provided later
-    }
-  }
-
-  kubernetes_version = var.kubernetes_version
-
   tags = var.tags
 }
 
