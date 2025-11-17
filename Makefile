@@ -132,11 +132,12 @@ help:
 	@echo "  make deploy-prod           # plan/apply prod and write kubeconfig"
 	@echo "  make fmt validate          # housekeeping"
 	@echo "  make clean                 # remove local tf state/cache"
-	@echo "\nKubernetes Dashboard (Helm CLI):"
+	@echo "\nKubernetes Dashboard:"
 	@echo "  make helm-dashboard-install     # install/upgrade dashboard"
 	@echo "  make helm-dashboard-status      # show dashboard release status"
 	@echo "  make helm-dashboard-port        # port-forward 8443->443"
 	@echo "  make helm-dashboard-uninstall   # uninstall dashboard"
+	@echo "  make get-aks-credentials # configures the local kubectl to connect to the AKS cluster"
 	@echo "\nGlobal workspace (never destroy):"
 	@echo "  make terraform-plan-global   # plan shared Storage & ACR"
 	@echo "  make terraform-apply-global  # apply shared Storage & ACR"
@@ -265,8 +266,8 @@ deploy-prod:
 	@$(MAKE) terraform-apply-prod
 	@$(MAKE) kubeconfig-prod
 
-# ---- Kubernetes Dashboard via Helm CLI ----
-.PHONY: helm-dashboard-install helm-dashboard-status helm-dashboard-port helm-dashboard-uninstall
+# ---- Kubernetes Dashboard ----
+.PHONY: helm-dashboard-install helm-dashboard-status helm-dashboard-port helm-dashboard-uninstall get-aks-credentials
 
 helm-dashboard-install:
 	@echo $@
@@ -290,5 +291,10 @@ helm-dashboard-uninstall:
 	KUBECONFIG=$(KUBECONFIG) helm uninstall kubernetes-dashboard -n kubernetes-dashboard || true
 	KUBECONFIG=$(KUBECONFIG) kubectl delete ns kubernetes-dashboard --ignore-not-found=true
 
+get-aks-credentials:
+	@RG_NAME=$$(make terraform-output-var VAR=RESOURCE_GROUP_NAME) ; \
+	AKS_NAME=$$(make terraform-output-var VAR=AKS_CLUSTER_NAME) ; \
+	echo "az aks get-credentials --resource-group $$RG_NAME --name $$AKS_NAME --overwrite-existing" ; \
+	az aks get-credentials --resource-group $$RG_NAME --name $$AKS_NAME --overwrite-existing
 
 

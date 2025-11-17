@@ -185,6 +185,8 @@ The reason for this three-level separation is to have some common resources shar
             make terraform-apply-dev
             ```
 
+        - Configure Kubernetes Dashboard by following [Kubernetes Dashboard](#kubernetes-dashboard)
+
     - Create the `prod` environment
         - Create or select workspace (if already created)
             ```bash
@@ -200,6 +202,8 @@ The reason for this three-level separation is to have some common resources shar
             ```bash
             make terraform-apply-prod
             ```
+
+        - Configure Kubernetes Dashboard by following [Kubernetes Dashboard](#kubernetes-dashboard)
     
     - Extract Output (The output is used to populate the `{ENV}.env` files)
         - For `global` environment
@@ -264,63 +268,72 @@ The reason for this three-level separation is to have some common resources shar
             brew install helm
             ```
             
-    - Login: Select the subscription id.
-        ```bash 
-        make az-login
-        ```
-    
-    - Set subscription: The subscription selected while login in is set again explicitly.
-        ```bash
-        make az-set-subscription
-        ```
-    - Fetch kubeconfig for your AKS cluster:
-        - `az aks get-credentials --resource-group <rg-name> --name <aks-name> --overwrite-existing` (e.g., `az aks get-credentials --resource-group rg-kb-dev-001 --name aks-kb-dev-001 --overwrite-existing`)
-    - Verify access: `kubectl get ns`
+- Login: Select the subscription id.
+    ```bash 
+    make az-login
+    ```
 
-- Install or upgrade the dashboard:
-    - `make helm-dashboard-install`
-    - Version pinning: the chart version is pinned for reproducibility via `DASHBOARD_CHART_VERSION` in the `Makefile`
+- Set subscription: The subscription selected while login in is set again explicitly.
+    ```bash
+    make az-set-subscription
+    ```
 
-- Access locally (port-forward):
-    - `make helm-dashboard-port`
-    - Open https://localhost:8443 in your browser.
+- Configure the local kubectl to connect to the AKS cluster:
+    ```bash
+    make get-aks-credentials
+    ```
 
-- Login options:
-    - Kubeconfig: Select “Kubeconfig” in the dashboard login; it uses your current `kubectl` context.
-    - Optional admin token for testing only (not recommended for production):
-        1. Create an admin ServiceAccount and binding:
-            ```bash
-            kubectl apply -f - <<'YAML'
-            apiVersion: v1
-            kind: ServiceAccount
-            metadata:
-              name: dashboard-admin
-              namespace: kubernetes-dashboard
-            ---
-            apiVersion: rbac.authorization.k8s.io/v1
-            kind: ClusterRoleBinding
-            metadata:
-              name: dashboard-admin
-            roleRef:
-              apiGroup: rbac.authorization.k8s.io
-              kind: ClusterRole
-              name: cluster-admin
-            subjects:
-            - kind: ServiceAccount
-              name: dashboard-admin
-              namespace: kubernetes-dashboard
-            YAML
-            ```
-        2. Generate a token and paste it into the dashboard login:
-             ```bash
-             kubectl -n kubernetes-dashboard create token dashboard-admin
-             ```
+- Install the dashboard:
+    ```bash
+    make helm-dashboard-install
+    ```
 
-- Check release status:
-    - `make helm-dashboard-status`
+- Port-forward to access the dashboard locally:
+    ```bash
+    make helm-dashboard-port
+    ```
+    - Open https://localhost:8443 in the browser
 
-- Uninstall:
-    - `make helm-dashboard-uninstall`
+- Login to the dashboard:
+
+    - Create a ServiceAccount named `dashboard-admin` in the `kubernetes-dashboard` namespace and give it cluster-admin privileges:
+    ```bash
+    kubectl apply -f - <<'YAML'
+    apiVersion: v1
+    kind: ServiceAccount
+    metadata:
+        name: dashboard-admin
+        namespace: kubernetes-dashboard
+    ---
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+        name: dashboard-admin
+    roleRef:
+        apiGroup: rbac.authorization.k8s.io
+        kind: ClusterRole
+        name: cluster-admin
+    subjects:
+    - kind: ServiceAccount
+        name: dashboard-admin
+        namespace: kubernetes-dashboard
+    YAML
+    ```
+    - Generate a token:
+    ```bash
+    kubectl -n kubernetes-dashboard create token dashboard-admin
+    ```
+    - Copy and paste the token into the dashboard login page https://localhost:8443
+
+- Check the status of the dashboard:
+    ```bash
+    make helm-dashboard-status
+    ```
+
+- Uninstall the dashboard:
+    ```bash
+    make helm-dashboard-uninstall
+    ```
 
 </details>
 

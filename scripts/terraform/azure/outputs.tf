@@ -143,3 +143,12 @@ output "kube_config_raw" {
 output "AZURE_AKS_ADDITIONAL_NODE_POOLS" {
   value = try(module.kubernetes_cluster[0].AZURE_AKS_ADDITIONAL_NODE_POOLS, null)
 }
+
+output "AKS_CLUSTER_NAME" {
+  value = try(module.kubernetes_cluster[0].AZURE_AKS_NAME, null)
+}
+
+#----- Resource Group --------------
+output "RESOURCE_GROUP_NAME" {
+  value = azurerm_resource_group.rg.name
+}
