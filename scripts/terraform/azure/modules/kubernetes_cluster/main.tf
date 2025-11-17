@@ -28,18 +28,28 @@ resource "azurerm_kubernetes_cluster" "this" {
     os_sku          = var.default_node_pool_os_sku
     type            = "VirtualMachineScaleSets"
     vnet_subnet_id  = var.vnet_subnet_id
+    only_critical_addons_enabled = true # restrict default/system node pool to only critical k8s addons / components (e.g., metric server, cluster autoscaler, etc.)
   }
-
-  dynamic "network_profile" {
-    for_each = var.configure_network_profile ? [1] : []
-    content {
-      network_plugin = var.network_plugin
-      # Keep other settings default unless provided later
-    }
-  }
-
-  kubernetes_version = var.kubernetes_version
 
   tags = var.tags
 }
 
+resource "azurerm_kubernetes_cluster_node_pool" "extra_pools" {
+  for_each              = var.additional_node_pools
+
+  name                  = each.key
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.this.id
+
+  vm_size               = each.value.vm_size
+  node_count            = each.value.node_count
+  os_disk_size_gb       = each.value.os_disk_size_gb
+  os_type               = "Linux"
+  os_sku                = each.value.os_sku
+  vnet_subnet_id        = each.value.vnet_subnet_id
+
+  mode                  = each.value.mode
+
+  auto_scaling_enabled  = lookup(each.value, "auto_scaling_enabled", false)
+  min_count             = lookup(each.value, "auto_scaling_enabled", false) ? lookup(each.value, "min_count", 1) : null
+  max_count             = lookup(each.value, "auto_scaling_enabled", false) ? lookup(each.value, "max_count", 1) : null
+}

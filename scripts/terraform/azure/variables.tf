@@ -201,18 +201,6 @@ variable "aks_node_os_sku" {
   type    = string
   default = "Ubuntu"
 }
-variable "aks_configure_network_profile" {
-  type    = bool
-  default = false
-}
-variable "aks_network_plugin" {
-  type    = string
-  default = "kubenet"
-}
-variable "aks_version" {
-  type    = string
-  default = null
-}
 
 variable "aks_node_resource_group_name" {
   description = "Custom name for the AKS managed resource group (node resource group)."
@@ -240,4 +228,17 @@ variable "aks_subnet_address_prefix" {
 variable "aks_network_security_group_name" {
   type    = string
   default = null
+}
+
+variable "aks_additional_node_pools" {
+  type = map(object({
+    vm_size             = string
+    node_count          = number
+    os_disk_size_gb     = number
+    os_sku              = string
+    mode                = string
+    auto_scaling_enabled = optional(bool)
+    min_count            = optional(number)
+    max_count            = optional(number)
+  }))
 }

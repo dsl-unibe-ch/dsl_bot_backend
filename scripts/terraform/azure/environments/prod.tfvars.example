@@ -46,18 +46,30 @@ aks_cluster_name     = "aks-kb-prod-001"
 aks_dns_prefix       = "kbprod"
 aks_admin_username   = "azureuser"
 aks_admin_ssh_public_keys = [
-  "ssh-rsa-your-public-key""
+  "ssh-rsa-your-public-key"
 ]
 aks_node_pool_name   = "systempool"
 aks_node_count       = 1
-aks_node_vm_size     = "Standard_B4ls_v2"
+aks_node_vm_size     = "Standard_A2_v2"
 aks_node_os_disk_size_gb = 128
 aks_node_os_sku      = "Ubuntu"
-aks_configure_network_profile = false
-aks_network_plugin   = "kubenet"
 aks_node_resource_group_name = "rg-kb-prod-001-node"
 
-# ---- AKS Network (BYO to satisfy NSG policy) ----
+# ----- AKS user node pools -----
+aks_additional_node_pools = {
+  userpool1 = {
+    vm_size              = "Standard_B4ls_v2"
+    node_count           = 1
+    os_disk_size_gb      = 128
+    os_sku               = "Ubuntu"
+    mode                 = "User"
+    auto_scaling_enabled = true
+    min_count            = 1
+    max_count            = 2
+  }
+}
+
+# ---- AKS Network (BYO to satisfy NSG UniBe policy) ----
 # BYO to comply with UniBe Cloud policy to allows inbound TCP from anywhere to any node in the AKS subnet on Kubernetes’ default NodePort range (30000–32767)
 aks_vnet_name                 = "vnet-aks-kb-prod-001"
 aks_vnet_address_space        = ["10.41.0.0/16"]
