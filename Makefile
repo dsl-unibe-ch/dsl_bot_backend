@@ -39,12 +39,16 @@ convert-mht-to-txt-innovation:
 build-image-dev:
 	@ENV=dev; \
 	. ./.env.$${ENV}; \
-	ENV=$${ENV} VERSION=$(VERSION) AZURE_CONTAINER_REGISTRY_LOGIN_SERVER=$${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER} docker compose --project-name kioskbot-backend-$${ENV} build
+	docker buildx build --platform linux/amd64,linux/arm64 \
+	-t $${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER}/kioskbot-backend-api:$(VERSION)-$${ENV} \
+	-f Dockerfile . --load
 
 build-image-prod:
 	@ENV=prod; \
 	. ./.env.$${ENV}; \
-	ENV=$${ENV} VERSION=$(VERSION) AZURE_CONTAINER_REGISTRY_LOGIN_SERVER=$${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER} docker compose --project-name kioskbot-backend-$${ENV} build
+	docker buildx build --platform linux/amd64,linux/arm64 \
+	-t $${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER}/kioskbot-backend-api:$(VERSION)-$${ENV} \
+	-f Dockerfile . --load
 
 compose-up-dev:
 	@echo $@
@@ -128,6 +132,12 @@ help:
 	@echo "  make kubeconfig ENV=dev    # write kubeconfig file from TF output"
 	@echo "  make deploy-dev            # plan/apply dev and write kubeconfig"
 	@echo "  make deploy-prod           # plan/apply prod and write kubeconfig"
+	@echo "  make helm-install-dev      # install Helm chart to K8s (dev)"
+	@echo "  make helm-install-prod     # install Helm chart to K8s (prod)"
+	@echo "  make helm-upgrade-dev      # upgrade Helm release (dev)"
+	@echo "  make helm-upgrade-prod     # upgrade Helm release (prod)"
+	@echo "  make helm-uninstall-dev    # uninstall Helm release (dev)"
+	@echo "  make helm-uninstall-prod   # uninstall Helm release (prod)"
 	@echo "  make fmt validate          # housekeeping"
 	@echo "  make clean                 # remove local tf state/cache"
 	@echo "\nGlobal workspace (never destroy):"
@@ -258,3 +268,75 @@ deploy-prod:
 	@$(MAKE) terraform-apply-prod
 	@$(MAKE) kubeconfig-prod
 
+# ---- Helm deployment targets ----
+.PHONY: helm-install
+helm-install:
+	@ENV=$(ENV); \
+	test -f ./.env.$${ENV} || { echo "ERROR: missing .env.$${ENV} at repo root"; exit 1; }; \
+	. ./.env.$${ENV}; \
+	KUBECONFIG_FILE=$(TF_DIR)/outputs/$${ENV}.kubeconfig; \
+	test -f "$${KUBECONFIG_FILE}" || { echo "ERROR: kubeconfig not found at $${KUBECONFIG_FILE}. Run 'make kubeconfig-$${ENV}' first."; exit 1; }; \
+	IMAGE_REPO="$${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER}/kioskbot-backend-api"; \
+	IMAGE_TAG="$(VERSION)-$${ENV}"; \
+	echo "Installing Helm chart for environment: $${ENV}"; \
+	echo "Using image: $${IMAGE_REPO}:$${IMAGE_TAG}"; \
+	KUBECONFIG="$${KUBECONFIG_FILE}" helm install kioskbot-backend-$${ENV} ./helm \
+		--values ./helm/values-$${ENV}.yaml \
+		--set api.image.repository="$${IMAGE_REPO}" \
+		--set api.image.tag="$${IMAGE_TAG}" \
+		--set kafkaConsumer.image.repository="$${IMAGE_REPO}" \
+		--set kafkaConsumer.image.tag="$${IMAGE_TAG}" \
+		--create-namespace \
+		--namespace kioskbot-$${ENV}
+
+.PHONY: helm-install-dev
+helm-install-dev:
+	@$(MAKE) helm-install ENV=dev
+
+.PHONY: helm-install-prod
+helm-install-prod:
+	@$(MAKE) helm-install ENV=prod
+
+.PHONY: helm-upgrade
+helm-upgrade:
+	@ENV=$(ENV); \
+	test -f ./.env.$${ENV} || { echo "ERROR: missing .env.$${ENV} at repo root"; exit 1; }; \
+	. ./.env.$${ENV}; \
+	KUBECONFIG_FILE=$(TF_DIR)/outputs/$${ENV}.kubeconfig; \
+	test -f "$${KUBECONFIG_FILE}" || { echo "ERROR: kubeconfig not found at $${KUBECONFIG_FILE}. Run 'make kubeconfig-$${ENV}' first."; exit 1; }; \
+	IMAGE_REPO="$${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER}/kioskbot-backend-api"; \
+	IMAGE_TAG="$(VERSION)-$${ENV}"; \
+	echo "Upgrading Helm release for environment: $${ENV}"; \
+	echo "Using image: $${IMAGE_REPO}:$${IMAGE_TAG}"; \
+	KUBECONFIG="$${KUBECONFIG_FILE}" helm upgrade kioskbot-backend-$${ENV} ./helm \
+		--values ./helm/values-$${ENV}.yaml \
+		--set api.image.repository="$${IMAGE_REPO}" \
+		--set api.image.tag="$${IMAGE_TAG}" \
+		--set kafkaConsumer.image.repository="$${IMAGE_REPO}" \
+		--set kafkaConsumer.image.tag="$${IMAGE_TAG}" \
+		--namespace kioskbot-$${ENV}
+
+.PHONY: helm-upgrade-dev
+helm-upgrade-dev:
+	@$(MAKE) helm-upgrade ENV=dev
+
+.PHONY: helm-upgrade-prod
+helm-upgrade-prod:
+	@$(MAKE) helm-upgrade ENV=prod
+
+.PHONY: helm-uninstall
+helm-uninstall:
+	@ENV=$(ENV); \
+	KUBECONFIG_FILE=$(TF_DIR)/outputs/$${ENV}.kubeconfig; \
+	test -f "$${KUBECONFIG_FILE}" || { echo "ERROR: kubeconfig not found at $${KUBECONFIG_FILE}. Run 'make kubeconfig-$${ENV}' first."; exit 1; }; \
+	echo "Uninstalling Helm release for environment: $${ENV}"; \
+	KUBECONFIG="$${KUBECONFIG_FILE}" helm uninstall kioskbot-backend-$${ENV} \
+		--namespace kioskbot-$${ENV}
+
+.PHONY: helm-uninstall-dev
+helm-uninstall-dev:
+	@$(MAKE) helm-uninstall ENV=dev
+
+.PHONY: helm-uninstall-prod
+helm-uninstall-prod:
+	@$(MAKE) helm-uninstall ENV=prod

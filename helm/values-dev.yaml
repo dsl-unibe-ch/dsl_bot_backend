@@ -1,0 +1,99 @@
+# Default values for kioskbot-backend (DEV environment)
+environment: dev
+
+# Release metadata
+releaseName: kioskbot-backend-dev
+managedBy: Helm
+
+# Labels configuration
+labels:
+  appName: kioskbot-backend
+  instance: kioskbot-backend-dev
+
+# Kafka configuration
+kafka:
+  image:
+    repository: apache/kafka
+    tag: "4.1.0"
+    pullPolicy: IfNotPresent
+  
+  env:
+    # K8s-specific: Use localhost for controller quorum voters
+    controllerQuorumVoters: "1@localhost:29093"
+  
+  service:
+    type: ClusterIP # internal-only service (not exposed outside cluster)
+  
+  resources:
+    limits:
+      cpu: 500m # max 0.5 CPU core
+      memory: 1Gi # max 1 GiB RAM
+    requests: # guaranteed resources reserved for Kafka
+      cpu: 250m # min 0.25 CPU core
+      memory: 512Mi # min 512 MiB RAM
+
+# Backend API configuration
+api:
+  replicaCount: 1
+  
+  # HPA
+  autoscaling:
+    enabled: true
+    minReplicas: 1
+    maxReplicas: 3
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+  
+  image:
+    repository: "" # Set via --set api.image.repository="${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER}/kioskbot-backend-api"
+    tag: "" # Set via --set api.image.tag="${VERSION}-${ENV}"
+    pullPolicy: IfNotPresent
+  
+  env:
+    # K8s-specific: Use service name for Kafka bootstrap servers
+    kafkaBootstrapServers: "kioskbot-backend-dev-kafka:9092" # Kafka connection using Kubernetes service DNS name
+  
+  # Load all env vars from Kubernetes Secret (created from .env.dev)
+  envFrom:
+    - secretRef:
+        name: kioskbot-backend-dev-secrets
+  
+  service:
+    type: LoadBalancer # Creates a public IP address (Azure Load Balancer)
+    port: 8000 # The port exposed externally
+  
+  resources:
+    limits: #  max 0.8 CPU cores, 768 MiB memory
+      cpu: 800m
+      memory: 768Mi
+    requests: # guaranteed 0.4 CPU cores, 384 MiB memory
+      cpu: 400m
+      memory: 384Mi
+
+# Kafka Consumer configuration
+kafkaConsumer:
+  replicaCount: 1
+  
+  image:
+    repository: "" # Set via --set kafkaConsumer.image.repository="${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER}/kioskbot-backend-api"
+    tag: "" # Set via --set kafkaConsumer.image.tag="${VERSION}-${ENV}"
+    pullPolicy: IfNotPresent
+  
+  env:
+    # K8s-specific: Use service name for Kafka bootstrap servers
+    kafkaBootstrapServers: "kioskbot-backend-dev-kafka:9092" # Kafka connection using Kubernetes service DNS name
+  
+  # Load all env vars from Kubernetes Secret (created from .env.dev)
+  envFrom:
+    - secretRef:
+        name: kioskbot-backend-dev-secrets
+  
+  resources:
+    limits: # Max 0.4 CPU cores, 384 MiB memory
+      cpu: 400m
+      memory: 384Mi
+    requests: # Guaranteed 0.2 CPU cores, 192 MiB memory
+      cpu: 200m
+      memory: 192Mi
+
+fullnameOverride: "kioskbot-backend-dev"

@@ -1,0 +1,6 @@
+apiVersion: v2
+name: kioskbot-backend
+description: A Helm chart for KioskBot Backend Application
+type: application
+version: 0.1.0
+appVersion: "1.0"

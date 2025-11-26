@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.fullnameOverride }}-kafka
+  labels:
+    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    app.kubernetes.io/name: {{ .Values.labels.appName }}
+    app.kubernetes.io/instance: {{ .Values.labels.instance }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+    app.kubernetes.io/managed-by: {{ .Values.managedBy }}
+    app.kubernetes.io/component: kafka
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ .Values.labels.appName }}
+      app.kubernetes.io/instance: {{ .Values.labels.instance }}
+      app.kubernetes.io/component: kafka
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ .Values.labels.appName }}
+        app.kubernetes.io/instance: {{ .Values.labels.instance }}
+        app.kubernetes.io/component: kafka
+    spec:
+      containers:
+      - name: kafka
+        image: {{ .Values.kafka.image.repository }}:{{ .Values.kafka.image.tag }}
+        imagePullPolicy: {{ .Values.kafka.image.pullPolicy }}
+        ports:
+        - containerPort: 9092
+          name: internal
+          protocol: TCP
+        - containerPort: 9094
+          name: external
+          protocol: TCP
+        - containerPort: 29093
+          name: controller
+          protocol: TCP
+        env:
+        - name: KAFKA_NODE_ID
+          value: "1"
+        - name: KAFKA_PROCESS_ROLES
+          value: broker,controller
+        - name: KAFKA_CONTROLLER_LISTENER_NAMES
+          value: CONTROLLER
+        - name: KAFKA_LISTENER_SECURITY_PROTOCOL_MAP
+          value: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+        - name: KAFKA_LISTENERS
+          value: INTERNAL://:9092,EXTERNAL://:9094,CONTROLLER://:29093
+        - name: KAFKA_ADVERTISED_LISTENERS
+          value: INTERNAL://{{ .Values.fullnameOverride }}-kafka:9092,EXTERNAL://localhost:9094
+        - name: KAFKA_INTER_BROKER_LISTENER_NAME
+          value: INTERNAL
+        - name: KAFKA_CONTROLLER_QUORUM_VOTERS
+          value: {{ .Values.kafka.env.controllerQuorumVoters }}
+        - name: KAFKA_LOG_DIRS
+          value: /var/lib/kafka/data
+        - name: KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR
+          value: "1"
+        livenessProbe:
+          tcpSocket:
+            port: 9092
+          initialDelaySeconds: 60  # Increased for resource-constrained environments
+          periodSeconds: 10
+          timeoutSeconds: 10
+          successThreshold: 1
+          failureThreshold: 30
+        readinessProbe:
+          tcpSocket:
+            port: 9092
+          initialDelaySeconds: 45  # Increased to allow Kafka to fully start
+          periodSeconds: 10
+          timeoutSeconds: 10
+          successThreshold: 1
+          failureThreshold: 30
+        resources:
+          {{- toYaml .Values.kafka.resources | nindent 10 }}

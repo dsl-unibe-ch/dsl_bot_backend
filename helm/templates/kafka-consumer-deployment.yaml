@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.fullnameOverride }}-kafka-consumer
+  labels:
+    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    app.kubernetes.io/name: {{ .Values.labels.appName }}
+    app.kubernetes.io/instance: {{ .Values.labels.instance }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+    app.kubernetes.io/managed-by: {{ .Values.managedBy }}
+    app.kubernetes.io/component: kafka-consumer
+spec:
+  replicas: {{ .Values.kafkaConsumer.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ .Values.labels.appName }}
+      app.kubernetes.io/instance: {{ .Values.labels.instance }}
+      app.kubernetes.io/component: kafka-consumer
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ .Values.labels.appName }}
+        app.kubernetes.io/instance: {{ .Values.labels.instance }}
+        app.kubernetes.io/component: kafka-consumer
+    spec:
+      containers:
+      - name: kafka-consumer
+        image: {{ .Values.kafkaConsumer.image.repository }}:{{ .Values.kafkaConsumer.image.tag }}
+        imagePullPolicy: {{ .Values.kafkaConsumer.image.pullPolicy }}
+        command:
+        - python
+        - scripts/kafka_to_azure_consumer.py
+        env:
+        - name: ENV
+          value: {{ .Values.environment }}
+        - name: PYTHONPATH
+          value: /app
+        - name: KAFKA_BOOTSTRAP_SERVERS
+          value: {{ .Values.kafkaConsumer.env.kafkaBootstrapServers }}
+        envFrom:
+        {{- toYaml .Values.kafkaConsumer.envFrom | nindent 8 }}
+        resources:
+          {{- toYaml .Values.kafkaConsumer.resources | nindent 10 }}
+      restartPolicy: Always

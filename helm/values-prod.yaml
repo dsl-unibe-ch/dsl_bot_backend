@@ -1,0 +1,99 @@
+# Default values for kioskbot-backend (PROD environment)
+environment: prod
+
+# Release metadata
+releaseName: kioskbot-backend-prod
+managedBy: Helm
+
+# Labels configuration
+labels:
+  appName: kioskbot-backend
+  instance: kioskbot-backend-prod
+
+# Kafka configuration
+kafka:
+  image:
+    repository: apache/kafka
+    tag: "4.1.0"
+    pullPolicy: IfNotPresent
+  
+  env:
+    # K8s-specific: Use localhost for controller quorum voters
+    controllerQuorumVoters: "1@localhost:29093"
+  
+  service:
+    type: ClusterIP
+  
+  resources:
+    limits:
+      cpu: 800m
+      memory: 2Gi
+    requests:
+      cpu: 400m
+      memory: 1Gi
+
+# Backend API configuration
+api:
+  replicaCount: 2
+  
+  # Horizontal Pod Autoscaler
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+  
+  image:
+    repository: "" # Set via --set api.image.repository="${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER}/kioskbot-backend-api"
+    tag: "" # Set via --set api.image.tag="${VERSION}-${ENV}"
+    pullPolicy: IfNotPresent
+  
+  env:
+    # K8s-specific: Use service name for Kafka bootstrap servers
+    kafkaBootstrapServers: "kioskbot-backend-prod-kafka:9092"
+  
+  # Load all env vars from Kubernetes Secret (created from .env.prod)
+  envFrom:
+    - secretRef:
+        name: kioskbot-backend-prod-secrets
+  
+  service:
+    type: LoadBalancer
+    port: 8000
+  
+  resources:
+    limits:
+      cpu: 1200m
+      memory: 1Gi
+    requests:
+      cpu: 600m
+      memory: 512Mi
+
+# Kafka Consumer configuration
+kafkaConsumer:
+  replicaCount: 1
+  
+  image:
+    repository: "" # Set via --set kafkaConsumer.image.repository="${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER}/kioskbot-backend-api"
+    tag: "" # Set via --set kafkaConsumer.image.tag="${VERSION}-${ENV}"
+    pullPolicy: IfNotPresent
+  
+  env:
+    # K8s-specific: Use service name for Kafka bootstrap servers
+    kafkaBootstrapServers: "kioskbot-backend-prod-kafka:9092"
+  
+  # Load all env vars from Kubernetes Secret (created from .env.prod)
+  envFrom:
+    - secretRef:
+        name: kioskbot-backend-prod-secrets
+  
+  resources:
+    limits:
+      cpu: 600m
+      memory: 512Mi
+    requests:
+      cpu: 300m
+      memory: 256Mi
+
+fullnameOverride: "kioskbot-backend-prod"

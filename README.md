@@ -402,9 +402,9 @@ make run-demo
 <details>
 <summary>Click to expand</summary>
 
-- Start the uvicorn server: 
+- Start the docker containers: 
 ```bash
-ENV=dev uvicorn app.api.v1.routers.main:app --reload --host 0.0.0.0 --port 8000
+make compose-up-dev
 ```
 
 - Start a session:
