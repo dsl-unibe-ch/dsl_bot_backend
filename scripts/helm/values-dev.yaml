@@ -26,21 +26,21 @@ kafka:
   
   resources:
     limits:
-      cpu: 500m # max 0.5 CPU core
-      memory: 1Gi # max 1 GiB RAM
+      cpu: 800m # max 0.8 CPU cores
+      memory: 2Gi # max 2 GiB RAM
     requests: # guaranteed resources reserved for Kafka
-      cpu: 250m # min 0.25 CPU core
-      memory: 512Mi # min 512 MiB RAM
+      cpu: 400m # min 0.4 CPU cores
+      memory: 1Gi # min 1 GiB RAM
 
 # Backend API configuration
 api:
-  replicaCount: 1
+  replicaCount: 2
   
   # HPA
   autoscaling:
     enabled: true
-    minReplicas: 1
-    maxReplicas: 3
+    minReplicas: 2
+    maxReplicas: 5
     targetCPUUtilizationPercentage: 70
     targetMemoryUtilizationPercentage: 80
   
@@ -63,12 +63,12 @@ api:
     port: 8000 # The port exposed externally
   
   resources:
-    limits: #  max 0.8 CPU cores, 768 MiB memory
-      cpu: 800m
-      memory: 768Mi
-    requests: # guaranteed 0.4 CPU cores, 384 MiB memory
-      cpu: 400m
-      memory: 384Mi
+    limits: #  max 1.2 CPU cores, 1 GiB memory
+      cpu: 1200m
+      memory: 1Gi
+    requests: # guaranteed 0.6 CPU cores, 512 MiB memory
+      cpu: 600m
+      memory: 512Mi
 
 # Kafka Consumer configuration
 kafkaConsumer:
@@ -89,11 +89,11 @@ kafkaConsumer:
         name: kioskbot-backend-dev-secrets
   
   resources:
-    limits: # Max 0.4 CPU cores, 384 MiB memory
-      cpu: 400m
-      memory: 384Mi
-    requests: # Guaranteed 0.2 CPU cores, 192 MiB memory
-      cpu: 200m
-      memory: 192Mi
+    limits: # Max 0.6 CPU cores, 512 MiB memory
+      cpu: 600m
+      memory: 512Mi
+    requests: # Guaranteed 0.3 CPU cores, 256 MiB memory
+      cpu: 300m
+      memory: 256Mi
 
 fullnameOverride: "kioskbot-backend-dev"
