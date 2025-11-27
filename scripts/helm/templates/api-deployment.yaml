@@ -11,6 +11,11 @@ metadata: # metadata for the Deployment resource (Azure portal -> AKS cluster ->
     app.kubernetes.io/component: api
 spec: # deployment specification section
   replicas: {{ .Values.api.replicaCount }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0 # Keep all current pods running until new ones are ready (zero downtime)
+      maxSurge: 1 # Allow 1 extra pod beyond the desired replica count during update
   selector: # tells the Deployment which pods it manages (must match pod template labels)
     matchLabels:
       app.kubernetes.io/name: {{ .Values.labels.appName }}
@@ -31,6 +36,12 @@ spec: # deployment specification section
         - containerPort: 8000 # the container exposes port 8000
           name: http
           protocol: TCP
+        readinessProbe: # readiness probe to check if the container is ready to serve traffic
+          httpGet:
+            path: / # readiness probe endpoint to check if the container is ready to serve traffic (best practice would be a dedicated health endpoint)
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 5
         env:
         - name: ENV # sets ENV variable (e.g., "dev", "prod") for environment-specific logic
           value: {{ .Values.environment }}
