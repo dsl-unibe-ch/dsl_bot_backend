@@ -1,8 +1,8 @@
-apiVersion: v1
-kind: Service
+apiVersion: v1 # Kubernetes API version for this resource
+kind: Service # declares the type of Kubernetes resource
 metadata:
-  name: {{ .Values.fullnameOverride }}-kafka
-  labels:
+  name: {{ .Values.fullnameOverride }}-kafka # name of the service
+  labels: # standard labels for the service
     helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version }}
     app.kubernetes.io/name: {{ .Values.labels.appName }}
     app.kubernetes.io/instance: {{ .Values.labels.instance }}
@@ -10,17 +10,17 @@ metadata:
     app.kubernetes.io/managed-by: {{ .Values.managedBy }}
     app.kubernetes.io/component: kafka
 spec:
-  type: {{ .Values.kafka.service.type }}
+  type: {{ .Values.kafka.service.type }} # type of the service (i.e., ClusterIP, the service is only accessible within the cluster)
   ports:
-  - name: internal
+  - name: internal # internal communication port for Kafka used by other services within the cluster
     port: 9092
     targetPort: 9092
     protocol: TCP
-  - name: external
+  - name: external # external communication port for Kafka used by clients outside the cluster
     port: 9094
     targetPort: 9094
     protocol: TCP
-  selector:
+  selector: # defines which pods this Service routes traffic to. Pods must have all three labels matching to receive traffic from this Service
     app.kubernetes.io/name: {{ .Values.labels.appName }}
     app.kubernetes.io/instance: {{ .Values.labels.instance }}
     app.kubernetes.io/component: kafka
