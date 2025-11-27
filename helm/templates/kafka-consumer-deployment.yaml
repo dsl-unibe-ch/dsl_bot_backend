@@ -1,8 +1,8 @@
-apiVersion: apps/v1
+apiVersion: apps/v1 # Kubernetes API version for Deployments
 kind: Deployment
 metadata:
-  name: {{ .Values.fullnameOverride }}-kafka-consumer
-  labels:
+  name: {{ .Values.fullnameOverride }}-kafka-consumer # Name of the Deployment
+  labels: # Standard Kubernetes labels for identifying the application
     helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version }}
     app.kubernetes.io/name: {{ .Values.labels.appName }}
     app.kubernetes.io/instance: {{ .Values.labels.instance }}
@@ -10,35 +10,35 @@ metadata:
     app.kubernetes.io/managed-by: {{ .Values.managedBy }}
     app.kubernetes.io/component: kafka-consumer
 spec:
-  replicas: {{ .Values.kafkaConsumer.replicaCount }}
-  selector:
+  replicas: {{ .Values.kafkaConsumer.replicaCount }} # Number of pod replicas to run
+  selector: # Selector to identify pods managed by this Deployment by their labels
     matchLabels:
       app.kubernetes.io/name: {{ .Values.labels.appName }}
       app.kubernetes.io/instance: {{ .Values.labels.instance }}
       app.kubernetes.io/component: kafka-consumer
   template:
-    metadata:
+    metadata: # Labels for the pods created by this Deployment. They must match the selector above
       labels:
         app.kubernetes.io/name: {{ .Values.labels.appName }}
         app.kubernetes.io/instance: {{ .Values.labels.instance }}
         app.kubernetes.io/component: kafka-consumer
     spec:
       containers:
-      - name: kafka-consumer
-        image: {{ .Values.kafkaConsumer.image.repository }}:{{ .Values.kafkaConsumer.image.tag }}
-        imagePullPolicy: {{ .Values.kafkaConsumer.image.pullPolicy }}
+      - name: kafka-consumer # Name of the container within the pod
+        image: {{ .Values.kafkaConsumer.image.repository }}:{{ .Values.kafkaConsumer.image.tag }} # Container image to use (repository and tag)
+        imagePullPolicy: {{ .Values.kafkaConsumer.image.pullPolicy }} # when to pull the container image (i.e., IfNotPresent)
         command:
         - python
-        - scripts/kafka_to_azure_consumer.py
-        env:
+        - scripts/kafka_to_azure_consumer.py # when k8s starts the container, it runs the Python script kafka_to_azure_consumer.py which consumes messages from Kafka and sends them to Azure
+        env: # set environment variables for the container
         - name: ENV
           value: {{ .Values.environment }}
         - name: PYTHONPATH
           value: /app
         - name: KAFKA_BOOTSTRAP_SERVERS
           value: {{ .Values.kafkaConsumer.env.kafkaBootstrapServers }}
-        envFrom:
+        envFrom: # injects the secrets as environment variables (it injects all secrets but only a subset of them are actually used by this service, i.e., KAFKA_TOPIC, KAFKA_BOOTSTRAP_SERVERS, AZURE_STORAGE_ACCOUNT_PRIMARY_CONNECTION_STRING, AZURE_CONTAINER_STORAGE_NAME). Note that if a variable is defined in both `env` and `envFrom`, `env` takes precedence over `envFrom`
         {{- toYaml .Values.kafkaConsumer.envFrom | nindent 8 }}
-        resources:
+        resources: # CPU/memory requests and limits from values file
           {{- toYaml .Values.kafkaConsumer.resources | nindent 10 }}
       restartPolicy: Always
