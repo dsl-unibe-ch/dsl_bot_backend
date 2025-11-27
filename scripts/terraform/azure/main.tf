@@ -141,6 +141,9 @@ module "kubernetes_cluster" {
       vnet_subnet_id = module.network_aks[0].AKS_SUBNET_ID # required to comply with UniBe policy
     })
   }
+  
+  # Grant AKS access to pull images from ACR
+  acr_id = data.azurerm_container_registry.acr[0].id
 }
 
 # --- Key Vault ---

@@ -44,3 +44,9 @@ variable "additional_node_pools" {
     max_count           = optional(number)
   }))
 }
+
+variable "acr_id" {
+  type        = string
+  description = "Azure Container Registry ID for granting AcrPull permission"
+  default     = null
+}

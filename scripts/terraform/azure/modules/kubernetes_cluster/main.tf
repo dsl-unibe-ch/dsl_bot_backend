@@ -53,3 +53,12 @@ resource "azurerm_kubernetes_cluster_node_pool" "extra_pools" {
   min_count             = lookup(each.value, "auto_scaling_enabled", false) ? lookup(each.value, "min_count", 1) : null
   max_count             = lookup(each.value, "auto_scaling_enabled", false) ? lookup(each.value, "max_count", 1) : null
 }
+
+# Grant AKS kubelet identity permission to pull images from ACR
+resource "azurerm_role_assignment" "aks_acr_pull" {
+  count                = var.acr_id != null ? 1 : 0
+  principal_id         = azurerm_kubernetes_cluster.this.kubelet_identity[0].object_id
+  role_definition_name = "AcrPull"
+  scope                = var.acr_id
+  skip_service_principal_aad_check = true
+}
