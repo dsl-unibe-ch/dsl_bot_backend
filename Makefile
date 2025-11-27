@@ -132,6 +132,10 @@ help:
 	@echo "  make kubeconfig ENV=dev    # write kubeconfig file from TF output"
 	@echo "  make deploy-dev            # plan/apply dev and write kubeconfig"
 	@echo "  make deploy-prod           # plan/apply prod and write kubeconfig"
+	@echo "  make k8s-create-namespace-dev   # create K8s namespace (dev)"
+	@echo "  make k8s-create-namespace-prod  # create K8s namespace (prod)"
+	@echo "  make k8s-create-secrets-dev     # create K8s secrets from .env (dev)"
+	@echo "  make k8s-create-secrets-prod    # create K8s secrets from .env (prod)"
 	@echo "  make helm-install-dev      # install Helm chart to K8s (dev)"
 	@echo "  make helm-install-prod     # install Helm chart to K8s (prod)"
 	@echo "  make helm-upgrade-dev      # upgrade Helm release (dev)"
@@ -280,14 +284,49 @@ helm-install:
 	IMAGE_TAG="$(VERSION)-$${ENV}"; \
 	echo "Installing Helm chart for environment: $${ENV}"; \
 	echo "Using image: $${IMAGE_REPO}:$${IMAGE_TAG}"; \
-	KUBECONFIG="$${KUBECONFIG_FILE}" helm install kioskbot-backend-$${ENV} ./helm \
-		--values ./helm/values-$${ENV}.yaml \
+	KUBECONFIG="$${KUBECONFIG_FILE}" helm install kioskbot-backend-$${ENV} ./scripts/helm \
+		--values ./scripts/helm/values-$${ENV}.yaml \
 		--set api.image.repository="$${IMAGE_REPO}" \
 		--set api.image.tag="$${IMAGE_TAG}" \
 		--set kafkaConsumer.image.repository="$${IMAGE_REPO}" \
 		--set kafkaConsumer.image.tag="$${IMAGE_TAG}" \
 		--create-namespace \
 		--namespace kioskbot-$${ENV}
+
+.PHONY: k8s-create-namespace
+k8s-create-namespace:
+	@ENV=$(ENV); \
+	KUBECONFIG_FILE=$(TF_DIR)/outputs/$${ENV}.kubeconfig; \
+	test -f "$${KUBECONFIG_FILE}" || { echo "ERROR: kubeconfig not found at $${KUBECONFIG_FILE}. Run 'make kubeconfig-$${ENV}' first."; exit 1; }; \
+	echo "Creating namespace for environment: $${ENV}"; \
+	KUBECONFIG="$${KUBECONFIG_FILE}" kubectl create namespace kioskbot-$${ENV}
+
+.PHONY: k8s-create-namespace-dev
+k8s-create-namespace-dev:
+	@$(MAKE) k8s-create-namespace ENV=dev
+
+.PHONY: k8s-create-namespace-prod
+k8s-create-namespace-prod:
+	@$(MAKE) k8s-create-namespace ENV=prod
+
+.PHONY: k8s-create-secrets
+k8s-create-secrets:
+	@ENV=$(ENV); \
+	test -f ./.env.$${ENV} || { echo "ERROR: missing .env.$${ENV} at repo root"; exit 1; }; \
+	KUBECONFIG_FILE=$(TF_DIR)/outputs/$${ENV}.kubeconfig; \
+	test -f "$${KUBECONFIG_FILE}" || { echo "ERROR: kubeconfig not found at $${KUBECONFIG_FILE}. Run 'make kubeconfig-$${ENV}' first."; exit 1; }; \
+	echo "Creating secrets for environment: $${ENV}"; \
+	KUBECONFIG="$${KUBECONFIG_FILE}" kubectl create secret generic kioskbot-backend-$${ENV}-secrets \
+		--from-env-file=.env.$${ENV} \
+		--namespace=kioskbot-$${ENV}
+
+.PHONY: k8s-create-secrets-dev
+k8s-create-secrets-dev:
+	@$(MAKE) k8s-create-secrets ENV=dev
+
+.PHONY: k8s-create-secrets-prod
+k8s-create-secrets-prod:
+	@$(MAKE) k8s-create-secrets ENV=prod
 
 .PHONY: helm-install-dev
 helm-install-dev:
@@ -308,8 +347,8 @@ helm-upgrade:
 	IMAGE_TAG="$(VERSION)-$${ENV}"; \
 	echo "Upgrading Helm release for environment: $${ENV}"; \
 	echo "Using image: $${IMAGE_REPO}:$${IMAGE_TAG}"; \
-	KUBECONFIG="$${KUBECONFIG_FILE}" helm upgrade kioskbot-backend-$${ENV} ./helm \
-		--values ./helm/values-$${ENV}.yaml \
+	KUBECONFIG="$${KUBECONFIG_FILE}" helm upgrade kioskbot-backend-$${ENV} ./scripts/helm \
+		--values ./scripts/helm/values-$${ENV}.yaml \
 		--set api.image.repository="$${IMAGE_REPO}" \
 		--set api.image.tag="$${IMAGE_TAG}" \
 		--set kafkaConsumer.image.repository="$${IMAGE_REPO}" \
