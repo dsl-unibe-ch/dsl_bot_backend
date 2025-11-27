@@ -1,6 +1,6 @@
-apiVersion: v2
-name: kioskbot-backend
+apiVersion: v2 # Helm Chart API version
+name: kioskbot-backend # name of the Helm chart
 description: A Helm chart for KioskBot Backend Application
-type: application
-version: 0.1.0
-appVersion: "1.0"
+type: application # a chart that can be deployed and run
+version: 0.1.0 # version of the Helm chart itself (chage it when you make changes to the charts, values, templates, etc.)
+appVersion: "0.1.0" # version of the application being deployed 
