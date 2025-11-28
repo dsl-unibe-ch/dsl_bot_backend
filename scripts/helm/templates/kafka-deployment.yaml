@@ -66,7 +66,7 @@ spec:
           timeoutSeconds: 10 # times out after 10s
           successThreshold: 1 # requires 1 successful check to be considered healthy
           failureThreshold: 30 # after 30 failures, container is restarted
-        readinessProbe: # checks if the container is ready to serve traffic
+        readinessProbe: # readiness probe to check if the container is ready to serve traffic (after N consecutive failures, Kubernetes removes the pod from the Service until it's healthy again)
           tcpSocket:
             port: 9092
           initialDelaySeconds: 45 # waits 45s before first check

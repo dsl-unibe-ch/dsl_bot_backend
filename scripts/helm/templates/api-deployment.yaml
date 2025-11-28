@@ -46,7 +46,7 @@ spec: # deployment specification section
           periodSeconds: 30
           timeoutSeconds: 5
           failureThreshold: 3
-        readinessProbe: # readiness probe to check if the container is ready to serve traffic (after 3 consecutive failures, Kubernetes removes the pod from the Service)
+        readinessProbe: # readiness probe to check if the container is ready to serve traffic (after 3 consecutive failures, Kubernetes removes the pod from the Service until it's healthy again)
           httpGet:
             path: /health
             port: 8000
