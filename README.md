@@ -497,6 +497,11 @@ KUBECONFIG=scripts/terraform/azure/outputs/{ENV}.kubeconfig \
 
 #### Check Pod Status
 ```bash
+az aks get-credentials \
+  --resource-group $(make terraform-output-var ENV=dev VAR=RESOURCE_GROUP_NAME) \
+  --name $(make terraform-output-var ENV=dev VAR=AKS_CLUSTER_NAME) \
+  --overwrite-existing
+
 kubectl get pods -n kioskbot-{ENV}
 ```
 
