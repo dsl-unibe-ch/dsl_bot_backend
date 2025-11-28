@@ -1,6 +1,8 @@
 """Endpoints for the Kioskbot."""
 
 import logging
+import tomllib
+from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -15,6 +17,15 @@ from app.agent.schemas import (
 from app.config import settings
 
 logger = logging.getLogger("Kioskbot")
+
+
+def get_version() -> str:
+    """Read version from pyproject.toml."""
+    pyproject_path = Path(__file__).parents[4] / "pyproject.toml"
+    with pyproject_path.open("rb") as f:
+        data = tomllib.load(f)
+    return data["project"]["version"]
+
 
 app = FastAPI(
     title=settings.APP_TITLE,
@@ -32,6 +43,12 @@ app.add_middleware(
     allow_methods=settings.ALLOWED_METHODS,  #  HTTP methods GET, POST, PUT, DELETE are allowed. Improvement: only allow necessary HTTP methods, i.e., GET, POST. TBD # noqa: E501
     allow_headers=settings.ALLOWED_HEADERS,  #  the API will accept requests with any HTTP headers. Improvement: only allow needed header, i.e., Authorization, Content-Type # noqa: E501
 )
+
+
+@app.get("/health")
+def health_check() -> dict:
+    """Health check endpoint for Kubernetes probes and monitoring."""
+    return {"status": "healthy", "version": get_version()}
 
 
 @app.get("/")
