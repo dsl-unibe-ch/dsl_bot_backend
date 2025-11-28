@@ -30,7 +30,7 @@ spec: # deployment specification section
     spec: # pod specification section that defines what runs inside the pods
       containers: # list of containers in the pod
       - name: api # this pod has one container named "api"
-        image: {{ .Values.api.image.repository }}:{{ .Values.api.image.tag }} # container image to run
+        image: "{{ .Values.api.image.repository }}:{{ .Values.api.image.tag }}" # container image to run
         imagePullPolicy: {{ .Values.api.image.pullPolicy }} # pull only if not present in the node
         ports:
         - containerPort: 8000 # the container exposes port 8000

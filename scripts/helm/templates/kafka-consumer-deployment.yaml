@@ -25,7 +25,7 @@ spec:
     spec:
       containers:
       - name: kafka-consumer # Name of the container within the pod
-        image: {{ .Values.kafkaConsumer.image.repository }}:{{ .Values.kafkaConsumer.image.tag }} # Container image to use (repository and tag)
+        image: "{{ .Values.kafkaConsumer.image.repository }}:{{ .Values.kafkaConsumer.image.tag }}" # Container image to use (repository and tag)
         imagePullPolicy: {{ .Values.kafkaConsumer.image.pullPolicy }} # when to pull the container image (i.e., IfNotPresent)
         command:
         - python
