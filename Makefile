@@ -115,6 +115,13 @@ TF_DIR  ?= scripts/terraform/azure
 ENV     ?= dev
 TFVARS  ?= environments/$(ENV).tfvars
 AZ_SUBSCRIPTION_ID ?= $(shell az account show --query id -o tsv 2>/dev/null)
+ifdef USERPROFILE # if the system is Windows
+KUBE_HOME := $(subst \,/,$(USERPROFILE))
+KUBECONFIG ?= $(KUBE_HOME)/.kube/config
+else # else (the system is not Windows)
+KUBECONFIG ?= $(HOME)/.kube/config
+endif
+DASHBOARD_CHART_VERSION = 7.14.0
 
 # ---- phony targets ----
 .PHONY: help login set-sub init workspace plan apply destroy output fmt validate clean
@@ -144,6 +151,12 @@ help:
 	@echo "  make helm-uninstall-prod   # uninstall Helm release (prod)"
 	@echo "  make fmt validate          # housekeeping"
 	@echo "  make clean                 # remove local tf state/cache"
+	@echo "\nKubernetes Dashboard:"
+	@echo "  make helm-dashboard-install     # install/upgrade dashboard"
+	@echo "  make helm-dashboard-status      # show dashboard release status"
+	@echo "  make helm-dashboard-port        # port-forward 8443->443"
+	@echo "  make helm-dashboard-uninstall   # uninstall dashboard"
+	@echo "  make get-aks-credentials # configures the local kubectl to connect to the AKS cluster"
 	@echo "\nGlobal workspace (never destroy):"
 	@echo "  make terraform-plan-global   # plan shared Storage & ACR"
 	@echo "  make terraform-apply-global  # apply shared Storage & ACR"
@@ -379,3 +392,58 @@ helm-uninstall-dev:
 .PHONY: helm-uninstall-prod
 helm-uninstall-prod:
 	@$(MAKE) helm-uninstall ENV=prod
+
+
+# ---- Kubernetes Dashboard ----
+.PHONY: helm-dashboard-install helm-dashboard-status helm-dashboard-port helm-dashboard-uninstall get-aks-credentials
+
+helm-dashboard-install:
+	@echo $@
+	KUBECONFIG="$(KUBECONFIG)" helm upgrade --install kubernetes-dashboard kubernetes-dashboard \
+	  --repo https://kubernetes.github.io/dashboard/ \
+	  --namespace kubernetes-dashboard --create-namespace \
+	  --version $(DASHBOARD_CHART_VERSION) \
+	  --set metricsScraper.enabled=true \
+	  --wait
+
+helm-dashboard-status:
+	@echo $@
+	KUBECONFIG="$(KUBECONFIG)" helm status kubernetes-dashboard -n kubernetes-dashboard || true
+
+helm-dashboard-port:
+	@echo $@
+	KUBECONFIG="$(KUBECONFIG)" kubectl -n kubernetes-dashboard port-forward svc/kubernetes-dashboard-kong-proxy 8443:443
+
+create-dashboard-admin-service-account-and-cluster-role-binding:
+	@echo "Creating dashboard-admin service account and cluster role binding..."
+	@printf '%s\n' \
+	  'apiVersion: v1' \
+	  'kind: ServiceAccount' \
+	  'metadata:' \
+	  '  name: dashboard-admin' \
+	  '  namespace: kubernetes-dashboard' \
+	  '---' \
+	  'apiVersion: rbac.authorization.k8s.io/v1' \
+	  'kind: ClusterRoleBinding' \
+	  'metadata:' \
+	  '  name: dashboard-admin' \
+	  'roleRef:' \
+	  '  apiGroup: rbac.authorization.k8s.io' \
+	  '  kind: ClusterRole' \
+	  '  name: cluster-admin' \
+	  'subjects:' \
+	  '  - kind: ServiceAccount' \
+	  '    name: dashboard-admin' \
+	  '    namespace: kubernetes-dashboard' \
+	  | kubectl apply -f -
+
+helm-dashboard-uninstall:
+	@echo $@
+	KUBECONFIG="$(KUBECONFIG)" helm uninstall kubernetes-dashboard -n kubernetes-dashboard || true
+	KUBECONFIG="$(KUBECONFIG)" kubectl delete ns kubernetes-dashboard --ignore-not-found=true
+
+get-aks-credentials:
+	@RG_NAME=$$($(MAKE) --no-print-directory terraform-output-var VAR=RESOURCE_GROUP_NAME 2>/dev/null) ; \
+	AKS_NAME=$$($(MAKE) --no-print-directory terraform-output-var VAR=AKS_CLUSTER_NAME 2>/dev/null) ; \
+	echo "az aks get-credentials --resource-group $$RG_NAME --name $$AKS_NAME --overwrite-existing" ; \
+	az aks get-credentials --resource-group $$RG_NAME --name $$AKS_NAME --overwrite-existing

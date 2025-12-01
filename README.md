@@ -189,6 +189,8 @@ The reason for this three-level separation is to have some common resources shar
             make terraform-apply-dev
             ```
 
+        - Configure Kubernetes Dashboard by following [Kubernetes Dashboard](#kubernetes-dashboard)
+
     - Create the `prod` environment
         - Create or select workspace (if already created)
             ```bash
@@ -208,6 +210,8 @@ The reason for this three-level separation is to have some common resources shar
             ```bash
             make terraform-apply-prod
             ```
+
+        - Configure Kubernetes Dashboard by following [Kubernetes Dashboard](#kubernetes-dashboard)
     
     - Extract Output (The output is used to populate the `{ENV}.env` files)
         - For `global` environment
@@ -254,6 +258,71 @@ The reason for this three-level separation is to have some common resources shar
             ```
             
     - Increase the `Tokens-Per-Minute` manually in the Azure portal to the maximum inside the OpenAI model deployments in the portal as Terraform doesn’t expose such a `Tokens-Per-Minute` for azurerm_cognitive_deployment. Pay attention that there are two resource groups and the maximum limit needs to share between both. 
+
+</details>
+
+## Kubernetes Dashboard
+<details>
+<summary>Click to expand</summary>
+
+- Prerequisites:
+     - Install Helm
+        - Windows : Run from Powershell as admin
+            ```bash
+            choco install kubernetes-helm
+            ```
+        - Mac : 
+            ```
+            brew install helm
+            ```
+            
+- Login: Select the subscription id.
+    ```bash 
+    make az-login
+    ```
+
+- Set subscription: The subscription selected while login in is set again explicitly.
+    ```bash
+    make az-set-subscription
+    ```
+
+- Configure the local kubectl to connect to the AKS cluster:
+    ```bash
+    make get-aks-credentials
+    ```
+
+- Install the dashboard:
+    ```bash
+    make helm-dashboard-install
+    ```
+
+- Port-forward to access the dashboard locally:
+    ```bash
+    make helm-dashboard-port
+    ```
+    - Open https://localhost:8443 in the browser
+
+- Login to the dashboard:
+
+    - Create a ServiceAccount named `dashboard-admin` in the `kubernetes-dashboard` namespace and give it cluster-admin privileges:
+    ```bash
+    make create-dashboard-admin-service-account-and-cluster-role-binding
+    ```
+    - Generate a token:
+    ```bash
+    kubectl -n kubernetes-dashboard create token dashboard-admin
+    ```
+    - Copy and paste the token into the dashboard login page https://localhost:8443
+
+- Check the status of the dashboard:
+    ```bash
+    make helm-dashboard-status
+    ```
+
+- Uninstall the dashboard:
+    ```bash
+    make helm-dashboard-uninstall
+    ```
 
 </details>
 
