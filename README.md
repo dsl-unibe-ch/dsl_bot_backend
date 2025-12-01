@@ -298,26 +298,7 @@ The reason for this three-level separation is to have some common resources shar
 
     - Create a ServiceAccount named `dashboard-admin` in the `kubernetes-dashboard` namespace and give it cluster-admin privileges:
     ```bash
-    kubectl apply -f - <<'YAML'
-    apiVersion: v1
-    kind: ServiceAccount
-    metadata:
-        name: dashboard-admin
-        namespace: kubernetes-dashboard
-    ---
-    apiVersion: rbac.authorization.k8s.io/v1
-    kind: ClusterRoleBinding
-    metadata:
-        name: dashboard-admin
-    roleRef:
-        apiGroup: rbac.authorization.k8s.io
-        kind: ClusterRole
-        name: cluster-admin
-    subjects:
-    - kind: ServiceAccount
-        name: dashboard-admin
-        namespace: kubernetes-dashboard
-    YAML
+    make create-dashboard-admin-service-account-and-cluster-role-binding
     ```
     - Generate a token:
     ```bash

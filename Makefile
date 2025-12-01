@@ -111,7 +111,12 @@ TF_DIR  ?= scripts/terraform/azure
 ENV     ?= dev
 TFVARS  ?= environments/$(ENV).tfvars
 AZ_SUBSCRIPTION_ID ?= $(shell az account show --query id -o tsv 2>/dev/null)
+ifdef USERPROFILE # if the system is Windows
+KUBE_HOME := $(subst \,/,$(USERPROFILE))
+KUBECONFIG ?= $(KUBE_HOME)/.kube/config
+else # else (the system is not Windows)
 KUBECONFIG ?= $(HOME)/.kube/config
+endif
 DASHBOARD_CHART_VERSION = 7.14.0
 
 # ---- phony targets ----
@@ -271,7 +276,7 @@ deploy-prod:
 
 helm-dashboard-install:
 	@echo $@
-	KUBECONFIG=$(KUBECONFIG) helm upgrade --install kubernetes-dashboard kubernetes-dashboard \
+	KUBECONFIG="$(KUBECONFIG)" helm upgrade --install kubernetes-dashboard kubernetes-dashboard \
 	  --repo https://kubernetes.github.io/dashboard/ \
 	  --namespace kubernetes-dashboard --create-namespace \
 	  --version $(DASHBOARD_CHART_VERSION) \
@@ -280,16 +285,39 @@ helm-dashboard-install:
 
 helm-dashboard-status:
 	@echo $@
-	KUBECONFIG=$(KUBECONFIG) helm status kubernetes-dashboard -n kubernetes-dashboard || true
+	KUBECONFIG="$(KUBECONFIG)" helm status kubernetes-dashboard -n kubernetes-dashboard || true
 
 helm-dashboard-port:
 	@echo $@
-	KUBECONFIG=$(KUBECONFIG) kubectl -n kubernetes-dashboard port-forward svc/kubernetes-dashboard-kong-proxy 8443:443
+	KUBECONFIG="$(KUBECONFIG)" kubectl -n kubernetes-dashboard port-forward svc/kubernetes-dashboard-kong-proxy 8443:443
+
+create-dashboard-admin-service-account-and-cluster-role-binding:
+	@echo "Creating dashboard-admin service account and cluster role binding..."
+	@printf '%s\n' \
+	  'apiVersion: v1' \
+	  'kind: ServiceAccount' \
+	  'metadata:' \
+	  '  name: dashboard-admin' \
+	  '  namespace: kubernetes-dashboard' \
+	  '---' \
+	  'apiVersion: rbac.authorization.k8s.io/v1' \
+	  'kind: ClusterRoleBinding' \
+	  'metadata:' \
+	  '  name: dashboard-admin' \
+	  'roleRef:' \
+	  '  apiGroup: rbac.authorization.k8s.io' \
+	  '  kind: ClusterRole' \
+	  '  name: cluster-admin' \
+	  'subjects:' \
+	  '  - kind: ServiceAccount' \
+	  '    name: dashboard-admin' \
+	  '    namespace: kubernetes-dashboard' \
+	  | kubectl apply -f -
 
 helm-dashboard-uninstall:
 	@echo $@
-	KUBECONFIG=$(KUBECONFIG) helm uninstall kubernetes-dashboard -n kubernetes-dashboard || true
-	KUBECONFIG=$(KUBECONFIG) kubectl delete ns kubernetes-dashboard --ignore-not-found=true
+	KUBECONFIG="$(KUBECONFIG)" helm uninstall kubernetes-dashboard -n kubernetes-dashboard || true
+	KUBECONFIG="$(KUBECONFIG)" kubectl delete ns kubernetes-dashboard --ignore-not-found=true
 
 get-aks-credentials:
 	@RG_NAME=$$($(MAKE) --no-print-directory terraform-output-var VAR=RESOURCE_GROUP_NAME 2>/dev/null) ; \
