@@ -241,4 +241,5 @@ variable "aks_additional_node_pools" {
     min_count            = optional(number)
     max_count            = optional(number)
   }))
+  default = {}
 }

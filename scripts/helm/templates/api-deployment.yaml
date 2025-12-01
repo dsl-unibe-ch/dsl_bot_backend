@@ -1,0 +1,65 @@
+apiVersion: apps/v1 # kubernetes API version for Deployment resources
+kind: Deployment # resource type
+metadata: # metadata for the Deployment resource (Azure portal -> AKS cluster -> Workloads -> Deployments -> kioskbot-backend-{ENV}-api)
+  name: {{ .Values.fullnameOverride }}-api
+  labels:
+    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    app.kubernetes.io/name: {{ .Values.labels.appName }}
+    app.kubernetes.io/instance: {{ .Values.labels.instance }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+    app.kubernetes.io/managed-by: {{ .Values.managedBy }}
+    app.kubernetes.io/component: api
+spec: # deployment specification section
+  {{- if not .Values.api.autoscaling.enabled }}
+  replicas: {{ .Values.api.replicaCount }}
+  {{- end }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0 # Keep all current pods running until new ones are ready (zero downtime)
+      maxSurge: 1 # Allow 1 extra pod beyond the desired replica count during update
+  selector: # tells the Deployment which pods it manages (must match pod template labels)
+    matchLabels:
+      app.kubernetes.io/name: {{ .Values.labels.appName }}
+      app.kubernetes.io/instance: {{ .Values.labels.instance }}
+      app.kubernetes.io/component: api
+  template:
+    metadata:
+      labels: # labels for the Pods managed by this Deployment (must match the selector labels above)
+        app.kubernetes.io/name: {{ .Values.labels.appName }}
+        app.kubernetes.io/instance: {{ .Values.labels.instance }}
+        app.kubernetes.io/component: api
+    spec: # pod specification section that defines what runs inside the pods
+      containers: # list of containers in the pod
+      - name: api # this pod has one container named "api"
+        image: "{{ .Values.api.image.repository }}:{{ .Values.api.image.tag }}" # container image to run
+        imagePullPolicy: {{ .Values.api.image.pullPolicy }} # pull only if not present in the node
+        ports:
+        - containerPort: 8000 # the container exposes port 8000
+          name: http
+          protocol: TCP
+        livenessProbe: # liveness probe to check if the container is still running (after 3 consecutive failures, Kubernetes restarts the container)
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 30
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe: # readiness probe to check if the container is ready to serve traffic (after 3 consecutive failures, Kubernetes removes the pod from the Service until it's healthy again)
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        env:
+        - name: ENV # sets ENV variable (e.g., "dev", "prod") for environment-specific logic
+          value: {{ .Values.environment }}
+        - name: KAFKA_BOOTSTRAP_SERVERS # sets Kafka bootstrap servers for the API to connect to Kafka
+          value: {{ .Values.api.env.kafkaBootstrapServers }}
+        envFrom:
+        {{- toYaml .Values.api.envFrom | nindent 8 }}
+        resources: # CPU and memory requests/limits for the container 
+          {{- toYaml .Values.api.resources | nindent 10 }}

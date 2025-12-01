@@ -180,6 +180,10 @@ The reason for this three-level separation is to have some common resources shar
             make terraform-plan-dev
             ```
 
+        - Go to Azure portal -> PIM -> Groups -> Activate `PIM_Azure_mg-dsl-informationskiosk-owner`
+
+        - Run `az logout` and `make az-login` to refresh credentials
+
         - Apply the plan created above
             ```bash
             make terraform-apply-dev
@@ -197,6 +201,10 @@ The reason for this three-level separation is to have some common resources shar
             ```bash
             make terraform-plan-prod
             ```
+
+        - Go to Azure portal -> PIM -> Groups -> Activate `PIM_Azure_mg-dsl-informationskiosk-owner`
+
+        - Run `az logout` and `make az-login` to refresh credentials
 
         - Apply the plan created above
             ```bash
@@ -361,6 +369,316 @@ Common tags are applied via a shared local map and passed to modules:
 
 </details>
 
+
+## Helm
+<details>
+<summary>Click to expand</summary>
+
+This Helm chart deploys the KioskBot backend application to Kubernetes, including Kafka, the API service, and the Kafka consumer. Here's the flow:
+```
+Template Files + Values Files → Helm Renders → Final YAML → Kubernetes API → Running Pods
+```
+
+### Prerequisites
+
+- Kubernetes cluster already deployed (see section [Terraform](#terraform))
+- `kubectl` installed
+    - Windows : Run from Powershell as admin
+        ```bash
+        choco install kubernetes-cli
+        ```
+    - Mac :  
+        ```bash
+        brew install kubectl@1.34.1
+        ```
+- `helm` CLI installed
+    - Windows : Run from Powershell as admin
+        ```bash
+        choco install kubernetes-helm
+        ```
+    - Mac :  
+        ```bash
+        brew install helm@4.0.1
+        ```
+- Docker images built and pushed to Azure Container Registry (see section [Docker](#docker))
+- `.env.dev` and/or `.env.prod` files with the environment variables (see section [Configure the environment variables](#configure-the-environment-variables))
+
+### First Time Setup
+
+1. **Generate kubeconfig** from Terraform:
+```bash
+# Dev environment
+make kubeconfig-dev
+
+# Prod environment
+make kubeconfig-prod
+```
+This creates `scripts/terraform/azure/outputs/{ENV}.kubeconfig`
+
+1. **Create Kubernetes namespaces and secrets**
+
+Before deploying, create Kubernetes namespaces and secrets from the environment file:
+
+```bash
+# Dev environment
+make k8s-create-namespace-dev
+make k8s-create-secrets-dev
+
+# Prod environment
+make k8s-create-namespace-prod
+make k8s-create-secrets-prod
+```
+
+2. **Deploy with Helm**
+
+Deploy the app on the cluster:
+```bash
+# Dev environment
+make helm-install-dev
+
+# Prod environment
+make helm-install-prod
+```
+
+> **Note:** After deployment, Kafka may take 2-3 minutes to fully initialize. During this time, API and consumer pods may show `CrashLoopBackOff` or `Error` status while waiting for Kafka to become available. This is expected behavior and the pods will automatically recover once Kafka is ready.
+
+### Updating the Deployment with a new version of the app
+
+1. **Update the application version in `pyproject.toml`:**
+   ```toml
+   version = "0.2.0"  # e.g., increment from 0.1.0
+   ```
+
+2. **(Optional) Update chart metadata in `helm/Chart.yaml`:**
+   - **`appVersion`**: Update to match `pyproject.toml` for documentation purposes (e.g., `"0.2.0"`)
+   - **`version`**: Only increment when you modify the Helm chart templates themselves (e.g., adding new deployments, changing resource limits in templates), not for application version updates
+   
+   Example:
+   ```yaml
+   apiVersion: v2
+   name: kioskbot-backend
+   description: A Helm chart for KioskBot Backend Application
+   type: application
+   version: 0.1.0        # Chart version - increment only for template changes
+   appVersion: "0.2.0"   # Application version - sync with pyproject.toml
+   ```
+
+3. **Build and push the new Docker image:**
+
+   ```bash
+   make build-image-{ENV}
+   make push-image-{ENV}
+   ```
+
+4. **Upgrade the Helm release:**
+
+   ```bash
+   make helm-upgrade-{ENV}
+   ```
+
+The Makefile automatically reads the version from `pyproject.toml` and sets the image tag to `{VERSION}-{ENV}` (e.g., `0.2.0-dev`).
+
+**What gets updated:**
+- Both `api` and `kafka-consumer` use the same image, so both get updated together
+- Kafka uses the official Apache Kafka image and won't change unless you modify `values-{ENV}.yaml`
+
+### Updating Only Specific Components
+
+**To update just Kafka version:**
+```bash
+# Edit helm/values-{ENV}.yaml
+kafka:
+  image:
+    tag: "4.2.0"  # e.g., change from 4.1.0
+
+# Apply the change
+make helm-upgrade-{ENV}
+```
+
+**To update configuration (resources, replicas, etc.):**
+```bash
+# Edit helm/values-{ENV}.yaml
+api:
+  replicaCount: 3  # Scale from 1 to 3
+
+# Apply the change
+make helm-upgrade-{ENV}
+```
+
+### Rolling Back a Deployment
+
+**1. View release history:**
+```bash
+KUBECONFIG=scripts/terraform/azure/outputs/{ENV}.kubeconfig \
+  helm history kioskbot-backend-{ENV} -n kioskbot-{ENV}
+```
+
+This shows all revisions with their status:
+```
+REVISION  STATUS      DESCRIPTION
+1         superseded  Install complete
+2         superseded  Upgrade complete
+3         deployed    Upgrade complete
+```
+
+**2. Roll back to previous version:**
+```bash
+KUBECONFIG=scripts/terraform/azure/outputs/{ENV}.kubeconfig \
+  helm rollback kioskbot-backend-{ENV} -n kioskbot-{ENV}
+```
+
+**3. Roll back to specific revision number (e.g., 2):**
+```bash
+# Roll back to revision 2 specifically
+KUBECONFIG=scripts/terraform/azure/outputs/{ENV}.kubeconfig \
+  helm rollback kioskbot-backend-{ENV} 2 -n kioskbot-{ENV}
+```
+
+### Upgrade vs Install
+
+- **`helm install`** - Deploy for the first time (use `make helm-install-{ENV}`)
+- **`helm upgrade`** - Update existing deployment (use `make helm-upgrade-{ENV}`)
+- **`helm rollback`** - Revert to a previous version
+
+### Uninstalling
+
+**Uninstall the Helm release:**
+```bash
+# Dev
+make helm-uninstall-dev
+
+# Prod
+make helm-uninstall-prod
+```
+
+**To completely clean up (optional):**
+```bash
+# Delete the secret too
+KUBECONFIG=scripts/terraform/azure/outputs/{ENV}.kubeconfig \
+  kubectl delete secret kioskbot-backend-{ENV}-secrets -n kioskbot-{ENV}
+
+# Delete the namespace (removes ALL resources in kioskbot-{ENV} namespace)
+KUBECONFIG=scripts/terraform/azure/outputs/{ENV}.kubeconfig \
+  kubectl delete namespace kioskbot-{ENV}
+```
+
+### Troubleshooting
+
+#### Check Pod Status
+```bash
+az aks get-credentials \
+  --resource-group $(make terraform-output-var ENV=dev VAR=RESOURCE_GROUP_NAME) \
+  --name $(make terraform-output-var ENV=dev VAR=AKS_CLUSTER_NAME) \
+  --overwrite-existing
+
+kubectl get pods -n kioskbot-{ENV}
+```
+
+#### View Logs
+```bash
+# API logs
+kubectl logs -n kioskbot-{ENV} -l app.kubernetes.io/component=api
+
+# Kafka logs
+kubectl logs -n kioskbot-{ENV} -l app.kubernetes.io/component=kafka
+
+# Consumer logs
+kubectl logs -n kioskbot-{ENV} -l app.kubernetes.io/component=kafka-consumer
+```
+
+#### Check Services
+```bash
+kubectl get svc -n kioskbot-{ENV}
+```
+
+#### Check Autoscaling Status
+
+**View HPA status:**
+```bash
+KUBECONFIG=scripts/terraform/azure/outputs/{ENV}.kubeconfig \
+  kubectl get hpa -n kioskbot-{ENV}
+```
+
+This shows current CPU/memory usage and replica count of all `kioskbot-backend-{ENV}-api` pods:
+```
+NAME                       TARGETS                               MINPODS   MAXPODS   REPLICAS
+kioskbot-backend-{ENV}-api   cpu: 45%/70%, memory: 22%/80%        1         3         1
+```
+
+**View detailed HPA information:**
+```bash
+KUBECONFIG=scripts/terraform/azure/outputs/{ENV}.kubeconfig \
+  kubectl describe hpa kioskbot-backend-{ENV}-api -n kioskbot-{ENV}
+```
+
+> **Note:** Metrics may show `<unknown>` for the first 1-2 minutes after deployment while the metrics-server collects data.
+
+#### Update Secrets
+```bash
+# Delete old secret
+kubectl delete secret kioskbot-backend-{ENV}-secrets -n kioskbot-{ENV}
+
+# Create new secret
+kubectl create secret generic kioskbot-backend-{ENV}-secrets \
+  --from-env-file=.env.{ENV} \
+  --namespace=kioskbot-{ENV}
+
+# Restart deployments to pick up new secrets
+kubectl rollout restart deployment -n kioskbot-{ENV}
+```
+
+#### View Secrets
+
+**List all secrets in namespace:**
+```bash
+KUBECONFIG=scripts/terraform/azure/outputs/{ENV}.kubeconfig \
+  kubectl get secrets -n kioskbot-{ENV}
+```
+
+**View secret details (base64 encoded):**
+```bash
+KUBECONFIG=scripts/terraform/azure/outputs/{ENV}.kubeconfig \
+  kubectl get secret kioskbot-backend-{ENV}-secrets -n kioskbot-{ENV} -o yaml
+```
+
+**Decode and view actual secret values:**
+```bash
+# All secrets decoded
+KUBECONFIG=scripts/terraform/azure/outputs/{ENV}.kubeconfig \
+  kubectl get secret kioskbot-backend-{ENV}-secrets -n kioskbot-{ENV} -o json | \
+  jq -r '.data | to_entries[] | "\(.key)=\(.value | @base64d)"'
+
+# Single secret value
+KUBECONFIG=scripts/terraform/azure/outputs/{ENV}.kubeconfig \
+  kubectl get secret kioskbot-backend-{ENV}-secrets -n kioskbot-{ENV} -o jsonpath='{.data.AZURE_OPENAI_API_KEY}' | base64 -d
+
+# Pretty print all secrets
+KUBECONFIG=scripts/terraform/azure/outputs/{ENV}.kubeconfig \
+  kubectl get secret kioskbot-backend-{ENV}-secrets -n kioskbot-{ENV} -o json | \
+  jq -r '.data | to_entries[] | "\(.key)=\(.value | @base64d)"' | sort
+```
+
+#### Preview Rendered YAML
+
+To see what Helm will generate before deploying:
+
+```bash
+# Preview all templates
+helm template kioskbot-backend-{ENV} ./scripts/helm \
+  --values ./scripts/helm/values-{ENV}.yaml \
+  --set api.image.repository="your-registry.azurecr.io/kioskbot-backend-api" \
+  --set api.image.tag="{VERSION}-{ENV}" \
+  --set kafkaConsumer.image.repository="your-registry.azurecr.io/kioskbot-backend-api" \
+  --set kafkaConsumer.image.tag="{VERSION}-{ENV}"
+
+# Preview specific template
+helm template kioskbot-backend-{ENV} ./scripts/helm \
+  --values ./scripts/helm/values-{ENV}.yaml \
+  --show-only templates/api-deployment.yaml
+```
+
+</details>
+
 ## Docker
 
 <details>
@@ -471,9 +789,9 @@ make run-demo
 <details>
 <summary>Click to expand</summary>
 
-- Start the uvicorn server: 
+- Start the docker containers: 
 ```bash
-ENV=dev uvicorn app.api.v1.routers.main:app --reload --host 0.0.0.0 --port 8000
+make compose-up-dev
 ```
 
 - Start a session:

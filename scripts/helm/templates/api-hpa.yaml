@@ -1,0 +1,37 @@
+{{- if .Values.api.autoscaling.enabled }} # conditional check to enable HPA for API
+apiVersion: autoscaling/v2 # use autoscaling/v2 for more advanced metrics support such as memory and CPU
+kind: HorizontalPodAutoscaler # declare HPA resource
+metadata:
+  name: {{ .Values.fullnameOverride }}-api
+  labels: # standardized k8s labels for tracking chart version, app name, instance, version, manager (Helm), and component type
+    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    app.kubernetes.io/name: {{ .Values.labels.appName }}
+    app.kubernetes.io/instance: {{ .Values.labels.instance }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+    app.kubernetes.io/managed-by: {{ .Values.managedBy }}
+    app.kubernetes.io/component: api
+spec:
+  scaleTargetRef: # specifies which Deployment to autoscale (targeting the API deployment with the same naming pattern)
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ .Values.fullnameOverride }}-api
+  minReplicas: {{ .Values.api.autoscaling.minReplicas }} # minimum number of API replicas
+  maxReplicas: {{ .Values.api.autoscaling.maxReplicas }} # maximum number of API replicas
+  metrics:
+  {{- if .Values.api.autoscaling.targetCPUUtilizationPercentage }} # CPU metrics (scale based on average CPU usage)
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: {{ .Values.api.autoscaling.targetCPUUtilizationPercentage }}
+  {{- end }}
+  {{- if .Values.api.autoscaling.targetMemoryUtilizationPercentage }} # Memory metrics (scale based on average Memory usage)
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: {{ .Values.api.autoscaling.targetMemoryUtilizationPercentage }}
+  {{- end }}
+{{- end }}

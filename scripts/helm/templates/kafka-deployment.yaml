@@ -1,0 +1,78 @@
+apiVersion: apps/v1 # Kubernetes API version
+kind: Deployment # reousrce type
+metadata:
+  name: {{ .Values.fullnameOverride }}-kafka # deployment name
+  labels: # standard Kubernetes labels
+    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    app.kubernetes.io/name: {{ .Values.labels.appName }}
+    app.kubernetes.io/instance: {{ .Values.labels.instance }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+    app.kubernetes.io/managed-by: {{ .Values.managedBy }}
+    app.kubernetes.io/component: kafka
+spec:
+  replicas: 1 # number of pod replicas
+  selector:
+    matchLabels: # tells the Deployment which pods it manages (must match pod template labels)
+      app.kubernetes.io/name: {{ .Values.labels.appName }}
+      app.kubernetes.io/instance: {{ .Values.labels.instance }}
+      app.kubernetes.io/component: kafka
+  template:
+    metadata:
+      labels: # labels for the pod template that must match the selector labels above
+        app.kubernetes.io/name: {{ .Values.labels.appName }}
+        app.kubernetes.io/instance: {{ .Values.labels.instance }}
+        app.kubernetes.io/component: kafka
+    spec:
+      containers:
+      - name: kafka # container name
+        image: {{ .Values.kafka.image.repository }}:{{ .Values.kafka.image.tag }} # docker image pulled from Helm values
+        imagePullPolicy: {{ .Values.kafka.image.pullPolicy }} # pull image IfNotPresent
+        ports:
+        - containerPort: 9092 # for internal cluster communication between services
+          name: internal
+          protocol: TCP
+        - containerPort: 9094 # for external communication with clients (e.g., localhost access)
+          name: external
+          protocol: TCP
+        - containerPort: 29093 # KRaft controller port (used in KRaft mode, i.e., Kafka without Zookeeper)
+          name: controller
+          protocol: TCP
+        env:
+        - name: KAFKA_NODE_ID # unique broker ID
+          value: "1"
+        - name: KAFKA_PROCESS_ROLES # this node acts as both broker (handles messages) and controller (manages cluster metadata) - KRaft combined mode
+          value: broker,controller
+        - name: KAFKA_CONTROLLER_LISTENER_NAMES # name of the listener used for controller communication
+          value: CONTROLLER
+        - name: KAFKA_LISTENER_SECURITY_PROTOCOL_MAP # maps listener names to security protocols (all using PLAINTEXT = no encryption)
+          value: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+        - name: KAFKA_LISTENERS # specifies where Kafka listens for connections
+          value: INTERNAL://:9092,EXTERNAL://:9094,CONTROLLER://:29093
+        - name: KAFKA_ADVERTISED_LISTENERS # addresses that clients use for connection
+          value: INTERNAL://{{ .Values.fullnameOverride }}-kafka:9092,EXTERNAL://localhost:9094
+        - name: KAFKA_INTER_BROKER_LISTENER_NAME # which listener brokers use to talk to each other
+          value: INTERNAL
+        - name: KAFKA_CONTROLLER_QUORUM_VOTERS # KRaft quorum configuration
+          value: {{ .Values.kafka.env.controllerQuorumVoters }}
+        - name: KAFKA_LOG_DIRS # directory where Kafka stores logs
+          value: /var/lib/kafka/data
+        - name: KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR # replication factor for internal topics (1 = no replication, acceptable for single-node)
+          value: "1"
+        livenessProbe: # checks if the container is alive. Restarts it if probe fails
+          tcpSocket: # uses TCP socket check on port 9092
+            port: 9092
+          initialDelaySeconds: 60 # waits 60s before first check
+          periodSeconds: 10 # checks every 10s
+          timeoutSeconds: 10 # times out after 10s
+          successThreshold: 1 # requires 1 successful check to be considered healthy
+          failureThreshold: 30 # after 30 failures, container is restarted
+        readinessProbe: # readiness probe to check if the container is ready to serve traffic (after N consecutive failures, Kubernetes removes the pod from the Service until it's healthy again)
+          tcpSocket:
+            port: 9092
+          initialDelaySeconds: 45 # waits 45s before first check
+          periodSeconds: 10
+          timeoutSeconds: 10
+          successThreshold: 1
+          failureThreshold: 30
+        resources: # CPU/memory requests and limits, pulled from helm values
+          {{- toYaml .Values.kafka.resources | nindent 10 }}
