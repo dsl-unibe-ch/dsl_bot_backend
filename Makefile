@@ -292,9 +292,7 @@ helm-dashboard-uninstall:
 	KUBECONFIG=$(KUBECONFIG) kubectl delete ns kubernetes-dashboard --ignore-not-found=true
 
 get-aks-credentials:
-	@RG_NAME=$$(make terraform-output-var VAR=RESOURCE_GROUP_NAME) ; \
-	AKS_NAME=$$(make terraform-output-var VAR=AKS_CLUSTER_NAME) ; \
+	@RG_NAME=$$($(MAKE) --no-print-directory terraform-output-var VAR=RESOURCE_GROUP_NAME 2>/dev/null) ; \
+	AKS_NAME=$$($(MAKE) --no-print-directory terraform-output-var VAR=AKS_CLUSTER_NAME 2>/dev/null) ; \
 	echo "az aks get-credentials --resource-group $$RG_NAME --name $$AKS_NAME --overwrite-existing" ; \
 	az aks get-credentials --resource-group $$RG_NAME --name $$AKS_NAME --overwrite-existing
-
-
