@@ -764,7 +764,19 @@ Log in to [LangSmith](https://smith.langchain.com/), navigate to `Datasets & Exp
             make e2e-tests
             ```
         - Note that whenever the backend returns an error, the test saves the request and response details to a snapshot file in `tests/e2e/contract-snapshots` for debugging.
-</details>
+    </details>
+
+    <details>
+    <summary>Click to expand Load tests</summary>
+
+    To start a load test with 50 users, where Locust is going to add 5 users per second until it reaches the total number of users, for 3 minutes, run:
+    ```bash
+    make load-tests-{ENV}
+    ```
+
+    Then, open your browser at http://localhost:8089 and start the test.
+
+    </details>
 
 ## Run the demo
 <details>
