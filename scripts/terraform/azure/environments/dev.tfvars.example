@@ -70,9 +70,13 @@ aks_additional_node_pools = {
 }
 
 # ---- AKS Network (BYO to satisfy NSG UniBe policy) ----
-# BYO to comply with UniBe Cloud policy to allows inbound TCP from anywhere to any node in the AKS subnet on Kubernetes’ default NodePort range (30000–32767)
+# BYO to comply with UniBe Cloud policy to allows inbound TCP from anywhere to any node in the AKS subnet on Kubernetes' default NodePort range (30000–32767)
 aks_vnet_name                 = "vnet-aks-kb-dev-001"
 aks_vnet_address_space        = ["10.40.0.0/16"]
 aks_subnet_name               = "snet-aks-kb-dev-001"
 aks_subnet_address_prefix     = "10.40.1.0/24"
 aks_network_security_group_name = "nsg-aks-kb-dev-001"
+
+aks_allowed_external_ips = []
+
+# aks_api_destination_port = "*" # optional parameter to open port(s)

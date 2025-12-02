@@ -230,6 +230,18 @@ variable "aks_network_security_group_name" {
   default = null
 }
 
+variable "aks_allowed_external_ips" {
+  description = "List of external IP addresses allowed to access the kioskbot-api (CIDR notation, e.g., '203.0.113.10/32')"
+  type        = list(string)
+  default     = []
+}
+
+variable "aks_api_destination_port" {
+  description = "Destination port for the kioskbot-api service (default: '*' for all ports, or specify e.g., '80' or '30000-32767')"
+  type        = string
+  default     = "*"
+}
+
 variable "aks_additional_node_pools" {
   type = map(object({
     vm_size             = string

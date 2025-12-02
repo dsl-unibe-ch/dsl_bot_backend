@@ -142,6 +142,8 @@ The reason for this three-level separation is to have some common resources shar
         ```
     
     - Replace `"your-azure-subscription_id"` in `{ENV}.tfvars` with the actual subscription ID you are using—this should match the subscription that the command `make az-set-subscription` returned. This ensures Terraform uses the correct Azure subscription for resource creation.
+
+    - If you want the APIs to be accessible from outside, you need to set `aks_allowed_external_ips` in `{ENV}.tfvars` with the IP(s) using CIDR notation (e.g., `["203.0.113.10/32", "198.51.100.0/24"]`). Use `/32` for a single IP address, or a smaller number for a range (e.g., `/24` for 256 addresses). Optionally, with `aks_api_destination_port` you can restrict which port(s) are open: `"*"` opens all ports (default), a specific port like `"8000"`, or a port range like `"30000-32767"`.
     
     - Initialise terraform
         ```bash
@@ -771,7 +773,7 @@ Log in to [LangSmith](https://smith.langchain.com/), navigate to `Datasets & Exp
 
     To start a load test with 50 users, where Locust is going to add 5 users per second until it reaches the total number of users, for 3 minutes, run:
     ```bash
-    make load-tests-{ENV}
+    make load-tests-dev
     ```
 
     Then, open your browser at http://localhost:8089 and start the test.
