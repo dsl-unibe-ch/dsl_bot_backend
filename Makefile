@@ -108,7 +108,7 @@ e2e-tests: build-image-dev compose-down-dev compose-up-dev
 	@echo $@
 	@ENV=dev PYTHONPATH=$(shell pwd) pytest -v tests/e2e/
 
-load-tests-dev: build-image-dev compose-down-dev compose-up-dev
+load-tests-dev:
 	@echo $@
 	$(eval BACKEND_URL := $(shell grep -E '^BACKEND_URL=' .env.dev | cut -d'=' -f2- | tr -d '"' | sed 's:/*$$::'))
 	@ENV=dev PYTHONPATH=$(shell pwd) locust -f tests/load_test/load_test.py --web-host 0.0.0.0 --host $(BACKEND_URL) -u 50 -r 5 --run-time 3m
