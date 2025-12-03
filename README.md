@@ -785,6 +785,16 @@ Log in to [LangSmith](https://smith.langchain.com/), navigate to `Datasets & Exp
 
     Then, open your browser at http://localhost:8089 and start the test.
 
+    After the load test is over, you can check the events on kubernetes:
+    ```bash
+    KUBECONFIG="scripts/terraform/azure/outputs/dev.kubeconfig" kubectl get events -n kioskbot-dev --sort-by='.lastTimestamp' | grep -E "(Scaled|Created|Deleted|SuccessfulCreate|SuccessfulDelete|ScalingReplicaSet)" | tail -30
+    ```
+
+    To check the HPA status and history you can run:
+    ```bash
+    KUBECONFIG="scripts/terraform/azure/outputs/dev.kubeconfig" kubectl get hpa -n kioskbot-dev && echo "" && KUBECONFIG="scripts/terraform/azure/outputs/dev.kubeconfig" kubectl describe hpa -n kioskbot-dev | grep -A 20 "Events:"
+    ```
+
     </details>
 
 ## Run the demo
