@@ -14,7 +14,7 @@ storage_account_tier                          = "Standard"
 storage_account_replication_type              = "ZRS"
 storage_account_containers                    = [
   "kioskbot-logs",
-  "kioskbot-docker-compose",
+  "kioskbot-secrets",
   "kioskbot-customers-data"
 ]
 storage_account_tags                          = {

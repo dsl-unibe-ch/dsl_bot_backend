@@ -93,6 +93,11 @@ output "AZURE_STORAGE_ACCOUNT_PRIMARY_ACCESS_KEY" {
   sensitive = true
   value     = try(module.azurerm_storage_account[0].AZURE_STORAGE_ACCOUNT_PRIMARY_ACCESS_KEY, null)
 }
+
+output "AZURE_CONTAINER_STORAGE_SECRETS_NAME" {
+  value = try(module.azurerm_storage_account[0].AZURE_CONTAINER_STORAGE_SECRETS_NAME, null)
+}
+
 #----- Azure Search Service --------------
 output "AZURE_SEARCH_SERVICE_ID" {
   value = try(module.azurerm_search_service[0].AZURE_SEARCH_SERVICE_ID, null)

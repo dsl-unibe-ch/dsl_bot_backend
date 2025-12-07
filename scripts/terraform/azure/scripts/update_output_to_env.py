@@ -34,10 +34,11 @@ env_var_template = {
     "Azure Storage": {
         "AZURE_STORAGE_ACCOUNT_PRIMARY_CONNECTION_STRING": None,
         "AZURE_CONTAINER_STORAGE_NAME": "kioskbot-logs",
+        "AZURE_CONTAINER_STORAGE_SECRETS_NAME": "kioskbot-secrets",
     },
     "Azure Container Registry": {"AZURE_CONTAINER_REGISTRY_LOGIN_SERVER": None},
     "Kafka": {
-        "KAFKA_BOOTSTRAP_SERVERS": "localhost:9092",
+        "KAFKA_BOOTSTRAP_SERVERS": "localhost:9094",
         "KAFKA_TOPIC": "chatbot_logs",
     },
     "Rest API Application and Middleware": {
@@ -83,7 +84,6 @@ def read_kv_file(path: str) -> dict:
             if not line or line.startswith("#"):
                 continue
             if "=" not in line:
-                # ignore non key=value (e.g., multiline YAML continuation)
                 continue
             key, value = line.split("=", 1)
             key = key.strip()
@@ -138,7 +138,7 @@ def write_env_vars(env_vars: dict, out_path: str) -> None:
                 f.write(f"\n#{value}\n")
             else:
                 quoted = escape_env_value(str(value))
-                f.write(f'{key}="{quoted}"\n')
+                f.write(f"{key}={quoted}\n")
 
 
 def main() -> None:
