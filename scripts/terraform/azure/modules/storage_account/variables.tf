@@ -39,4 +39,3 @@ variable "storage_account_containers" {
   type        = list(string)
   default     = []
 }
- 

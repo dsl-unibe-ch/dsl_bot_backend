@@ -67,10 +67,10 @@ Key Steps in the ETL Pipeline:
 
 Note that the raw data source (Excel file path, name, and sheet) are hardcoded in the script's main() function.
 
-To run the ETL pipeline for Azure Search, specify your desired index name in the respective `.env.dev` file using the `AZURE_AI_SEARCH_INDEX_NAME` variable, then execute:
+To run the ETL pipeline for Azure Search, specify your desired index name in the respective `.env.dev` file using the `AZURE_AI_SEARCH_INDEX_NAME` variable, then execute the following command for the respective environment :
 
 ```bash
-make etl-pipeline-azure-search
+make etl-pipeline-azure-search{ENV}
 ```
 
 </details>
@@ -155,111 +155,113 @@ The reason for this three-level separation is to have some common resources shar
         make terraform-validate
         ```
 
-    - Create the `global` environment
+    - Provisioning the `global` environment (should precede `dev` and `prod` provisioning)
         - Create or select workspace (if already created)
             ```bash
             make terraform-workspace-global
             ```
-        
-        - Create a plan (plans are output and stored as `scripts/terraform/azure/${ENV}.plan`)
+        - Create a plan (plans are output and stored as `scripts/terraform/azure/global.plan`)
             ```bash
             make terraform-plan-global
             ```
-
         - Apply the plan created above
             ```bash
             make terraform-apply-global
             ```
-
-    - Create the `dev` environment
+        - Extract Output (The output is used to populate the `dev|prod` .env files)
+            ```bash
+            make terraform-output-global
+            ```
+        -  Save secrets on Storage container account [Optional]
+            ```bash
+            make write-secrets-to-container-global
+            ```
+        - Destroy resources 
+            - For `global` environment destroying is not possible by design. Therefore, following command will echo an error. 
+            ```bash
+            make terraform-destroy-global
+            ```
+    - Provisioning the `dev` environment
         - Create or select workspace (if already created)
             ```bash
             make terraform-workspace-dev
             ```
-
-        - Create a plan (plans are output and stored as `scripts/terraform/azure/${ENV}.plan`)
+        - Create a plan (plans are output and stored as `scripts/terraform/azure/dev.plan`)
             ```bash
             make terraform-plan-dev
             ```
-
         - Go to Azure portal -> PIM -> Groups -> Activate `PIM_Azure_mg-dsl-informationskiosk-owner`
-
         - Run `az logout` and `make az-login` to refresh credentials
-
         - Apply the plan created above
             ```bash
             make terraform-apply-dev
             ```
-
         - Configure Kubernetes Dashboard by following [Kubernetes Dashboard](#kubernetes-dashboard)
+        - Extract Output (The output is used to populate the `dev.env` files)
+            ```bash
+            make terraform-output-dev
+            ```
+        - Update the `dev.env` file
+            ```bash
+            make write-output-to-env-dev
+            ```
+        -  Save secrets on Storage container account [Optional]
+            ```bash
+            make write-secrets-to-container-dev
+            ```
+        - Destroy resources
+            ```bash
+            make terraform-destroy-dev
+            ```
 
-    - Create the `prod` environment
+    - Provisioning the `prod` environment
         - Create or select workspace (if already created)
             ```bash
             make terraform-workspace-prod
             ```
-
-        - Create a plan (plans are output and stored as `scripts/terraform/azure/${ENV}.plan`)
+        - Create a plan (plans are output and stored as `scripts/terraform/azure/prod.plan`)
             ```bash
             make terraform-plan-prod
             ```
-
         - Go to Azure portal -> PIM -> Groups -> Activate `PIM_Azure_mg-dsl-informationskiosk-owner`
-
         - Run `az logout` and `make az-login` to refresh credentials
-
         - Apply the plan created above
             ```bash
             make terraform-apply-prod
             ```
-
         - Configure Kubernetes Dashboard by following [Kubernetes Dashboard](#kubernetes-dashboard)
-    
-    - Extract Output (The output is used to populate the `{ENV}.env` files)
-        - For `global` environment
-            ```bash
-            make terraform-output-global
-            ```
-        
-        - For `dev` environment
-            ```bash
-            make terraform-output-dev
-            ```
-        
-        - For `prod` environment
+        - Extract Output (The output is used to populate the `prod.env` files)
             ```bash
             make terraform-output-prod
             ```
-            
-    - Destroy the resources
-        - For `global` environment destroying is not possible by design. Therefore, following command will echo an error. 
+        - Update the `prod.env` file
             ```bash
-            make terraform-destroy-global
+            make write-output-to-env-prod
             ```
-        
-        - For `dev` environment
+        -  Save secrets on Storage container account [Optional]
             ```bash
-            make terraform-destroy-dev
+            make write-secrets-to-container-prod
             ```
-        
-        - For `prod` environment
+        - Destroy resources
             ```bash
             make terraform-destroy-prod
             ```
-        
-    
     - Additional utility commands (optional)
         - Rewrite Terraform configuration files to a canonical format and style.
             ```bash
             make terraform-fmt
             ```
-        
         - Output the value of a single variable, For example:
             ```bash
             make terraform-output-var VAR=AZURE_OPENAI_ENDPOINT
             ```
+        - One stop deployment where {ENV} can be `dev` and `prod` envrironments which plans, applies, outputs and updates the respective env files
+            ```bash
+            terraform-deploy-{ENV}
+            ```
+       
             
-    - Increase the `Tokens-Per-Minute` manually in the Azure portal to the maximum inside the OpenAI model deployments in the portal as Terraform doesn’t expose such a `Tokens-Per-Minute` for azurerm_cognitive_deployment. Pay attention that there are two resource groups and the maximum limit needs to share between both. 
+    - Increase the `Tokens-Per-Minute` manually for the OpenAI model in the Azure Foundry up to a maximum of 200K for chat models and upto a maximum of 2M for embedding models. This is because Terraform doesn’t expose such a `Tokens-Per-Minute` for azurerm_cognitive_deployment. 
 
 </details>
 

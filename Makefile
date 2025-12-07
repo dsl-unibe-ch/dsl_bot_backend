@@ -165,6 +165,9 @@ help:
 	@echo "  make terraform-plan-global   # plan shared Storage & ACR"
 	@echo "  make terraform-apply-global  # apply shared Storage & ACR"
 	@echo "  make terraform-output-global # outputs for global"
+	@echo "  make write-output-to-env-dev # writes the output to the .env.dev file"
+	@echo "  make write-output-to-env-prod # writes the output to the .env.prod file"
+	@echo "  make write-output-to-env # writes the output to the .env file"
 
 az-login:
 	az login
@@ -278,16 +281,44 @@ kubeconfig-dev:
 kubeconfig-prod:
 	@$(MAKE) kubeconfig ENV=prod
 
+
+write-output-to-env:
+	  $(PYTHON) scripts/terraform/azure/scripts/update_output_to_env.py -e $(ENV)
+
+write-output-to-env-dev:
+	@$(MAKE) write-output-to-env ENV=dev
+
+write-output-to-env-prod:
+	@$(MAKE) write-output-to-env ENV=prod
+
+write-secrets-to-container-file:
+	@PYTHONPATH=$(shell pwd) python scripts/terraform/azure/scripts/push_secrets_to_container.py -f $(FILE) -b $(BACKUP_FILE)
+
+write-secrets-to-container-dev:
+	@$(MAKE) write-secrets-to-container-file FILE=.env.dev BACKUP_FILE=.env.dev
+	@$(MAKE) write-secrets-to-container-file FILE=scripts/terraform/azure/outputs/dev.output BACKUP_FILE=.env.dev
+
+write-secrets-to-container-prod:
+	@$(MAKE) write-secrets-to-container-file FILE=.env.prod BACKUP_FILE=.env.prod
+	@$(MAKE) write-secrets-to-container-file FILE=scripts/terraform/azure/outputs/prod.output BACKUP_FILE=.env.prod
+
+write-secrets-to-container-global:
+	@$(MAKE) write-secrets-to-container-file FILE=scripts/terraform/azure/outputs/global.output BACKUP_FILE=scripts/terraform/azure/outputs/global.output
+
 ## One-shot deploy: plan, apply, then write kubeconfig
-deploy-dev:
+terraform-deploy-dev:
 	@$(MAKE) terraform-plan-dev
 	@$(MAKE) terraform-apply-dev
+	@$(MAKE) terraform-output-dev
 	@$(MAKE) kubeconfig-dev
+	@$(MAKE) write-output-to-env-dev
 
-deploy-prod:
+terraform-deploy-prod:
 	@$(MAKE) terraform-plan-prod
 	@$(MAKE) terraform-apply-prod
+	@$(MAKE) terraform-output-prod
 	@$(MAKE) kubeconfig-prod
+	@$(MAKE) write-output-to-env-prod
 
 # ---- Helm deployment targets ----
 .PHONY: helm-install
