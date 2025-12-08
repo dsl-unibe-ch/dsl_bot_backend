@@ -771,12 +771,15 @@ Log in to [LangSmith](https://smith.langchain.com/), navigate to `Datasets & Exp
     <details>
     <summary>Click to expand Load tests</summary>
 
-    In `.env.{ENV}` you need to set the the address and port where the backend is running. For example, if your backend is running on your laptop, you should set it to `BACKEND_URL="http://localhost:8000/"`, or if you want to load test the backend running on Kubernetes cluster, you should set the external IP and port `8000` of the LoadBalancer that can be fecthed with:
+    In `.env.{ENV}` you need to set the the address and port where the backend is running, as follows: 
+        
+    - If your backend is running on your laptop, you should set it to `BACKEND_URL=http://localhost:8000/`. Remember to start the container prior to testing.
+
+    - If your backend is running on a Kubernetes cluster, add the LoadBalancer's external IP and port as `BACKEND_URL=http://<EXTERNAL_IP>:8000/`. You can find the external IP by running:
+    
     ```bash
     kubectl get svc --all-namespaces --kubeconfig=./scripts/terraform/azure/outputs/dev.kubeconfig
     ```
-
-    Note that if you run the load test of the backend running on your laptop, you need to run the docker containers too.
 
     To start a load test with 50 users, where Locust is going to add 5 users per second until it reaches the total number of users, for 3 minutes, run:
     ```bash

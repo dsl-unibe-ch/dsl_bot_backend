@@ -39,13 +39,13 @@ class KioskbotUser(HttpUser):
             self.session_id = None
 
     @task(3)
-    def ask_chatbot(self: "KioskbotUser") -> None:
+    def rag_agent(self: "KioskbotUser") -> None:
         """This task simulates asking the chatbot a question.
 
         It will be chosen three times as often as send_feedback.
         """
         if not self.session_id:  # if no session_id is available, skip this task
-            logger.debug("[ask_chatbot] No session_id, skipping task.")
+            logger.debug("[rag_agent] No session_id, skipping task.")
             return
         payload = {
             "session_id": self.session_id,
@@ -53,10 +53,10 @@ class KioskbotUser(HttpUser):
         }
         response = self.client.post("/rag-agent", json=payload)
         if response.status_code in SUCCESS_STATUS_CODES:
-            logger.debug("[ask_chatbot] status: %s", response.status_code)
+            logger.debug("[rag_agent] status: %s", response.status_code)
         else:
             logger.debug(
-                "[ask_chatbot] status: %s, body: %s",
+                "[rag_agent] status: %s, body: %s",
                 response.status_code,
                 response.text,
             )
