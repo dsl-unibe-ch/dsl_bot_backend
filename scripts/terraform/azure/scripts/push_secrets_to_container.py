@@ -87,13 +87,9 @@ def write_env_to_blob(
             logger.info("Created container: %s", container_name)
     except ResourceExistsError:
         logger.info("Container already exists: %s", container_name)
-
-    # Exclude section markers like segment_* from being uploaded
     filtered_items = [
         (k, v) for k, v in env_vars.items() if not k.startswith("segment_")
     ]
-
-    # Render as KEY=VALUE lines
     payload = "\n".join(f"{k}={v}" for k, v in filtered_items) + "\n"
 
     blob_client = blob_service_client.get_blob_client(
@@ -135,11 +131,9 @@ def main() -> None:
         msg = "AZURE_CONTAINER_STORAGE_SECRETS_NAME is missing in env file"
         logger.error(msg)
         raise ValueError(msg)
-
-    # Ensure the final uploaded payload also contains the resolved connection string
     env_vars["AZURE_STORAGE_ACCOUNT_PRIMARY_CONNECTION_STRING"] = connection_string
+    blob_file_name = Path(file).name
 
-    blob_file_name = file.split("/")[-1]
     write_env_to_blob(connection_string, container_name, blob_file_name, env_vars)
 
 
