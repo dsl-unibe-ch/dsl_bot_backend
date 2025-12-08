@@ -261,7 +261,7 @@ The reason for this three-level separation is to have some common resources shar
             ```
        
             
-    - Increase the `Tokens-Per-Minute` manually for the OpenAI model in the Azure Foundry up to a maximum of 200K for chat models and upto a maximum of 2M for embedding models. This is because Terraform doesn’t expose such a `Tokens-Per-Minute` for azurerm_cognitive_deployment. 
+    - Increase the `Tokens-Per-Minute` manually for the OpenAI model in the Azure Foundry up to a maximum of 1M for chat models and upto a maximum of 2M for embedding models. This is because Terraform doesn’t expose such a `Tokens-Per-Minute` for azurerm_cognitive_deployment. 
 
 </details>
 
