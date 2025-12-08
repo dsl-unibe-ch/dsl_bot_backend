@@ -14,4 +14,14 @@ variable "tags" {
   default = {}
 }
 
+variable "allowed_external_ips" {
+  description = "List of external IP addresses allowed to access the kioskbot-api (CIDR notation, e.g., '203.0.113.10/32')"
+  type        = list(string)
+  default     = []
+}
 
+variable "api_destination_port" {
+  description = "Destination port for the kioskbot-api service"
+  type        = string
+  default     = "*"
+}

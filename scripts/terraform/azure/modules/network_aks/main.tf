@@ -12,16 +12,16 @@ resource "azurerm_network_security_group" "this" {
   resource_group_name = var.resource_group_name
 
   dynamic "security_rule" {
-    for_each = []
+    for_each = { for idx, ip in var.allowed_external_ips : idx => ip }
     content {
-      name       = "noop"
-      priority   = 4096
-      direction  = "Inbound"
-      access     = "Deny"
-      protocol   = "Tcp"
-      source_port_range      = "*"
-      destination_port_range = "*"
-      source_address_prefix  = "*"
+      name                       = "AllowKioskbotApiInbound-${security_rule.key}"
+      priority                   = 100 + security_rule.key
+      direction                  = "Inbound"
+      access                     = "Allow"
+      protocol                   = "Tcp"
+      source_port_range          = "*"
+      destination_port_range     = var.api_destination_port
+      source_address_prefix      = security_rule.value
       destination_address_prefix = "*"
     }
   }
