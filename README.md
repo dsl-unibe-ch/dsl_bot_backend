@@ -756,27 +756,48 @@ Log in to [LangSmith](https://smith.langchain.com/), navigate to `Datasets & Exp
 <details>
 <summary>Click to expand End2End tests</summary>
 
-- End2End tests
-    - Setup
-        - Follow the setup mentioned in [Frontend Repository](https://github.com/dsl-unibe-ch/kioskbot_frontend?tab=readme-ov-file#quickstart) 
-        - On the backend
-            - Install Chromium
-            ```python -m playwright install chromium```
+- End2End (E2E) tests
+E2E tests can be done on three levels with combinations of Frontend (FE) and Backend(BE) as shown below
+    - FE Local and BE Local
+        - Setup FE
+            - First Time Setup: Follow the setup mentioned in [Frontend Repository](https://github.com/dsl-unibe-ch/kioskbot_frontend?tab=readme-ov-file#quickstart) 
+            - Set the `PUBLIC_API` in FE the same value as `BACKEND_URL` as mentioned in the `.env.dev` on the BE. For example `PUBLIC_API=http://127.0.0.1:8000`
+        - Setup BE
+            - First Time Setup
+                - Install Chromium with
+                    ```python -m playwright install chromium```
             - Update the `FRONTEND_URL` in `.env.dev` with `http://localhost:5173`.
-        - Note that the `PUBLIC_API` is set to the `BACKEND_URL` as mentioned in the `.env.dev`. For example `PUBLIC_API=http://127.0.0.1:8000`
-    - Run tests
-        - Start the frontend with `pnpm dev`.
-        - Start the backend container.
-        - Verify that the frontend and the backend are functioning correctly by visiting `http://localhost:5173/` and ensuring that the bot is operational.
+        - Run tests
+            - Start the frontend with `pnpm dev`.
+            - Run the end to end test with:
+                ```bash
+                make e2e-tests-local
+                ```
+                This creates the container and starts the BE containers.
+    - FE Local and BE Remote 
+        - Setup BE
+            - Update the `FRONTEND_URL` in `.env.dev` with `http://localhost:5173`.
+            - Set the `aks_allowed_external_ips = [<YOUR_EXTERNAL_IP/32>]`
+            - Follow the steps for the deployment for the respective environment in [Terraform](#terraform).
+            - Build and push containers for the respective environment as described in [Docker](#docker)
+            - Upgrade the Helm deployment as described in [Helm](#helm).
+            - Get the `EXTERNAL_IP` of the AKS cluster with 
+                ```bash
+                kubectl get svc --all-namespaces --kubeconfig=./scripts/terraform/azure/outputs/dev.kubeconfig
+                ```
+            - Set the BACKEND_URL as BACKEND_URL=http://<EXTERNAL_IP>:8000/
+        - Setup FE
+            - Start the Frontend with `pnpm dev`.
+            - Set the `PUBLIC_API` in FE as `PUBLIC_API=http://<EXTERNAL_IP>:8000`
         - Run the end to end test with:
 
             ```bash 
-            make e2e-tests
+            make e2e-tests-remote
             ```
         
-    - FE Remote and BE Remote
+    - FE Remote and BE Remote (To be implemented upon clarity about fetching FRONTEND_IP)
         - Setup BE
-            1. Update the `FRONTEND_URL` in `.env.dev`, for example with `https://informationskiosk.unibe.ch`.
+            1. Update the `FRONTEND_URL` in `.env.dev` with `http://<FRONTEND_IP>:5173`.
             2. Set the `aks_allowed_external_ips = [<YOUR_EXTERNAL_IP/32>]`
             3. Follow the steps for the deployment for the respective environment in [Terraform](#terraform).
             4. Build and push containers for the respective environment as described in [Docker](#docker)
@@ -787,6 +808,9 @@ Log in to [LangSmith](https://smith.langchain.com/), navigate to `Datasets & Exp
             kubectl get svc --all-namespaces --kubeconfig=./scripts/terraform/azure/outputs/dev.kubeconfig
             ```
             7. Set the BACKEND_URL as `BACKEND_URL=http://<EXTERNAL_IP>:8000/`
+        - Setup FE
+            1. Start the Frontend with `pnpm dev`.
+            2. Set the `PUBLIC_API` in FE as `PUBLIC_API=http://<EXTERNAL_IP>:8000`
         - Run the end to end test with:
 
             ```bash 

@@ -103,9 +103,15 @@ unit-tests: build-image-dev compose-down-dev compose-up-dev
 	@echo $@
 	@ENV=dev PYTHONPATH=$(shell pwd) pytest -v tests/unit/
 
-e2e-tests: build-image-dev compose-down-dev compose-up-dev
+e2e-tests-local: build-image-dev compose-down-dev compose-up-dev
 	@echo $@
 	@ENV=dev PYTHONPATH=$(shell pwd) pytest -v tests/e2e/
+
+e2e-tests-remote:
+	@echo $@
+	@ENV=dev PYTHONPATH=$(shell pwd) pytest -v tests/e2e/
+
+
 
 load-tests-dev:
 	@echo $@
