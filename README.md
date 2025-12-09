@@ -773,7 +773,27 @@ Log in to [LangSmith](https://smith.langchain.com/), navigate to `Datasets & Exp
             ```bash 
             make e2e-tests
             ```
-        - Note that whenever the backend returns an error, the test saves the request and response details to a snapshot file in `tests/e2e/contract-snapshots` for debugging.
+        
+    - FE Remote and BE Remote
+        - Setup BE
+            1. Update the `FRONTEND_URL` in `.env.dev`, for example with `https://informationskiosk.unibe.ch`.
+            2. Set the `aks_allowed_external_ips = [<YOUR_EXTERNAL_IP/32>]`
+            3. Follow the steps for the deployment for the respective environment in [Terraform](#terraform).
+            4. Build and push containers for the respective environment as described in [Docker](#docker)
+            5. Upgrade the Helm deployment as described in [Helm](#helm).
+            6. Get the `EXTERNAL_IP` of the AKS cluster with 
+            
+            ```bash
+            kubectl get svc --all-namespaces --kubeconfig=./scripts/terraform/azure/outputs/dev.kubeconfig
+            ```
+            7. Set the BACKEND_URL as `BACKEND_URL=http://<EXTERNAL_IP>:8000/`
+        - Run the end to end test with:
+
+            ```bash 
+            make e2e-tests-remote
+            ```
+
+    - Note that whenever the backend returns an error, the test saves the request and response details to a snapshot file in `tests/e2e/contract-snapshots` for debugging.
     </details>
 
     <details>
