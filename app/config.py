@@ -46,6 +46,7 @@ class Settings(BaseSettings):
     AZURE_CONTAINER_REGISTRY_LOGIN_SERVER: str | None = None
 
     AZURE_CONTAINER_STORAGE_NAME: str | None = None
+    AZURE_CONTAINER_STORAGE_SECRETS_NAME: str | None = None
 
     KAFKA_BOOTSTRAP_SERVERS: str
     KAFKA_TOPIC: str
