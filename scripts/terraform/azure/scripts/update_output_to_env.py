@@ -141,7 +141,10 @@ def write_env_vars(env_vars: dict, out_path: str) -> None:
                 if isinstance(value, (list, dict)):
                     rendered = json.dumps(value, separators=(",", ":"))
                 else:
-                    rendered = escape_env_value(str(value))
+                    if value in ["Information Kiosk Bot", "Endpoints for the Information Kiosk Bot"]:
+                        rendered = f'"{value}"'
+                    else:
+                        rendered = escape_env_value(str(value))
                 f.write(f"{key}={rendered}\n")
 
 
