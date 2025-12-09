@@ -1,6 +1,7 @@
 """Update .env.{ENV} file with values from Terraform outputs."""
 
 import argparse
+import json
 import logging
 from pathlib import Path
 
@@ -49,8 +50,8 @@ env_var_template = {
         "FRONTEND_URL": "http://localhost:5173",
         "BACKEND_URL": "http://localhost:8000/",
         "ALLOWED_CREDENTIALS": "True",
-        "ALLOWED_METHODS": '["GET","POST","PUT","DELETE"]',
-        "ALLOWED_HEADERS": '["*"]',
+        "ALLOWED_METHODS": ["GET", "POST", "PUT", "DELETE"],
+        "ALLOWED_HEADERS": ["*"],
     },
     "LangSmith": {
         "LANGSMITH_TRACING": "true",
@@ -137,8 +138,11 @@ def write_env_vars(env_vars: dict, out_path: str) -> None:
             if key.startswith("segment_"):
                 f.write(f"\n#{value}\n")
             else:
-                quoted = escape_env_value(str(value))
-                f.write(f"{key}={quoted}\n")
+                if isinstance(value, (list, dict)):
+                    rendered = json.dumps(value, separators=(",", ":"))
+                else:
+                    rendered = escape_env_value(str(value))
+                f.write(f"{key}={rendered}\n")
 
 
 def main() -> None:
