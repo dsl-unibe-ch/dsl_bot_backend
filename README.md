@@ -67,10 +67,10 @@ Key Steps in the ETL Pipeline:
 
 Note that the raw data source (Excel file path, name, and sheet) are hardcoded in the script's main() function.
 
-To run the ETL pipeline for Azure Search, specify your desired index name in the respective `.env.dev` file using the `AZURE_AI_SEARCH_INDEX_NAME` variable, then execute the following command for the respective environment :
+To run the ETL pipeline for Azure Search, specify your desired index name in the respective `.{ENV}.dev` file using the `AZURE_AI_SEARCH_INDEX_NAME` variable, then execute the following command for the respective environment :
 
 ```bash
-make etl-pipeline-azure-search{ENV}
+make etl-pipeline-azure-search-{ENV}
 ```
 
 </details>
@@ -257,7 +257,7 @@ The reason for this three-level separation is to have some common resources shar
             ```
         - One stop deployment where {ENV} can be `dev` and `prod` envrironments which plans, applies, outputs and updates the respective env files
             ```bash
-            terraform-deploy-{ENV}
+            make terraform-deploy-{ENV}
             ```
        
             

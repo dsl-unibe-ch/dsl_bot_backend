@@ -20,7 +20,6 @@ logger.addHandler(handler)
 
 VARIABLES_TO_ANONYMIZE = ["LANGSMITH_API_KEY"]
 
-
 def parse_args() -> argparse.Namespace:
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(
@@ -34,9 +33,10 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "-b",
-        "--backup_file",
+        "--fallback_files",
+        nargs="+",
         required=True,
-        help="backup file name containing azure variables",
+        help="one or more fallback files containing Azure variables (searched in order)",
     )
 
     return parser.parse_args()
@@ -60,18 +60,22 @@ def read_env_file(env_file: str) -> dict:
             env_vars[key] = value
     return env_vars
 
-
 def search_azure_variable(
-    variable_name: str, file_path: str, backup_file_path: str
+    variable_name: str, file_path: str, fallback_files: list[str] | None = None
 ) -> str:
-    """Read KEY=VALUE file if it exists; otherwise return empty dict."""
+    """Read KEY=VALUE file; if key not found, scan fallback files in order."""
     env_variables_dict = read_env_file(file_path)
     if variable_name in env_variables_dict:
         return env_variables_dict.get(variable_name)
-    env_variables_dict = read_env_file(backup_file_path)
-    if variable_name in env_variables_dict:
-        return env_variables_dict.get(variable_name)
-    return "Value not found in the file or backup file"
+    if fallback_files:
+        for fb in fallback_files:
+            p = Path(fb)
+            if not p.exists():
+                continue
+            env_variables_dict = read_env_file(str(p))
+            if variable_name in env_variables_dict:
+                return env_variables_dict.get(variable_name)
+    return "Value not found in the file or any fallback files"
 
 
 def write_env_to_blob(
@@ -98,12 +102,12 @@ def write_env_to_blob(
     blob_client.upload_blob(payload, overwrite=True)
     logger.info("Uploaded secrets blob: %s/%s", container_name, blob_name)
 
-
 def main() -> None:
     """Read .env.{ENV} and push its variables to Azure Blob container."""
     args = parse_args()
     file = f"{args.file}"
-    backup_file_path = f"{args.backup_file}"
+    fallback_files = [f"{p}" for p in (args.fallback_files or [])]
+
     if not Path(file).exists():
         msg = f"File not found: {file}"
         logger.error(msg)
@@ -114,12 +118,12 @@ def main() -> None:
     connection_string = search_azure_variable(
         variable_name="AZURE_STORAGE_ACCOUNT_PRIMARY_CONNECTION_STRING",
         file_path=file,
-        backup_file_path=backup_file_path,
+        fallback_files=fallback_files,
     )
     container_name = search_azure_variable(
         variable_name="AZURE_CONTAINER_STORAGE_SECRETS_NAME",
         file_path=file,
-        backup_file_path=backup_file_path,
+        fallback_files=fallback_files,
     )
 
     if not connection_string or connection_string.startswith("Value not found"):
@@ -131,11 +135,11 @@ def main() -> None:
         msg = "AZURE_CONTAINER_STORAGE_SECRETS_NAME is missing in env file"
         logger.error(msg)
         raise ValueError(msg)
-    env_vars["AZURE_STORAGE_ACCOUNT_PRIMARY_CONNECTION_STRING"] = connection_string
+
+    
     blob_file_name = Path(file).name
 
     write_env_to_blob(connection_string, container_name, blob_file_name, env_vars)
-
 
 if __name__ == "__main__":
     main()

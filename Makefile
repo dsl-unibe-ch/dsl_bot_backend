@@ -290,20 +290,19 @@ write-output-to-env-dev:
 
 write-output-to-env-prod:
 	@$(MAKE) write-output-to-env ENV=prod
-
 write-secrets-to-container-file:
-	@PYTHONPATH=$(shell pwd) python scripts/terraform/azure/scripts/push_secrets_to_container.py -f $(FILE) -b $(BACKUP_FILE)
+	@PYTHONPATH=$(shell pwd) python scripts/terraform/azure/scripts/push_secrets_to_container.py -f $(FILE) -b $(FALLBACK_FILES)
 
 write-secrets-to-container-dev:
-	@$(MAKE) write-secrets-to-container-file FILE=.env.dev BACKUP_FILE=.env.dev
-	@$(MAKE) write-secrets-to-container-file FILE=scripts/terraform/azure/outputs/dev.output BACKUP_FILE=.env.dev
+	@$(MAKE) write-secrets-to-container-file FILE=.env.dev FALLBACK_FILES=.env.dev
+	@$(MAKE) write-secrets-to-container-file FILE=scripts/terraform/azure/outputs/dev.output FALLBACK_FILES=.env.dev
 
 write-secrets-to-container-prod:
-	@$(MAKE) write-secrets-to-container-file FILE=.env.prod BACKUP_FILE=.env.prod
-	@$(MAKE) write-secrets-to-container-file FILE=scripts/terraform/azure/outputs/prod.output BACKUP_FILE=.env.prod
+	@$(MAKE) write-secrets-to-container-file FILE=.env.prod FALLBACK_FILES=.env.prod
+	@$(MAKE) write-secrets-to-container-file FILE=scripts/terraform/azure/outputs/prod.output FALLBACK_FILES=.env.prod
 
 write-secrets-to-container-global:
-	@$(MAKE) write-secrets-to-container-file FILE=scripts/terraform/azure/outputs/global.output BACKUP_FILE=scripts/terraform/azure/outputs/global.output
+	@$(MAKE) write-secrets-to-container-file FILE=scripts/terraform/azure/outputs/global.output FALLBACK_FILES=scripts/terraform/azure/outputs/global.output
 
 ## One-shot deploy: plan, apply, then write kubeconfig
 terraform-deploy-dev:
