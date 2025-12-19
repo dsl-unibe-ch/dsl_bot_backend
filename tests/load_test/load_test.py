@@ -51,7 +51,7 @@ class KioskbotUser(HttpUser):
             "session_id": self.session_id,
             "text": "What is the email address of the QSE Department?",
         }
-        response = self.client.post("/rag-agent", json=payload)
+        response = self.client.post("/invoke-agent", json=payload)
         if response.status_code in SUCCESS_STATUS_CODES:
             logger.debug("[rag_agent] status: %s", response.status_code)
         else:
@@ -75,7 +75,7 @@ class KioskbotUser(HttpUser):
             "rating": 5,
             "comments": "Works well",
         }
-        response = self.client.post("/send_feedback", json=payload)
+        response = self.client.post("/send-feedback", json=payload)
         if response.status_code in SUCCESS_STATUS_CODES:
             logger.debug("[send_feedback] status: %s", response.status_code)
         else:

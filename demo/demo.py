@@ -11,7 +11,7 @@ from scripts.assessment_data.generate_assessment_dataset import german2english
 def main() -> None:
     """Main function."""
     chatbot = ChatBot()
-    start_session_response = chatbot.generate_session_id_wrapper(sessions)
+    start_session_response = chatbot.initialize_agent_wrapper(sessions)
 
     while True:
         query = input("\nYou: ")
