@@ -8,11 +8,6 @@ output "AZURE_OPENAI_ENDPOINT" {
   sensitive = true
 }
 
-output "AZURE_OPENAI_ACCOUNT_ID" {
-  value     = azurerm_cognitive_account.openai.id
-  sensitive = true
-}
-
 
 output "AZURE_OPENAI_CHAT_DEPLOYMENT" {
   value = azurerm_cognitive_deployment.model.name
@@ -40,10 +35,5 @@ output "AZURE_OPENAI_SEARCH_EMBEDDING_API_VERSION" {
 
 output "AZURE_OPENAI_PRIMARY_KEY" {
   value     = azurerm_cognitive_account.openai.primary_access_key
-  sensitive = true
-}
-
-output "AZURE_OPENAI_SECONDARY_KEY" {
-  value     = azurerm_cognitive_account.openai.secondary_access_key
   sensitive = true
 }

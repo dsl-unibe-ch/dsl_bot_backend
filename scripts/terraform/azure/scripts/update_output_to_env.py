@@ -17,51 +17,6 @@ handler.setFormatter(logging.Formatter("%(levelname)s: %(message)s"))
 logger.addHandler(handler)
 
 
-env_var_template = {
-    "Azure Search": {
-        "AZURE_SEARCH_ENDPOINT": None,
-        "AZURE_AI_SEARCH_INDEX_NAME": None,
-        "AZURE_SEARCH_SERVICE_PRIMARY_ADMIN_KEY": None,
-    },
-    "Azure OpenAI": {
-        "AZURE_OPENAI_SEARCH_EMBEDDING_DEPLOYMENT": "text-embedding-3-large",
-        "AZURE_OPENAI_SEARCH_EMBEDDING_API_VERSION": "2024-12-01-preview",
-        "AZURE_OPENAI_CHAT_DEPLOYMENT": "gpt-4.1",
-        "AZURE_OPENAI_CHAT_API_VERSION": "2024-12-01-preview",
-        "AZURE_OPENAI_ENDPOINT": None,
-        "AZURE_OPENAI_VECTORIZER_ENDPOINT": None,
-        "AZURE_OPENAI_PRIMARY_KEY": None,
-    },
-    "Azure Storage": {
-        "AZURE_STORAGE_ACCOUNT_PRIMARY_CONNECTION_STRING": None,
-        "AZURE_CONTAINER_STORAGE_NAME": "kioskbot-logs",
-        "AZURE_CONTAINER_STORAGE_SECRETS_NAME": "kioskbot-secrets",
-    },
-    "Azure Container Registry": {"AZURE_CONTAINER_REGISTRY_LOGIN_SERVER": None},
-    "Kafka": {
-        "KAFKA_BOOTSTRAP_SERVERS": "localhost:9094",
-        "KAFKA_TOPIC": "chatbot_logs",
-    },
-    "Rest API Application and Middleware": {
-        "APP_TITLE": "Information Kiosk Bot",
-        "APP_DESCRIPTION": "Endpoints for the Information Kiosk Bot",
-        "DOCS_URL": "/docs",
-        "REDOC_URL": "/redoc",
-        "FRONTEND_URL": "http://localhost:5173",
-        "BACKEND_URL": "http://localhost:8000/",
-        "ALLOWED_CREDENTIALS": "True",
-        "ALLOWED_METHODS": ["GET", "POST", "PUT", "DELETE"],
-        "ALLOWED_HEADERS": ["*"],
-    },
-    "LangSmith": {
-        "LANGSMITH_TRACING": "true",
-        "LANGSMITH_ENDPOINT": "https://api.smith.langchain.com",
-        "LANGSMITH_API_KEY": "your-langsmith-api-key",
-        "LANGSMITH_PROJECT": "kioskbot-dev",
-    },
-}
-
-
 def escape_env_value(value: str) -> str:
     """Normalize Windows newlines, escape backslashes, quotes, and dollar signs."""
     return (
@@ -89,6 +44,15 @@ def read_kv_file(path: str) -> dict:
             key, value = line.split("=", 1)
             key = key.strip()
             value = value.strip()
+            if value.startswith(("[", "{")):  # Try to parse JSON values (lists/dicts)
+                try:
+                    value = json.loads(value)
+                except json.JSONDecodeError as err:
+                    logger.exception(
+                        "Error: %s is not a valid JSON value: %s", key, value
+                    )
+                    error_message = f"Error: {key} is not a valid JSON value: {value}"
+                    raise ValueError(error_message) from err
             vars_map[key] = value
     return vars_map
 
@@ -104,30 +68,25 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def update_env_vars(env_vars: dict, global_vars: dict, env: str) -> dict:
+def update_env_vars(
+    env_vars: dict, global_vars: dict, env: str, env_vars_template: dict
+) -> dict:
     """Update the environment variables."""
     updated_env_vars = {}
-    for segment, segment_dict in env_var_template.items():
-        updated_env_vars["segment_" + segment] = segment
-        if segment == "LangSmith":
+    for key, value in env_vars_template.items():
+        if key == "LANGSMITH_API_KEY":
             logger.info(
                 "\n\nREMINDER!! Update LANGSMITH_API_KEY in .env.%s\n\n",
                 env,
             )
-            updated_env_vars |= dict(segment_dict)
-        elif segment in ["Rest API Application and Middleware", "Kafka"]:
-            updated_env_vars |= dict(segment_dict)
+        if not key.startswith("AZURE"):
+            updated_env_vars[key] = value
+        elif key in env_vars:
+            updated_env_vars[key] = env_vars[key]
+        elif key in global_vars:
+            updated_env_vars[key] = global_vars[key]
         else:
-            for key, value in segment_dict.items():
-                if segment_dict.get(key) is None:
-                    if key in env_vars:
-                        updated_env_vars[key] = env_vars[key]
-                    elif key in global_vars:
-                        updated_env_vars[key] = global_vars[key]
-                    else:
-                        logger.error("Error: %s skipped, not found anywhere", key)
-                else:
-                    updated_env_vars[key] = value
+            logger.error("Error: %s skipped, not found anywhere", key)
     return updated_env_vars
 
 
@@ -135,33 +94,34 @@ def write_env_vars(env_vars: dict, out_path: str) -> None:
     """Write the environment variables to the .env.{ENV} file."""
     with Path(out_path).open("w", encoding="utf-8") as f:
         for key, value in env_vars.items():
-            if key.startswith("segment_"):
-                f.write(f"\n#{value}\n")
+            if isinstance(value, (list, dict)):
+                rendered = json.dumps(value, separators=(",", ":"))
+            elif value in [
+                "Information Kiosk Bot",
+                "Endpoints for the Information Kiosk Bot",
+            ]:
+                rendered = f'"{value}"'
             else:
-                if isinstance(value, (list, dict)):
-                    rendered = json.dumps(value, separators=(",", ":"))
-                else:
-                    if value in ["Information Kiosk Bot", "Endpoints for the Information Kiosk Bot"]:
-                        rendered = f'"{value}"'
-                    else:
-                        rendered = escape_env_value(str(value))
-                f.write(f"{key}={rendered}\n")
+                rendered = escape_env_value(str(value))
+            f.write(f"\n{key}={rendered}\n")
 
 
 def main() -> None:
     """Update the .env.{ENV} file with values from Terraform outputs."""
     args = parse_args()
     env = args.env
+    env_vars_template_file = f".env.{env}.example"
     env_output_file = f"scripts/terraform/azure/outputs/{env}.output"
     logger.info("\n\nUpdating .env.%s file with values from Terraform outputs\n\n", env)
     global_output_file = "scripts/terraform/azure/outputs/global.output"
     try:
+        env_vars_template = read_kv_file(env_vars_template_file)
         global_vars = read_kv_file(global_output_file)
         env_vars = read_kv_file(env_output_file)
     except FileNotFoundError:
         logger.exception("Error while reading Terraform output files")
         raise
-    updated_env_vars = update_env_vars(env_vars, global_vars, env)
+    updated_env_vars = update_env_vars(env_vars, global_vars, env, env_vars_template)
     write_env_vars(updated_env_vars, f".env.{env}")
 
 
