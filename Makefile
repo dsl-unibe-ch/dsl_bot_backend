@@ -36,6 +36,13 @@ convert-mht-to-txt-innovation:
 	@PYTHONPATH=$(shell pwd) python scripts/crawler/one_note_mht_reader.py scripts/crawler/data/raw/Notizbuch_fuer_Ideenlabor.mht scripts/crawler/data/raw/Notizbuch_fuer_Ideenlabor.txt
 
 
+scrape-unibe-qse:
+	@echo $@
+	@rm -rf scripts/crawler/jobs/qse
+	@rm -f  scripts/crawler/data/raw/qse.jsonl
+	@PYTHONPATH=$(shell pwd) scrapy runspider scripts/crawler/unibe_crawler.py -a config=scripts/crawler/configs/qse.yml -o scripts/crawler/data/raw/qse.jsonl -s JOBDIR=scripts/crawler/jobs/qse
+
+
 build-image-dev:
 	@ENV=dev; \
 	. ./.env.$${ENV}; \

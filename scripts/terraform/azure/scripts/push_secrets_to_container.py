@@ -98,18 +98,21 @@ def main() -> None:
     files = files.split(",")
     connection_string = None
     container_name = None
+
+    connection_string = search_azure_variable(
+        variable_name="AZURE_STORAGE_ACCOUNT_PRIMARY_CONNECTION_STRING", files=files
+    )
+    container_name = search_azure_variable(
+        variable_name="AZURE_CONTAINER_STORAGE_SECRETS_NAME", files=files
+    )
+
     for file in files:
         env_vars = read_env_file(file)
         if not Path(file).exists():
             msg = f"File not found: {file}"
             logger.error(msg)
             raise FileNotFoundError(msg)
-        connection_string = search_azure_variable(
-            variable_name="AZURE_STORAGE_ACCOUNT_PRIMARY_CONNECTION_STRING", files=files
-        )
-        container_name = search_azure_variable(
-            variable_name="AZURE_CONTAINER_STORAGE_SECRETS_NAME", files=files
-        )
+
         if not connection_string or connection_string.startswith("Value not found"):
             msg = (
                 "AZURE_STORAGE_ACCOUNT_PRIMARY_CONNECTION_STRING is missing in env file"

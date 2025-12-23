@@ -197,11 +197,11 @@ The reason for this three-level separation is to have some common resources shar
             make terraform-apply-dev
             ```
         - Configure Kubernetes Dashboard by following [Kubernetes Dashboard](#kubernetes-dashboard)
-        - Extract Output (The output is used to populate the `dev.env` files)
+        - Extract Output (The output is used to populate the `.env.dev` file)
             ```bash
             make terraform-output-dev
             ```
-        - Update the `dev.env` file
+        - Update the `.env.dev` file
             ```bash
             make write-output-to-env-dev
             ```
@@ -230,11 +230,11 @@ The reason for this three-level separation is to have some common resources shar
             make terraform-apply-prod
             ```
         - Configure Kubernetes Dashboard by following [Kubernetes Dashboard](#kubernetes-dashboard)
-        - Extract Output (The output is used to populate the `prod.env` files)
+        - Extract Output (The output is used to populate the `.env.prod` files)
             ```bash
             make terraform-output-prod
             ```
-        - Update the `prod.env` file
+        - Update the `.env.prod` file
             ```bash
             make write-output-to-env-prod
             ```
