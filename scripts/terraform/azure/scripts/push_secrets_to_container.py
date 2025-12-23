@@ -105,6 +105,16 @@ def main() -> None:
     container_name = search_azure_variable(
         variable_name="AZURE_CONTAINER_STORAGE_SECRETS_NAME", files=files
     )
+    if not connection_string or connection_string.startswith("Value not found"):
+        msg = (
+            "AZURE_STORAGE_ACCOUNT_PRIMARY_CONNECTION_STRING is missing in env file"
+        )
+        logger.error(msg)
+        raise ValueError(msg)
+    if not container_name or container_name.startswith("Value not found"):
+        msg = "AZURE_CONTAINER_STORAGE_SECRETS_NAME is missing in env file"
+        logger.error(msg)
+        raise ValueError(msg)
 
     for file in files:
         env_vars = read_env_file(file)
@@ -112,17 +122,6 @@ def main() -> None:
             msg = f"File not found: {file}"
             logger.error(msg)
             raise FileNotFoundError(msg)
-
-        if not connection_string or connection_string.startswith("Value not found"):
-            msg = (
-                "AZURE_STORAGE_ACCOUNT_PRIMARY_CONNECTION_STRING is missing in env file"
-            )
-            logger.error(msg)
-            raise ValueError(msg)
-        if not container_name or container_name.startswith("Value not found"):
-            msg = "AZURE_CONTAINER_STORAGE_SECRETS_NAME is missing in env file"
-            logger.error(msg)
-            raise ValueError(msg)
         blob_file_name = Path(file).name
         write_env_to_blob(connection_string, container_name, blob_file_name, env_vars)
 
