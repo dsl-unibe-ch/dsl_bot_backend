@@ -53,6 +53,7 @@ seed_urls:
   - https://www.unibe.ch/universitaet/organisation/leitung_und_zentralbereich/vizerektorat_qualitaet_und_nachhaltige_entwicklung/startseite_vizerektorat_qualitaet_und_nachhaltige_entwicklung/index_ger.html
   - https://www.unibe.ch/forschung/strategie_und_fokus/forschungsfokus/zentren_und_fakultaetsuebergreifende_einheiten/index_ger.html
   - https://www.unibe.ch/studium/werkzeuge_und_arbeitshilfen/fuer_lehrende/lehrveranstaltungsevaluation/massnahmen/index_ger.html
+  - https://www.unibe.ch/universitaet/portraet/selbstverstaendnis/qualitaet/qualitaetssicherung_und__entwicklung/index_ger.html
   
 static_pdfs:
   - https://www.unibe.ch/e809/e810/e812/e708931/e715528/e1070249/QSEKommunikationskonzept2024_ger.pdf
@@ -85,6 +86,11 @@ allow:
   -  /weitere_evaluationsmethoden/
   - /evaluation/
   - /akkreditierung/
+  - /qualitaetssicherung_und__entwicklung/team/
+  - /qualitaetssicherung_und__entwicklung/qualitaetsstrategie/
+  - /qualitaetssicherung_und__entwicklung/gremien/
+  - /qualitaetssicherung_und__entwicklung/rechtliche_grundlagen/
+  - 
 deny_domains:
   - edit.cms.unibe.ch
   - edu.unibe.ch

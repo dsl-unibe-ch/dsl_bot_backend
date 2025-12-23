@@ -41,8 +41,8 @@ scrape-unibe-qse:
 	@rm -f  scripts/crawler/data/raw/qse.jsonl
 	@PYTHONPATH=$(shell pwd) scrapy runspider scripts/crawler/unibe_crawler.py -a config=scripts/crawler/configs/qse.yml -o scripts/crawler/data/raw/qse.jsonl -s JOBDIR=scripts/crawler/jobs/qse
 
-
-
+extract-content-qse:
+	@PYTHONPATH=$(shell pwd) python scripts/crawler/content_extractor.py --jsonl_file scripts/crawler/data/raw/qse.jsonl --customer_name qse
 
 build-image-dev:
 	@ENV=dev; \
