@@ -69,6 +69,9 @@ class UnibeSpider(CrawlSpider):
             with Path(config).open(encoding="utf-8") as f:
                 cfg = yaml.safe_load(f) or {}
 
+        # Read static_pdfs from config
+        self.static_pdfs = cfg.get("static_pdfs", [])
+
         def merged(key: str, cli_value: str) -> str:
             return cli_value or _yaml_to_csv(cfg.get(key, ""))
 
@@ -105,6 +108,20 @@ class UnibeSpider(CrawlSpider):
     def _canon(self, url: str) -> str:
         """Canonicalize the url."""
         return canonicalize_url(url, keep_fragments=False)
+
+    def start_requests(self):
+        """Start requests - yield static PDFs first, then normal crawling."""
+        # First, yield all static PDFs
+        for pdf_url in self.static_pdfs:
+            canonical_url = self._canon(pdf_url)
+            if canonical_url not in self._exported:
+                self._exported.add(canonical_url)
+                logger.info(f"Yielding static PDF: {canonical_url}")
+                yield {"Pdf": canonical_url}
+        
+        # Then proceed with normal crawling
+        for url in self.start_urls:
+            yield scrapy.Request(url, dont_filter=True)
 
     def parse_start_url(self, response: scrapy.http.Response) -> scrapy.http.Response:
         """Parse the start url."""
