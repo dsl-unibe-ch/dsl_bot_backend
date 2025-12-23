@@ -22,7 +22,6 @@ def escape_env_value(value: str) -> str:
     return (
         value.replace("\r", "")
         .replace("\\", r"\\")
-        .replace('"', r"\"")
         .replace("$", r"\$")
     )
 
