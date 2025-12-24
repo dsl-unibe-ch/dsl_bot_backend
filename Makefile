@@ -35,7 +35,6 @@ convert-mht-to-txt-innovation:
 	@echo $@
 	@PYTHONPATH=$(shell pwd) python scripts/crawler/one_note_mht_reader.py scripts/crawler/data/raw/Notizbuch_fuer_Ideenlabor.mht scripts/crawler/data/raw/Notizbuch_fuer_Ideenlabor.txt
 
-
 build-image-dev:
 	@ENV=dev; \
 	. ./.env.$${ENV}; \

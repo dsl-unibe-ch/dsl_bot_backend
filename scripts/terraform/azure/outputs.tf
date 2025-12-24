@@ -91,3 +91,13 @@ output "AZURE_KEY_VAULT_URI" {
 output "RESOURCE_GROUP_NAME" {
   value = azurerm_resource_group.rg.name
 }
+
+#----- Kubernetes (AKS) --------------
+output "kube_config_raw" {
+  value     = try(module.kubernetes_cluster[0].KUBE_CONFIG_RAW, null)
+  sensitive = true
+}
+
+output "AKS_CLUSTER_NAME" {
+  value = try(module.kubernetes_cluster[0].AZURE_AKS_NAME, null)
+}

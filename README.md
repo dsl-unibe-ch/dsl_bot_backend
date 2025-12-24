@@ -46,7 +46,11 @@ pre-commit install
 <details>
 <summary>Click to expand</summary>
 
-Create `.env.dev` and `.env.prod` files in the root of this repo and set the variables (see `.env.dev.example` and `.env.prod.example`  for the template).
+1. Copy `.env.dev.example` to `.env.dev` and `.env.prod.example` to `.env.prod`.
+2. Populate only the non-Azure entries (LangSmith keys, frontend URLs, feature toggles, etc.). Keep all `AZURE_*` values exactly as provided in the example files.
+3. Later, when you run through the Terraform steps, `make write-output-to-env-{ENV}` rewrites the `AZURE_*` placeholders with the outputs from Terraform, so there’s no need to touch them now.
+4. Each time you regenerate `.env.{ENV}` with that command, double-check your non-Azure secrets (e.g., `LANGSMITH_API_KEY`) because the script resets those fields to the defaults from `.env.{ENV}.example`; you remain responsible for reapplying the real values.
+
 </details>
 
 
@@ -197,14 +201,15 @@ The reason for this three-level separation is to have some common resources shar
             make terraform-apply-dev
             ```
         - Configure Kubernetes Dashboard by following [Kubernetes Dashboard](#kubernetes-dashboard)
-        - Extract Output (The output is used to populate the `dev.env` files)
+        - Extract Output (The output is used to populate the `.env.dev` file)
             ```bash
             make terraform-output-dev
             ```
-        - Update the `dev.env` file
+        - Update the `.env.dev` file
             ```bash
             make write-output-to-env-dev
             ```
+            - In `.env.dev`, populate only the non-Azure entries (LangSmith keys, frontend URLs, feature toggles, etc.)
         -  Save secrets on Storage container account [Optional]
             ```bash
             make write-secrets-to-container-dev
@@ -230,14 +235,15 @@ The reason for this three-level separation is to have some common resources shar
             make terraform-apply-prod
             ```
         - Configure Kubernetes Dashboard by following [Kubernetes Dashboard](#kubernetes-dashboard)
-        - Extract Output (The output is used to populate the `prod.env` files)
+        - Extract Output (The output is used to populate the `.env.prod` files)
             ```bash
             make terraform-output-prod
             ```
-        - Update the `prod.env` file
+        - Update the `.env.prod` file
             ```bash
             make write-output-to-env-prod
             ```
+            - In `.env.prod`, populate only the non-Azure entries (LangSmith keys, frontend URLs, feature toggles, etc.)
         -  Save secrets on Storage container account [Optional]
             ```bash
             make write-secrets-to-container-prod

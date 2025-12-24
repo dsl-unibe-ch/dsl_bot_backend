@@ -52,6 +52,11 @@ variable "cognitive_model_embedding_version" {
 
 # ----- API Versions (for SDK/REST) ------
 
+variable "cognitive_model_chat_api_version" {
+  description = "Azure OpenAI Chat API version to use (e.g., 2024-12-01-preview)."
+  type        = string
+  default     = "2024-12-01-preview"
+}
 
 variable "cognitive_model_embedding_api_version" {
   description = "Azure OpenAI Embeddings API version to use (e.g., 2024-02-01)."

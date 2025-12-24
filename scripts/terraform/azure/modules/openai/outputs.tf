@@ -18,7 +18,7 @@ output "AZURE_OPENAI_CHAT_MODEL_NAME" {
 }
 
 output "AZURE_OPENAI_CHAT_API_VERSION" {
-  value = azurerm_cognitive_deployment.model.model[0].version
+  value = var.cognitive_model_chat_api_version
 }
 
 output "AZURE_OPENAI_SEARCH_EMBEDDING_DEPLOYMENT" {
