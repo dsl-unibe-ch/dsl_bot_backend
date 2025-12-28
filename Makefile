@@ -44,6 +44,11 @@ scrape-unibe-qse:
 extract-content-qse:
 	@PYTHONPATH=$(shell pwd) python scripts/crawler/content_extractor.py --jsonl_file scripts/crawler/data/raw/qse.jsonl --customer_name qse
 
+post-process-qse:
+	@echo $@
+	@ENV=dev PYTHONPATH=$(shell pwd) python scripts/crawler/post_processsing.py
+    
+
 build-image-dev:
 	@ENV=dev; \
 	. ./.env.$${ENV}; \
