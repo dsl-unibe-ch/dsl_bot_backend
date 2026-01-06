@@ -66,7 +66,7 @@ def initialize_agent() -> StartSessionResponse:
 
 
 @app.post("/invoke-agent")
-def ask_chatbot(query: QueryInput) -> QueryOutput:
+def invoke_agent(query: QueryInput) -> QueryOutput:
     """Query the chatbot for an answer using the provided session and user input.
 
     Args:
@@ -81,7 +81,7 @@ def ask_chatbot(query: QueryInput) -> QueryOutput:
         raise HTTPException(
             status_code=404, detail="Session not found. Call GET / to start a session."
         )
-    return chatbot.ask_chatbot_wrapper(query)
+    return chatbot.invoke_agent_wrapper(query)
 
 
 @app.post("/send-feedback")

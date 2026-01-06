@@ -251,7 +251,7 @@ class ChatBot:
             del self.chat_history[1:3]
         return self.chat_history
 
-    def ask_chatbot_wrapper(self, query: QueryInput) -> QueryOutput:
+    def invoke_agent_wrapper(self, query: QueryInput) -> QueryOutput:
         """Process a chatbot query and optionally store chat history."""
         if self is None:
             error_message = (

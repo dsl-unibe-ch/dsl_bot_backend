@@ -64,7 +64,7 @@ def invoke_agent(input_: str) -> dict:
     chatbot = ChatBot()
     session_id = uuid.uuid4()
     query_input = QueryInput(text=input_, session_id=session_id)
-    query_response = chatbot.ask_chatbot_wrapper(query_input)
+    query_response = chatbot.invoke_agent_wrapper(query_input)
     return {"output": query_response["output"], "sources": query_response["sources"]}
 
 

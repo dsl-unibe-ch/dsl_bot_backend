@@ -19,7 +19,7 @@ class KioskbotUser(HttpUser):
 
     wait_time = between(
         1, 3
-    )  # random wait time between tasks (ask_chatbot and send_feedback)
+    )  # random wait time between tasks (invoke_agent and send_feedback)
 
     def on_start(self: "KioskbotUser") -> None:
         """This method is called when a simulated user starts.
@@ -65,7 +65,7 @@ class KioskbotUser(HttpUser):
     def send_feedback(self: "KioskbotUser") -> None:
         """This task simulates sending feedback for a chatbot session.
 
-        It will be chosen one time for every three times ask_chatbot is chosen.
+        It will be chosen one time for every three times invoke_agent is chosen.
         """
         if not self.session_id:  # If no session_id is available, skip this task
             logger.debug("[send_feedback] No session_id, skipping task.")

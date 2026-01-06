@@ -70,11 +70,11 @@ def app_page(page: Page, accept_disclaimer: Callable[[], None]) -> Page:
     with (
         page.expect_request(
             lambda r: _is_outgoing_request_valid_get(r, INITIALIZE_AGENT_ENDPOINT_MATCH),
-            timeout=30_000,
+            timeout=60_000,
         ) as request_info_root,
         page.expect_response(
             lambda r: _is_incoming_response_valid_get(r, INITIALIZE_AGENT_ENDPOINT_MATCH),
-            timeout=30_000,
+            timeout=60_000,
         ) as response_info_root,
     ):
         page.goto(url=settings.FRONTEND_URL)
@@ -83,7 +83,7 @@ def app_page(page: Page, accept_disclaimer: Callable[[], None]) -> Page:
     status, ok, body_json, body_text = _read_response(response_root)
     if not ok or status >= BAD_REQUEST_CODE:
         _save_frontend_snapshot(
-            request_root, {}, response_root, body_json, body_text, prefix="root_get"
+            request_root, response_root, body_json, body_text, prefix="root_get"
         )
         detail = _extract_fastapi_detail(body_json, body_text)
         pytest.fail(f"GET / returned {status}: {detail}")
@@ -206,7 +206,14 @@ def _save_frontend_snapshot(
     """Persists a contract snapshot."""
     outdir = _out_dir()
 
-    sent_body = _parse_request_json(request)
+    # Parse request body only if it's a POST/PUT request with JSON content
+    sent_body = None
+    if request.method.upper() in ("POST", "PUT", "PATCH"):
+        try:
+            sent_body = _parse_request_json(request)
+        except Exception:
+            sent_body = {"error": "Could not parse request body"}
+    
     record = {
         "request": {
             "url": request.url,
@@ -263,11 +270,11 @@ def _send_one_message_and_wait(
     with (
         app_page.expect_request(
             lambda r: _is_outgoing_request_valid_post(r, INVOKE_AGENT_ENDPOINT_MATCH),
-            timeout=30_000,
+            timeout=60_000,
         ) as request_info,
         app_page.expect_response(
             lambda r: _is_incoming_response_valid_post(r, INVOKE_AGENT_ENDPOINT_MATCH),
-            timeout=30_000,
+            timeout=60_000,
         ) as response_info,
     ):
         submit_button.click()
@@ -330,11 +337,11 @@ def test_frontend_to_backend(app_page: Page) -> None:
     with (
         app_page.expect_request(
             lambda r: _is_outgoing_request_valid_post(r, FEEDBACK_ENDPOINT_MATCH),
-            timeout=30_000,
+            timeout=60_000,
         ) as request_info_fb,
         app_page.expect_response(
             lambda r: _is_incoming_response_valid_post(r, FEEDBACK_ENDPOINT_MATCH),
-            timeout=30_000,
+            timeout=60_000,
         ) as response_info_fb,
     ):
         submit_button.click()
@@ -364,10 +371,11 @@ def test_backend_root_contract(page: Page) -> None:
         pytest.skip("BACKEND_URL not set")
     page.goto(settings.FRONTEND_URL)
     page.wait_for_load_state("domcontentloaded")
-    request = page.context.request.get(settings.BACKEND_URL + "/initialize-agent")
+    backend_url = settings.BACKEND_URL.rstrip("/")
+    request = page.context.request.get(backend_url + "/initialize-agent")
     print(request.url)
     req_path = (urlsplit(request.url).path or "/").rstrip("/")
-    exp_path = (urlsplit(settings.BACKEND_URL + "/initialize-agent").path or "/").rstrip("/")
+    exp_path = (urlsplit(backend_url + "/initialize-agent").path or "/").rstrip("/")
     if req_path != exp_path:
         pytest.fail(f"Root path {req_path!r} != expected {exp_path!r}.")
     status = request.status

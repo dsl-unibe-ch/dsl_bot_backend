@@ -1,5 +1,8 @@
 PYTHON := $(firstword $(wildcard .venv/bin/python) $(wildcard .venv/Scripts/python.exe) python)
 VERSION=$(shell grep '^version' pyproject.toml | head -1 | cut -d '"' -f2)
+FE_DIR := ../kioskbot_frontend
+FE_REPO := https://github.com/dsl-unibe-ch/kioskbot_frontend.git
+FE_PORT := 5173
 
 lint:
 	@echo $@
@@ -103,13 +106,265 @@ unit-tests: build-image-dev compose-down-dev compose-up-dev
 	@echo $@
 	@ENV=dev PYTHONPATH=$(shell pwd) pytest -v tests/unit/
 
-e2e-tests-local: build-image-dev compose-down-dev compose-up-dev
-	@echo $@
-	@ENV=dev PYTHONPATH=$(shell pwd) pytest -v tests/e2e/
 
-e2e-tests-remote:
-	@echo $@
-	@ENV=dev PYTHONPATH=$(shell pwd) pytest -v tests/e2e/
+# ---- E2E Testing with Local FE and BE ----
+.PHONY: setup-fe-local setup-be-local-e2e e2e-local2local stop-fe-local
+
+# currently we are using the send-url branch of the frontend repository
+setup-fe-local:
+	@echo "Setting up Frontend for local E2E testing..."
+	@if [ ! -d "$(FE_DIR)" ]; then \
+		echo "Cloning frontend repository (send-url branch)..."; \
+		git clone -b send-url $(FE_REPO) $(FE_DIR); \
+	else \
+		echo "Frontend repository already exists at $(FE_DIR)"; \
+		echo "Pulling latest changes from send-url branch..."; \
+		cd $(FE_DIR) && git fetch origin && git checkout send-url && git pull origin send-url || echo "Warning: Could not pull latest changes from send-url branch"; \
+	fi
+	@echo "Installing frontend dependencies..."
+	@cd $(FE_DIR) && pnpm install
+	@echo "Configuring PUBLIC_API environment variable..."
+	@BACKEND_URL=$$(grep -E '^BACKEND_URL=' .env.dev | cut -d'=' -f2- | tr -d '"' | sed 's:/*$$::'); \
+	echo "Detected BACKEND_URL: $$BACKEND_URL"; \
+	if [ -f "$(FE_DIR)/.env" ]; then \
+		grep -v '^PUBLIC_API=' "$(FE_DIR)/.env" > "$(FE_DIR)/.env.tmp" || true; \
+		mv "$(FE_DIR)/.env.tmp" "$(FE_DIR)/.env"; \
+	fi; \
+	echo "PUBLIC_API=$$BACKEND_URL" >> "$(FE_DIR)/.env"
+	@echo "Frontend setup complete!"
+
+setup-be-local-e2e:
+	@echo "Setting up Backend for local E2E testing..."
+	@echo "Installing Chromium for Playwright..."
+	@$(PYTHON) -m playwright install chromium
+	@echo "Configuring .env.dev for local testing..."
+	@grep -v '^FRONTEND_URL=' .env.dev > .env.dev.tmp || true
+	@grep -v '^BACKEND_URL=' .env.dev.tmp > .env.dev.tmp2 || true
+	@echo "FRONTEND_URL=http://localhost:$(FE_PORT)" >> .env.dev.tmp2
+	@echo "BACKEND_URL=http://localhost:8000" >> .env.dev.tmp2
+	@mv .env.dev.tmp2 .env.dev
+	@rm -f .env.dev.tmp
+	@echo "Backend E2E setup complete!"
+
+stop-fe-local:
+	@echo "Stopping frontend server..."
+	@if [ -f .fe-server.pid ]; then \
+		FE_PID=$$(cat .fe-server.pid); \
+		if ps -p $$FE_PID > /dev/null 2>&1; then \
+			echo "Killing frontend server process $$FE_PID..."; \
+			kill $$FE_PID 2>/dev/null || true; \
+			sleep 2; \
+			kill -9 $$FE_PID 2>/dev/null || true; \
+		fi; \
+		rm -f .fe-server.pid; \
+	fi
+	@pkill -f "vite.*:$(FE_PORT)" 2>/dev/null || true
+	@echo "Frontend server stopped."
+
+e2e-local2local: setup-be-local-e2e setup-fe-local build-image-dev compose-down-dev compose-up-dev
+	@echo "========================================"
+	@echo "Local FE to Local BE E2E Test Workflow"
+	@echo "========================================"
+	@echo ""
+	@echo "Stopping any existing frontend servers..."
+	@$(MAKE) stop-fe-local
+	@echo "Starting frontend server in background..."
+	@(cd $(FE_DIR) && pnpm dev > $(shell pwd)/.fe-server.log 2>&1 & echo $$! > $(shell pwd)/.fe-server.pid)
+	@echo "Waiting for frontend server to be ready..."
+	@timeout=60; \
+	while ! curl -s http://localhost:$(FE_PORT) > /dev/null 2>&1; do \
+		timeout=$$((timeout - 1)); \
+		if [ $$timeout -le 0 ]; then \
+			echo "ERROR: Frontend server failed to start within 60 seconds"; \
+			echo "Frontend server logs:"; \
+			cat .fe-server.log 2>/dev/null || echo "No logs available"; \
+			$(MAKE) stop-fe-local; \
+			exit 1; \
+		fi; \
+		sleep 1; \
+	done
+	@echo "Frontend server is ready!"
+	@echo "Running E2E tests..."
+	@ENV=dev PYTHONPATH=$(shell pwd) pytest -v tests/e2e/ || \
+		(echo "Tests failed, cleaning up..."; $(MAKE) stop-fe-local; exit 1)
+	@echo "Tests completed successfully!"
+	@$(MAKE) stop-fe-local
+	@rm -f .fe-server.log
+	@echo ""
+	@echo "========================================"
+	@echo "Local FE to Local BE E2E Test Complete!"
+	@echo "========================================"
+
+# ---- E2E Testing with Local FE and Remote BE (AKS) ----
+.PHONY: get-my-ip setup-aks-allow-my-ip deploy-be-remote get-aks-external-ip setup-fe-remote e2e-local2remote e2e-remote2remote
+
+get-my-ip:
+	@echo "Detecting your external IP..."
+	@curl -s https://api.ipify.org
+
+setup-aks-allow-my-ip:
+	@echo "Setting up AKS to allow your IP for remote testing..."
+	@MY_IP=$$(curl -s https://api.ipify.org); \
+	echo "Your external IP: $$MY_IP"; \
+	TFVARS_FILE=scripts/terraform/azure/environments/$(ENV).tfvars; \
+	if [ ! -f "$$TFVARS_FILE" ]; then \
+		echo "ERROR: $$TFVARS_FILE not found"; \
+		exit 1; \
+	fi; \
+	echo "Updating $$TFVARS_FILE..."; \
+	grep -v '^aks_allowed_external_ips' "$$TFVARS_FILE" > "$$TFVARS_FILE.tmp" || true; \
+	echo 'aks_allowed_external_ips = ["'$$MY_IP'/32"]' >> "$$TFVARS_FILE.tmp"; \
+	mv "$$TFVARS_FILE.tmp" "$$TFVARS_FILE"; \
+	echo "Updated $$TFVARS_FILE with your IP: $$MY_IP/32"
+
+deploy-be-remote:
+	@echo "Deploying backend to AKS ($(ENV))..."
+	@echo "Step 1: Planning Terraform..."
+	@$(MAKE) terraform-plan-$(ENV)
+	@echo "Step 2: Applying Terraform..."
+	@$(MAKE) terraform-apply-$(ENV)
+	@echo "Step 3: Building Docker image..."
+	@$(MAKE) build-image-$(ENV)
+	@echo "Step 4: Pushing Docker image..."
+	@$(MAKE) push-image-$(ENV)
+	@echo "Step 5: Upgrading Helm deployment..."
+	@$(MAKE) helm-upgrade-$(ENV)
+	@echo "Backend deployment to AKS is complete!"
+
+get-aks-external-ip:
+	@echo "Getting AKS external IP for $(ENV)..." >&2
+	@KUBECONFIG_FILE=scripts/terraform/azure/outputs/$(ENV).kubeconfig; \
+	if [ ! -f "$$KUBECONFIG_FILE" ]; then \
+		echo "ERROR: $$KUBECONFIG_FILE not found. Run 'make kubeconfig-$(ENV)' first." >&2; \
+		exit 1; \
+	fi; \
+	EXTERNAL_IP=$$(KUBECONFIG="$$KUBECONFIG_FILE" kubectl get svc -n kioskbot-$(ENV) -o jsonpath='{.items[?(@.spec.type=="LoadBalancer")].status.loadBalancer.ingress[0].ip}' 2>/dev/null); \
+	if [ -z "$$EXTERNAL_IP" ]; then \
+		echo "ERROR: Could not find external IP. Make sure the service is deployed." >&2; \
+		exit 1; \
+	fi; \
+	echo "$$EXTERNAL_IP"
+
+setup-fe-remote:
+	@echo "Setting up Frontend for remote backend testing ($(ENV))..."
+	@if [ ! -d "$(FE_DIR)" ]; then \
+		echo "Cloning frontend repository (send-url branch)..."; \
+		git clone -b send-url $(FE_REPO) $(FE_DIR); \
+	else \
+		echo "Frontend repository already exists at $(FE_DIR)"; \
+		echo "Pulling latest changes from send-url branch..."; \
+		cd $(FE_DIR) && git fetch origin && git checkout send-url && git pull origin send-url || echo "Warning: Could not pull latest changes from send-url branch"; \
+	fi
+	@echo "Installing frontend dependencies..."
+	@cd $(FE_DIR) && pnpm install
+	@echo "Getting AKS external IP..."
+	@EXTERNAL_IP=$$($(MAKE) --no-print-directory get-aks-external-ip ENV=$(ENV)); \
+	echo "AKS External IP: $$EXTERNAL_IP"; \
+	BACKEND_URL_REMOTE="http://$$EXTERNAL_IP:8000"; \
+	echo "Configuring frontend to use remote backend: $$BACKEND_URL_REMOTE"; \
+	if [ -f "$(FE_DIR)/.env" ]; then \
+		grep -v '^PUBLIC_API=' "$(FE_DIR)/.env" > "$(FE_DIR)/.env.tmp" || true; \
+		mv "$(FE_DIR)/.env.tmp" "$(FE_DIR)/.env"; \
+	fi; \
+	echo "PUBLIC_API=$$BACKEND_URL_REMOTE" >> "$(FE_DIR)/.env"
+	@echo "Configuring backend .env.$(ENV) with FRONTEND_URL..."
+	@grep -v '^FRONTEND_URL=' .env.$(ENV) > .env.$(ENV).tmp || true
+	@echo "FRONTEND_URL=http://localhost:$(FE_PORT)" >> .env.$(ENV).tmp
+	@grep -v '^BACKEND_URL=' .env.$(ENV).tmp > .env.$(ENV).tmp2 || true
+	@EXTERNAL_IP=$$($(MAKE) --no-print-directory get-aks-external-ip ENV=$(ENV)); \
+	echo "BACKEND_URL=http://$$EXTERNAL_IP:8000" >> .env.$(ENV).tmp2
+	@mv .env.$(ENV).tmp2 .env.$(ENV)
+	@rm -f .env.$(ENV).tmp
+	@echo "Frontend setup for remote backend testing is complete!"
+
+e2e-local2remote:
+	@echo "========================================"
+	@echo "Local FE to Remote BE E2E Test Workflow ($(ENV))"
+	@echo "========================================"
+	@echo ""
+	@echo "Step 1/3: Setting up AKS to allow your IP..."
+	@$(MAKE) setup-aks-allow-my-ip ENV=$(ENV)
+	@echo ""
+	@echo "Step 2/3: Deploying backend to AKS..."
+	@$(MAKE) terraform-deploy-$(ENV)
+	@echo ""
+	@echo "Step 3/3: Running E2E tests..."
+	@$(MAKE) setup-fe-remote ENV=$(ENV)
+	@echo "Stopping any existing frontend servers..."
+	@$(MAKE) stop-fe-local
+	@echo "Starting frontend server in background..."
+	@(cd $(FE_DIR) && pnpm dev > $(shell pwd)/.fe-server.log 2>&1 & echo $$! > $(shell pwd)/.fe-server.pid)
+	@echo "Waiting for frontend server to be ready..."
+	@timeout=60; \
+	while ! curl -s http://localhost:$(FE_PORT) > /dev/null 2>&1; do \
+		timeout=$$((timeout - 1)); \
+		if [ $$timeout -le 0 ]; then \
+			echo "ERROR: Frontend server failed to start within 60 seconds"; \
+			echo "Frontend server logs:"; \
+			cat .fe-server.log 2>/dev/null || echo "No logs available"; \
+			$(MAKE) stop-fe-local; \
+			exit 1; \
+		fi; \
+		sleep 1; \
+	done
+	@echo "Frontend server is ready!"
+	@echo "Running E2E tests with local FE and remote BE..."
+	@ENV=$(ENV) PYTHONPATH=$(shell pwd) pytest -v tests/e2e/ || \
+		(echo "Tests failed, cleaning up..."; $(MAKE) stop-fe-local; exit 1)
+	@$(MAKE) stop-fe-local
+	@rm -f .fe-server.log
+	@echo ""
+	@echo "========================================"
+	@echo "Local FE to Remote BE Test Complete!"
+	@echo "========================================"
+
+e2e-remote2remote:
+	@echo "========================================"
+	@echo "Remote FE to Remote BE E2E Test Workflow ($(ENV))"
+	@echo "========================================"
+	@echo ""
+	@echo "Step 1/3: Setting up AKS to allow frontend IP..."
+	@if [ -z "$(FRONTEND_IP)" ]; then \
+		echo "ERROR: FRONTEND_IP is required. Usage: make e2e-remote2remote ENV=dev FRONTEND_IP=<ip> FRONTEND_URL=<url>"; \
+		exit 1; \
+	fi; \
+	if [ -z "$(FRONTEND_URL)" ]; then \
+		echo "ERROR: FRONTEND_URL is required. Usage: make e2e-remote2remote ENV=dev FRONTEND_IP=<ip> FRONTEND_URL=<url>"; \
+		exit 1; \
+	fi; \
+	TFVARS_FILE=scripts/terraform/azure/environments/$(ENV).tfvars; \
+	if [ ! -f "$$TFVARS_FILE" ]; then \
+		echo "ERROR: $$TFVARS_FILE not found"; \
+		exit 1; \
+	fi; \
+	echo "Updating $$TFVARS_FILE to allow frontend IP: $(FRONTEND_IP)"; \
+	grep -v '^aks_allowed_external_ips' "$$TFVARS_FILE" > "$$TFVARS_FILE.tmp" || true; \
+	echo 'aks_allowed_external_ips = ["$(FRONTEND_IP)/32"]' >> "$$TFVARS_FILE.tmp"; \
+	mv "$$TFVARS_FILE.tmp" "$$TFVARS_FILE"; \
+	echo "Updated $$TFVARS_FILE with frontend IP: $(FRONTEND_IP)/32"
+	@echo ""
+	@echo "Step 2/3: Deploying backend to AKS..."
+	@$(MAKE) terraform-deploy-$(ENV)
+	@echo ""
+	@echo "Step 3/3: Running E2E tests..."
+	@echo "Configuring test environment..."
+	@EXTERNAL_IP=$$($(MAKE) --no-print-directory get-aks-external-ip ENV=$(ENV)); \
+	echo "Frontend URL: $(FRONTEND_URL)"; \
+	echo "Backend URL: http://$$EXTERNAL_IP:8000"; \
+	grep -v '^FRONTEND_URL=' .env.$(ENV) > .env.$(ENV).tmp || true; \
+	grep -v '^BACKEND_URL=' .env.$(ENV).tmp > .env.$(ENV).tmp2 || true; \
+	echo "FRONTEND_URL=$(FRONTEND_URL)" >> .env.$(ENV).tmp2; \
+	echo "BACKEND_URL=http://$$EXTERNAL_IP:8000" >> .env.$(ENV).tmp2; \
+	mv .env.$(ENV).tmp2 .env.$(ENV); \
+	rm -f .env.$(ENV).tmp
+	@echo "Running E2E tests against remote FE and remote BE..."
+	@ENV=$(ENV) PYTHONPATH=$(shell pwd) pytest -v tests/e2e/ || \
+		(echo "Tests failed!"; exit 1)
+	@echo ""
+	@echo "========================================"
+	@echo "Remote FE to Remote BE Test Complete! ✓"
+	@echo "========================================"
+	
 
 
 
@@ -146,8 +401,6 @@ help:
 	@echo "  make destroy ENV=dev       # destroy with environments/dev.tfvars"
 	@echo "  make output                # show outputs"
 	@echo "  make kubeconfig ENV=dev    # write kubeconfig file from TF output"
-	@echo "  make deploy-dev            # plan/apply dev and write kubeconfig"
-	@echo "  make deploy-prod           # plan/apply prod and write kubeconfig"
 	@echo "  make k8s-create-namespace-dev   # create K8s namespace (dev)"
 	@echo "  make k8s-create-namespace-prod  # create K8s namespace (prod)"
 	@echo "  make k8s-create-secrets-dev     # create K8s secrets from .env (dev)"
@@ -160,6 +413,22 @@ help:
 	@echo "  make helm-uninstall-prod   # uninstall Helm release (prod)"
 	@echo "  make fmt validate          # housekeeping"
 	@echo "  make clean                 # remove local tf state/cache"
+	@echo "\nE2E Testing (Local FE + Local BE):"
+	@echo "  make e2e-local2local       # Run complete E2E test (setup + run + cleanup)"
+	@echo "  make setup-fe-local        # Setup frontend for E2E testing"
+	@echo "  make setup-be-local-e2e    # Setup backend for E2E testing"
+	@echo "  make stop-fe-local         # Stop frontend development server"
+	@echo "\nE2E Testing (Local FE + Remote BE on AKS):"
+	@echo "  make e2e-local2remote ENV=dev         # Complete: setup IP + deploy + test (ONE COMMAND)"
+	@echo "  make get-my-ip                        # Display your external IP"
+	@echo "  make setup-aks-allow-my-ip ENV=dev    # Add your IP to AKS allowed list"
+	@echo "  make terraform-deploy-dev             # Full deploy: terraform + build + push + helm"
+	@echo "  make terraform-deploy-prod            # Full deploy for production"
+	@echo "  make deploy-be-remote ENV=dev         # Deploy backend to AKS (legacy)"
+	@echo "  make get-aks-external-ip ENV=dev      # Get AKS cluster external IP"
+	@echo "  make setup-fe-remote ENV=dev          # Setup FE to connect to remote BE"
+	@echo "\nE2E Testing (Remote FE + Remote BE on AKS):"
+	@echo "  make e2e-remote2remote ENV=dev FRONTEND_IP=<ip> FRONTEND_URL=<url>   # Deploy BE + run tests"
 	@echo "\nKubernetes Dashboard:"
 	@echo "  make helm-dashboard-install     # install/upgrade dashboard"
 	@echo "  make helm-dashboard-status      # show dashboard release status"
@@ -312,15 +581,49 @@ terraform-deploy-dev:
 	@$(MAKE) terraform-plan-dev
 	@$(MAKE) terraform-apply-dev
 	@$(MAKE) terraform-output-dev
-	@$(MAKE) kubeconfig-dev
 	@$(MAKE) write-output-to-env-dev
+	@echo ""
+	@echo "   - IMPORTANT: Update OpenAI Tokens-Per-Minute quotas in Azure Foundry:"
+	@echo "   - Chat models: up to 1M TPM"
+	@echo "   - Embedding models: up to 2M TPM"
+	@echo "   (Terraform does not expose this setting)"
+	@echo ""
+	@read -p "Have you updated the OpenAI quotas? [y/N]: " CONFIRM; \
+	if [ "$$CONFIRM" != "y" ] && [ "$$CONFIRM" != "Y" ]; then \
+		echo "Deployment cancelled. Please update quotas and try again."; \
+		exit 1; \
+	fi
+	@echo "Continuing with deployment..."
+	@$(MAKE) build-image-dev
+	@$(MAKE) push-image-dev
+	@$(MAKE) kubeconfig-dev
+	@$(MAKE) helm-upgrade-dev
+	@echo "Backend deployment complete!"
+
 
 terraform-deploy-prod:
 	@$(MAKE) terraform-plan-prod
 	@$(MAKE) terraform-apply-prod
 	@$(MAKE) terraform-output-prod
-	@$(MAKE) kubeconfig-prod
 	@$(MAKE) write-output-to-env-prod
+	@echo ""
+	@echo "   - IMPORTANT: Update OpenAI Tokens-Per-Minute quotas in Azure Foundry:"
+	@echo "   - Chat models: up to 1M TPM"
+	@echo "   - Embedding models: up to 2M TPM"
+	@echo "   (Terraform does not expose this setting)"
+	@echo ""
+	@read -p "Have you updated the OpenAI quotas? [y/N]: " CONFIRM; \
+	if [ "$$CONFIRM" != "y" ] && [ "$$CONFIRM" != "Y" ]; then \
+		echo "Deployment cancelled. Please update quotas and try again."; \
+		exit 1; \
+	fi
+	@echo "Continuing with deployment..."
+	@$(MAKE) build-image-prod
+	@$(MAKE) push-image-prod
+	@$(MAKE) kubeconfig-prod
+	@$(MAKE) helm-upgrade-prod
+	@echo "Backend deployment complete!"
+	
 
 # ---- Helm deployment targets ----
 .PHONY: helm-install
@@ -403,7 +706,16 @@ helm-upgrade:
 		--set api.image.tag="$${IMAGE_TAG}" \
 		--set kafkaConsumer.image.repository="$${IMAGE_REPO}" \
 		--set kafkaConsumer.image.tag="$${IMAGE_TAG}" \
-		--namespace kioskbot-$${ENV}
+		--namespace kioskbot-$${ENV} \
+		--wait \
+		--timeout 5m; \
+	echo "Forcing rolling restart of deployments..."; \
+	KUBECONFIG="$${KUBECONFIG_FILE}" kubectl rollout restart deployment/kioskbot-backend-$${ENV}-api -n kioskbot-$${ENV}; \
+	KUBECONFIG="$${KUBECONFIG_FILE}" kubectl rollout restart deployment/kioskbot-backend-$${ENV}-kafka-consumer -n kioskbot-$${ENV}; \
+	echo "Waiting for rollout to complete..."; \
+	KUBECONFIG="$${KUBECONFIG_FILE}" kubectl rollout status deployment/kioskbot-backend-$${ENV}-api -n kioskbot-$${ENV} --timeout=5m; \
+	KUBECONFIG="$${KUBECONFIG_FILE}" kubectl rollout status deployment/kioskbot-backend-$${ENV}-kafka-consumer -n kioskbot-$${ENV} --timeout=5m; \
+	echo "All deployments ready!"
 
 .PHONY: helm-upgrade-dev
 helm-upgrade-dev:
