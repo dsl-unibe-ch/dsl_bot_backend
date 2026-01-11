@@ -35,19 +35,24 @@ convert-mht-to-txt-innovation:
 	@echo $@
 	@PYTHONPATH=$(shell pwd) python scripts/crawler/one_note_mht_reader.py scripts/crawler/data/raw/Notizbuch_fuer_Ideenlabor.mht scripts/crawler/data/raw/Notizbuch_fuer_Ideenlabor.txt
 
-scrape-unibe-qse:
+collect-urls-qse:
 	@echo $@
 	@rm -rf scripts/crawler/jobs/qse
 	@rm -f  scripts/crawler/data/raw/qse.jsonl
-	@PYTHONPATH=$(shell pwd) scrapy runspider scripts/crawler/unibe_crawler.py -a config=scripts/crawler/configs/qse.yml -o scripts/crawler/data/raw/qse.jsonl -s JOBDIR=scripts/crawler/jobs/qse
+	@PYTHONPATH=$(shell pwd) scrapy runspider scripts/crawler/unibe_crawler.py -a config=scripts/crawler/configs/qse.yml -o scripts/crawler/data/qse/url_list.jsonl -s JOBDIR=scripts/crawler/jobs/qse
 
 extract-content-qse:
-	@PYTHONPATH=$(shell pwd) python scripts/crawler/content_extractor.py --jsonl_file scripts/crawler/data/raw/qse.jsonl --customer_name qse
+	@echo $@	
+	@rm -rf scripts/crawler/data/qse/qse_content.jsonl
+	@rm -rf scripts/crawler/data/qse/processed_data.xlsx
+	@PYTHONPATH=$(shell pwd) python scripts/crawler/url_content_extractor.py --jsonl_file scripts/crawler/data/qse/url_list.jsonl --customer_name qse
+	@PYTHONPATH=$(shell pwd) python scripts/crawler/pdf_content_extractor.py --jsonl_file scripts/crawler/data/qse/url_list.jsonl --customer_name qse
+	@ENV=dev PYTHONPATH=$(shell pwd) python scripts/crawler/post_processing.py
 
-post-process-qse:
+scrape-qse:
 	@echo $@
-	@ENV=dev PYTHONPATH=$(shell pwd) python scripts/crawler/post_processsing.py
-    
+	@make collect-urls-qse
+	@make extract-content-qse
 
 build-image-dev:
 	@ENV=dev; \

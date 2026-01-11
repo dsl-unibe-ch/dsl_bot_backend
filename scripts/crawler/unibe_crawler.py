@@ -42,7 +42,7 @@ class UnibeSpider(CrawlSpider):
     - Allowed domains via -a allowed_domains="..."
     - Allow/Deny regex patterns via -a allow="...", -a deny="..."
     - Deny domains via -a deny_domains="..."
-    - Exports page URL as {"Link": "<url>"} using feed export (-o ...)
+    - Exports page URL as {"URL": "<url>"} using feed export (-o ...)
     - PDFs are allowed by default (we don't deny any extensions)
     """
 
@@ -117,7 +117,7 @@ class UnibeSpider(CrawlSpider):
             if canonical_url not in self._exported:
                 self._exported.add(canonical_url)
                 logger.info(f"Yielding static PDF: {canonical_url}")
-                yield {"Pdf": canonical_url}
+                yield {"PDF": canonical_url}
         
         # Then proceed with normal crawling
         for url in self.start_urls:
@@ -132,11 +132,11 @@ class UnibeSpider(CrawlSpider):
         url = self._canon(response.url)
         if url not in self._exported:
             self._exported.add(url)
-            yield {"Link": url}
+            yield {"URL": url}
 
         for href in response.css("a::attr(href)").getall():
             if ".pdf" in href.lower():
                 pdf_url = self._canon(response.urljoin(href))
                 if pdf_url not in self._exported:
                     self._exported.add(pdf_url)
-                    yield {"Pdf": pdf_url}
+                    yield {"PDF": pdf_url}

@@ -219,7 +219,8 @@ class ContentExtractor:
             if text:
                 if lines and lines[-1]:  # Add blank line before heading if not at start
                     lines.append('')
-                lines.append(text)
+                lines.append(text + ' ')
+                lines.append('')  # Add blank line after heading to separate from content
         elif element.name in ['p', 'div', 'section', 'article']:
             # Process block elements
             # Get direct text and child elements
@@ -242,7 +243,7 @@ class ContentExtractor:
             if text:
                 if lines and lines[-1]:
                     lines.append('')
-                lines.append(text)
+                lines.append(text + ' ')
         else:
             # For other elements, process children
             for child in element.children:
@@ -320,8 +321,8 @@ class ContentExtractor:
         with jsonl_file.open('r', encoding='utf-8') as f:
             for line in f:
                 data = json.loads(line.strip())
-                if 'Link' in data:
-                    urls.append(data['Link'])
+                if 'URL' in data:
+                    urls.append(data['URL'])
         
         logger.info(f"Found {len(urls)} non-PDF URLs to process")
         

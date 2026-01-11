@@ -1,9 +1,25 @@
 import json
 import os
+import re
+import logging
 from pathlib import Path
 from app.config import settings
 from openai import AzureOpenAI
 from pydantic import BaseModel
+import requests
+import pandas as pd
+from tqdm import tqdm
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
+# Suppress noisy HTTP logs from OpenAI and httpx
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("openai").setLevel(logging.WARNING)
 
 keyword_question_generation_system_prompt = """
 
@@ -83,11 +99,18 @@ def post_process_data(jsonl_file: Path, customer_name: str) -> list:
             all_data.append(data)
     
     processed_data = []
-    for idx, row in enumerate(all_data):
+    for idx, row in tqdm(enumerate(all_data), total=len(all_data), desc="Processing data"):
         DocumentID = f"{customer_name}_{idx}"
-        Link = row['url']
-        Title = row['content'].split("\n\n")[0] if row.get('content') else "Untitled"
-        Category = "Website"
+        url = row['url']
+        if url.endswith(".html"):
+            Title = row['content'].split("\n\n")[0] if row.get('content') else "Untitled"
+            Category = "Website"
+        elif url.endswith(".pdf"):
+            Title = row['filename']
+            Category = "PDF"
+        elif url=="None":
+            Title = "Untitled"  
+            Category = "Other"
         Local_Path = "Not Specified"
         Local_Path_PDF = "Not Specified"
         Date_Last_Modified = "Not Specified"
@@ -96,7 +119,7 @@ def post_process_data(jsonl_file: Path, customer_name: str) -> list:
         Keyword = "None"
         Example_Questions = "None"
         page_type = find_page_type(text)
-        prompt = keyword_question_generation_system_prompt.format(url=Link, page_type=page_type, text=text)
+        prompt = keyword_question_generation_system_prompt.format(url=url, page_type=page_type, text=text)
         response = client.beta.chat.completions.parse(
             model=settings.AZURE_OPENAI_CHAT_DEPLOYMENT,
             messages=[
@@ -109,7 +132,7 @@ def post_process_data(jsonl_file: Path, customer_name: str) -> list:
         questions = ", ".join(response_json.questions)  
         new_row = {
             "DocumentID": DocumentID,
-            "Link": Link,
+            "Link": url,
             "Title": Title,
             "Category": Category,
             "Local_Path": Local_Path,
@@ -124,16 +147,91 @@ def post_process_data(jsonl_file: Path, customer_name: str) -> list:
         processed_data.append(new_row)
     return processed_data
 
+def extract_urls_from_text(text: str) -> set:
+    """Extract all URLs from text content."""
+    url_pattern = r'https?://[^\s\)\]<>]+'
+    urls = re.findall(url_pattern, text)
+    return set(url.rstrip('.,;:') for url in urls)
+
+
+def check_url_valid(url: str, timeout: int = 10) -> bool:
+    """Check if a URL is valid and accessible."""
+    try:
+        response = requests.head(url, timeout=timeout, allow_redirects=True)
+        if response.status_code == 405:
+            response = requests.get(url, timeout=timeout, allow_redirects=True, stream=True)
+        return 200 <= response.status_code < 400
+    except Exception:
+        return False
+
+
+def verify_urls_in_processed_data(processed_file: Path) -> list:
+    """Read processed data, extract URLs from text, and check validity."""
+    logger.info("="*80)
+    logger.info("VERIFYING URLs IN PROCESSED DATA")
+    logger.info("="*80)
+    
+    all_urls = set()
+    
+    # Read processed data and extract URLs
+    df = pd.read_excel(processed_file, engine='openpyxl')
+    for text in df['text']:
+        if pd.notna(text):  # Check if text is not NaN
+            urls = extract_urls_from_text(str(text))
+            all_urls.update(urls)
+    
+    logger.info(f"Found {len(all_urls)} unique URLs in processed data")
+    
+    # Check each URL
+    invalid_urls = []
+    for i, url in tqdm(enumerate(sorted(all_urls)), total=len(all_urls), desc="Checking URLs"):
+        if not check_url_valid(url):
+            invalid_urls.append(url)
+    return invalid_urls
+
+def find_empty_text_content(processed_file: Path) -> list:
+    """Find entries with empty text content."""
+    logger.info("="*80)
+    logger.info("FINDING EMPTY TEXT CONTENT")
+    logger.info("="*80)
+    df = pd.read_excel(processed_file, engine='openpyxl')
+    empty_text_content = df[df['text'].isna()]
+    return empty_text_content
+
+
 def main():
     jsonl_file = Path("scripts/crawler/data/qse/qse_content.jsonl")
     customer_name = "qse"
+    logger.info("Starting post-processing...")
     all_data = post_process_data(jsonl_file, customer_name)
-    output_file = Path(f"scripts/crawler/data/{customer_name}/processed_data.jsonl")
+    output_file = Path(f"scripts/crawler/data/{customer_name}/processed_data.xlsx")
     output_file.parent.mkdir(parents=True, exist_ok=True)
-    with open(output_file, "w", encoding='utf-8') as f:
-        for row in all_data:
-            f.write(json.dumps(row, ensure_ascii=False) + "\n")
-    print(f"Processed {len(all_data)} entries and saved to {output_file}")
+    df = pd.DataFrame(all_data)
+    df.to_excel(output_file, index=False, engine='openpyxl')
+    logger.info(f"Processed {len(all_data)} entries and saved to {output_file}")
+    invalid_urls = verify_urls_in_processed_data(output_file)
+    
+    logger.info("="*80)
+    logger.info("URL VERIFICATION RESULTS")
+    logger.info("="*80)
+    if invalid_urls:
+        logger.warning(f"Found {len(invalid_urls)} URLs which may be broken. It is recommended to verify manually and remove from website.:")
+        for i, url in enumerate(invalid_urls, start=1):
+            logger.warning(f"  {i}. {url}")
+    else:
+        logger.info("All URLs are valid!")
+    logger.info("="*80)
+
+    empty_text_content = find_empty_text_content(output_file)
+    logger.info("="*80)
+    logger.info("EMPTY TEXT CONTENT")
+    logger.info("="*80)
+    if empty_text_content:
+        logger.warning(f"Found {len(empty_text_content)} entries with empty text content.")
+        for i, row in enumerate(empty_text_content, start=1):
+            logger.warning(f"  {i}. {row['Link']}")
+    else:
+        logger.info("No entries with empty text content found.")
 
 if __name__ == "__main__":
     main()

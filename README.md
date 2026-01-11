@@ -866,6 +866,12 @@ curl -s -X POST "http://127.0.0.1:8000/send_feedback" -H "Content-Type: applicat
 ## Crawler
 <details>
 
+- Scrape QSE website
+```bash
+make scrape-qse
+```
+Note that the current pipeline does not take care of scanned pdfs without a layout structure. 
+
 - Scrape UniBe Innovation website: 
 
 ```bash
