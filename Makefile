@@ -108,7 +108,7 @@ unit-tests: build-image-dev compose-down-dev compose-up-dev
 
 
 # ---- E2E Testing with Local FE and BE ----
-.PHONY: setup-fe-local setup-be-local-e2e e2e-local2local stop-fe-local
+.PHONY: setup-fe-local setup-be-local e2e-local2local stop-fe-local
 
 # currently we are using the send-url branch of the frontend repository
 setup-fe-local:
@@ -133,7 +133,7 @@ setup-fe-local:
 	echo "PUBLIC_API=$$BACKEND_URL" >> "$(FE_DIR)/.env"
 	@echo "Frontend setup complete!"
 
-setup-be-local-e2e:
+setup-be-local:
 	@echo "Setting up Backend for local E2E testing..."
 	@echo "Installing Chromium for Playwright..."
 	@$(PYTHON) -m playwright install chromium
@@ -161,7 +161,7 @@ stop-fe-local:
 	@pkill -f "vite.*:$(FE_PORT)" 2>/dev/null || true
 	@echo "Frontend server stopped."
 
-e2e-local2local: setup-be-local-e2e setup-fe-local build-image-dev compose-down-dev compose-up-dev
+e2e-local2local: setup-be-local setup-fe-local build-image-dev compose-down-dev compose-up-dev
 	@echo "========================================"
 	@echo "Local FE to Local BE E2E Test Workflow"
 	@echo "========================================"
@@ -416,7 +416,7 @@ help:
 	@echo "\nE2E Testing (Local FE + Local BE):"
 	@echo "  make e2e-local2local       # Run complete E2E test (setup + run + cleanup)"
 	@echo "  make setup-fe-local        # Setup frontend for E2E testing"
-	@echo "  make setup-be-local-e2e    # Setup backend for E2E testing"
+	@echo "  make setup-be-local        # Setup backend for E2E testing"
 	@echo "  make stop-fe-local         # Stop frontend development server"
 	@echo "\nE2E Testing (Local FE + Remote BE on AKS):"
 	@echo "  make e2e-local2remote ENV=dev         # Complete: setup IP + deploy + test (ONE COMMAND)"

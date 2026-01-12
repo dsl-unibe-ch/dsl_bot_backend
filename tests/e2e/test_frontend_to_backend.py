@@ -20,12 +20,9 @@ from playwright.sync_api import Page, Request, Response, expect
 
 from app.config import settings
 
-SUCCESS_STATUS_CODE = 200
 BAD_REQUEST_CODE = 400
-SESSION_ID_MIN_LENGTH = 5
 INVOKE_AGENT_ENDPOINT_MATCH = re.compile(r"/invoke-agent(?:\?|$)")
 FEEDBACK_ENDPOINT_MATCH = re.compile(r"/send-feedback(?:\?|$)")
-ROOT_ENDPOINT_MATCH = re.compile(r"^/$")
 INITIALIZE_AGENT_ENDPOINT_MATCH = re.compile(r"/initialize-agent(?:\?|$)")
 
 

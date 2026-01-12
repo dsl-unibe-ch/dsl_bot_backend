@@ -15,7 +15,7 @@ kafka:
   image:
     repository: apache/kafka
     tag: "4.1.0"
-    pullPolicy: Always #changing IfNotPresent to Always as otherwise the image is not pulled if it is already present
+    pullPolicy: IfNotPresent
   
   env:
     # K8s-specific: Use localhost for controller quorum voters
@@ -47,7 +47,7 @@ api:
   image:
     repository: "" # Set via --set api.image.repository="${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER}/kioskbot-backend-api"
     tag: "" # Set via --set api.image.tag="${VERSION}-${ENV}"
-    pullPolicy: Always #changing IfNotPresent to Always as otherwise the image is not pulled if it is already present
+    pullPolicy: IfNotPresent
   
   env:
     # K8s-specific: Use service name for Kafka bootstrap servers
@@ -77,7 +77,7 @@ kafkaConsumer:
   image:
     repository: "" # Set via --set kafkaConsumer.image.repository="${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER}/kioskbot-backend-api"
     tag: "" # Set via --set kafkaConsumer.image.tag="${VERSION}-${ENV}"
-    pullPolicy: Always #changing IfNotPresent to Always as otherwise the image is not pulled if it is already present
+    pullPolicy: IfNotPresent
   
   env:
     # K8s-specific: Use service name for Kafka bootstrap servers
