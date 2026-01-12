@@ -226,10 +226,10 @@ def main():
     logger.info("="*80)
     logger.info("EMPTY TEXT CONTENT")
     logger.info("="*80)
-    if empty_text_content:
+    if not empty_text_content.empty:
         logger.warning(f"Found {len(empty_text_content)} entries with empty text content.")
-        for i, row in enumerate(empty_text_content, start=1):
-            logger.warning(f"  {i}. {row['Link']}")
+        for i, row in empty_text_content.iterrows():
+            logger.warning(f"  {i+1}. {row['Link']}")
     else:
         logger.info("No entries with empty text content found.")
 
