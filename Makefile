@@ -39,6 +39,7 @@ collect-urls-qse:
 	@echo $@
 	@rm -rf scripts/crawler/jobs/qse
 	@rm -f  scripts/crawler/data/raw/qse.jsonl
+	@rm -f  scripts/crawler/data/qse/url_list.jsonl
 	@PYTHONPATH=$(shell pwd) scrapy runspider scripts/crawler/unibe_crawler.py -a config=scripts/crawler/configs/qse.yml -o scripts/crawler/data/qse/url_list.jsonl -s JOBDIR=scripts/crawler/jobs/qse
 
 extract-content-qse:
