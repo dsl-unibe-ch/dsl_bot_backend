@@ -10,14 +10,13 @@ import requests
 import pandas as pd
 from tqdm import tqdm
 
-# Configure logging
+
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
 
-# Suppress noisy HTTP logs from OpenAI and httpx
 logging.getLogger("httpx").setLevel(logging.WARNING)
 logging.getLogger("openai").setLevel(logging.WARNING)
 
@@ -98,26 +97,53 @@ def post_process_data(jsonl_file: Path, customer_name: str) -> list:
             data = json.loads(line)
             all_data.append(data)
     
+    logger.info("="*80)
+    logger.info("FILTERING EMPTY OR SHORT CONTENT")
+    logger.info("="*80)
+    
+    filtered_out = []
+    valid_data = []
+    
+    for row in all_data:
+        content = row.get('content')
+        url = row.get('url', 'Unknown URL')
+        if content is None or len(content) < 10:
+            filtered_out.append({'url': url, 'content_length': len(content) if content else 0})
+        else:
+            valid_data.append(row)
+    if filtered_out:
+        logger.warning(f"Found {len(filtered_out)} entries with empty or short content (< 10 chars):")
+        for i, item in enumerate(filtered_out, start=1):
+            logger.warning(f"  {i}. {item['url']} (content length: {item['content_length']})")
+    else:
+        logger.info("No entries with empty or short content found.")
+    
+    logger.info(f"Processing {len(valid_data)} valid entries out of {len(all_data)} total entries")
+    logger.info("="*80)
+    
     processed_data = []
-    for idx, row in tqdm(enumerate(all_data), total=len(all_data), desc="Processing data"):
+    for idx, row in tqdm(enumerate(valid_data), total=len(valid_data), desc="Processing data"):
         DocumentID = f"{customer_name}_{idx}"
-        url = row['url']
+        url = row.get('url', 'None')
+        text = row['content']  
+        
         if url.endswith(".html"):
-            Title = row['content'].split("\n\n")[0] if row.get('content') else "Untitled"
+            Title = text.split("\n\n")[0] if text else "Untitled"
             Category = "Website"
         elif url.endswith(".pdf"):
-            Title = row['filename']
+            Title = row.get('filename', 'Untitled')
             Category = "PDF"
         elif url=="None":
             Title = "Untitled"  
             Category = "Other"
+        else:
+            Title = text.split("\n\n")[0] if text else "Untitled"
+            Category = "Website"
+            
         Local_Path = "Not Specified"
         Local_Path_PDF = "Not Specified"
         Date_Last_Modified = "Not Specified"
-        Data_Gathered_On = row['timestamp']
-        text = row['content']
-        Keyword = "None"
-        Example_Questions = "None"
+        Data_Gathered_On = row.get('timestamp', 'Not Specified')
         page_type = find_page_type(text)
         prompt = keyword_question_generation_system_prompt.format(url=url, page_type=page_type, text=text)
         response = client.beta.chat.completions.parse(
@@ -173,16 +199,15 @@ def verify_urls_in_processed_data(processed_file: Path) -> list:
     
     all_urls = set()
     
-    # Read processed data and extract URLs
     df = pd.read_excel(processed_file, engine='openpyxl')
     for text in df['text']:
-        if pd.notna(text):  # Check if text is not NaN
+        if pd.notna(text):  
             urls = extract_urls_from_text(str(text))
             all_urls.update(urls)
     
     logger.info(f"Found {len(all_urls)} unique URLs in processed data")
     
-    # Check each URL
+
     invalid_urls = []
     for i, url in tqdm(enumerate(sorted(all_urls)), total=len(all_urls), desc="Checking URLs"):
         if not check_url_valid(url):

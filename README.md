@@ -870,7 +870,14 @@ curl -s -X POST "http://127.0.0.1:8000/send_feedback" -H "Content-Type: applicat
 ```bash
 make scrape-qse
 ```
-Note that the current pipeline does not take care of scanned pdfs without a layout structure. 
+This command does the following steps
+1. At first a list of URLs is created to scrape from following the rules of the crawler set in `scripts\crawler\configs\qse.yml` and stored in `url_list.jsonl`
+2. Then the list of URLs is parsed to either extract HTML or PDF content and stored in a `qse_content.jsonl` file.
+3. Finally in the post processing step, keywords and example questions are appended and a basic clean up is performed. An excel file is created which is then meant to be used for the index creation.
+
+**Note** 
+1. The current pipeline does not take care of scanned pdfs without a layout structure. 
+2. Everytime the command is run the files are overwritten.
 
 - Scrape UniBe Innovation website: 
 
