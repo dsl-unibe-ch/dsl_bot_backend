@@ -30,7 +30,7 @@ class KafkaLoggingHandler(logging.Handler):
             "message": record.getMessage(),  # contains the log_content JSON from chatbot_azure.py # noqa: E501
             "logger": record.name,  # name of the logger that created the log record, e.g., "Kioskbot" # noqa: E501
             "module": record.module,  # name of the Python file where the log call was made, e.g., "chatbot_azure.py" # noqa: E501
-            "funcName": record.funcName,  # the name of the function from which the log call originated, e.g., ask_chatbot_wrapper # noqa: E501
+            "funcName": record.funcName,  # the name of the function from which the log call originated, e.g., invoke_agent_wrapper # noqa: E501
             "lineNo": record.lineno,  #  line number in the source code where the log call was made # noqa: E501
         }
         self.producer.send(self.topic, value=json.dumps(log_entry).encode("utf-8"))

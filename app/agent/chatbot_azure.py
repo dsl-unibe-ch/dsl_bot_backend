@@ -68,6 +68,7 @@ class ChatBot:
         self.translation_chain = translation_prompt | self.chat_client
         self.chat_history = []
         self.interaction_count = 0
+        
 
     def truncate_query(self: "ChatBot", query_text: str) -> str:
         """Truncates the query text to a maximum of 100 terms."""
@@ -250,7 +251,7 @@ class ChatBot:
             del self.chat_history[1:3]
         return self.chat_history
 
-    def ask_chatbot_wrapper(self, query: QueryInput) -> QueryOutput:
+    def invoke_agent_wrapper(self, query: QueryInput) -> QueryOutput:
         """Process a chatbot query and optionally store chat history."""
         if self is None:
             error_message = (
@@ -284,14 +285,14 @@ class ChatBot:
             )  # logger.info/debug/error/etc/ triggers KafkaLoggingHandler.emit()
 
         except Exception as e:
-            error_msg = f"Error in rag-agent: {type(e).__name__}: {e!s}"
+            error_msg = f"Error in invoke-agent: {type(e).__name__}: {e!s}"
             logger.exception(error_msg)
             raise HTTPException(status_code=500, detail=error_msg) from e
 
         else:
             return query_response
 
-    def generate_session_id_wrapper(self, sessions: dict) -> StartSessionResponse:
+    def initialize_agent_wrapper(self, sessions: dict) -> StartSessionResponse:
         """Create a new chatbot session and return the session ID."""
         session_id = uuid.uuid4()
         sessions[session_id] = self

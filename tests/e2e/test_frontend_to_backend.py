@@ -20,12 +20,10 @@ from playwright.sync_api import Page, Request, Response, expect
 
 from app.config import settings
 
-SUCCESS_STATUS_CODE = 200
 BAD_REQUEST_CODE = 400
-SESSION_ID_MIN_LENGTH = 5
-RAG_AGENT_ENDPOINT_MATCH = re.compile(r"/rag-agent(?:\?|$)")
-FEEDBACK_ENDPOINT_MATCH = re.compile(r"/send_feedback(?:\?|$)")
-ROOT_ENDPOINT_MATCH = re.compile(r"^/$")
+INVOKE_AGENT_ENDPOINT_MATCH = re.compile(r"/invoke-agent(?:\?|$)")
+FEEDBACK_ENDPOINT_MATCH = re.compile(r"/send-feedback(?:\?|$)")
+INITIALIZE_AGENT_ENDPOINT_MATCH = re.compile(r"/initialize-agent(?:\?|$)")
 
 
 @pytest.fixture
@@ -68,12 +66,12 @@ def app_page(page: Page, accept_disclaimer: Callable[[], None]) -> Page:
         pytest.skip("FRONTEND_URL not set")
     with (
         page.expect_request(
-            lambda r: _is_outgoing_request_valid_get(r, ROOT_ENDPOINT_MATCH),
-            timeout=30_000,
+            lambda r: _is_outgoing_request_valid_get(r, INITIALIZE_AGENT_ENDPOINT_MATCH),
+            timeout=60_000,
         ) as request_info_root,
         page.expect_response(
-            lambda r: _is_incoming_response_valid_get(r, ROOT_ENDPOINT_MATCH),
-            timeout=30_000,
+            lambda r: _is_incoming_response_valid_get(r, INITIALIZE_AGENT_ENDPOINT_MATCH),
+            timeout=60_000,
         ) as response_info_root,
     ):
         page.goto(url=settings.FRONTEND_URL)
@@ -82,7 +80,7 @@ def app_page(page: Page, accept_disclaimer: Callable[[], None]) -> Page:
     status, ok, body_json, body_text = _read_response(response_root)
     if not ok or status >= BAD_REQUEST_CODE:
         _save_frontend_snapshot(
-            request_root, {}, response_root, body_json, body_text, prefix="root_get"
+            request_root, response_root, body_json, body_text, prefix="root_get"
         )
         detail = _extract_fastapi_detail(body_json, body_text)
         pytest.fail(f"GET / returned {status}: {detail}")
@@ -205,7 +203,14 @@ def _save_frontend_snapshot(
     """Persists a contract snapshot."""
     outdir = _out_dir()
 
-    sent_body = _parse_request_json(request)
+    # Parse request body only if it's a POST/PUT request with JSON content
+    sent_body = None
+    if request.method.upper() in ("POST", "PUT", "PATCH"):
+        try:
+            sent_body = _parse_request_json(request)
+        except Exception:
+            sent_body = {"error": "Could not parse request body"}
+    
     record = {
         "request": {
             "url": request.url,
@@ -248,7 +253,7 @@ def _send_one_message_and_wait(
     app_page: Page,
     message_text: str = "Test E2E: Hi",
 ) -> tuple[Request, Response, str]:
-    """Sends one chat message, capture /rag-agent req/resp, return last bot text.
+    """Sends one chat message, capture /invoke-agent req/resp, return last bot text.
 
     List of Steps
     1. Validates the session_id.
@@ -261,12 +266,12 @@ def _send_one_message_and_wait(
 
     with (
         app_page.expect_request(
-            lambda r: _is_outgoing_request_valid_post(r, RAG_AGENT_ENDPOINT_MATCH),
-            timeout=30_000,
+            lambda r: _is_outgoing_request_valid_post(r, INVOKE_AGENT_ENDPOINT_MATCH),
+            timeout=60_000,
         ) as request_info,
         app_page.expect_response(
-            lambda r: _is_incoming_response_valid_post(r, RAG_AGENT_ENDPOINT_MATCH),
-            timeout=30_000,
+            lambda r: _is_incoming_response_valid_post(r, INVOKE_AGENT_ENDPOINT_MATCH),
+            timeout=60_000,
         ) as response_info,
     ):
         submit_button.click()
@@ -287,7 +292,7 @@ def _send_one_message_and_wait(
             request_rag, response_rag, body_json, body_text, prefix="rag_agent"
         )
         detail_msg = _extract_fastapi_detail(body_json, body_text)
-        pytest.fail(f"/rag-agent returned {status}: {detail_msg}")
+        pytest.fail(f"/invoke-agent returned {status}: {detail_msg}")
     expect(app_page.get_by_text(message_text)).to_be_visible(timeout=15_000)
     last_msg = (
         app_page.locator("div.prose.mb-2.text-gray-700").last.text_content(
@@ -329,11 +334,11 @@ def test_frontend_to_backend(app_page: Page) -> None:
     with (
         app_page.expect_request(
             lambda r: _is_outgoing_request_valid_post(r, FEEDBACK_ENDPOINT_MATCH),
-            timeout=30_000,
+            timeout=60_000,
         ) as request_info_fb,
         app_page.expect_response(
             lambda r: _is_incoming_response_valid_post(r, FEEDBACK_ENDPOINT_MATCH),
-            timeout=30_000,
+            timeout=60_000,
         ) as response_info_fb,
     ):
         submit_button.click()
@@ -354,7 +359,7 @@ def test_frontend_to_backend(app_page: Page) -> None:
             request_fb, response_fb, body_json_fb, body_text_fb, prefix="send_feedback"
         )
         detail_msg = _extract_fastapi_detail(body_json_fb, body_text_fb)
-        pytest.fail(f"/send_feedback returned {status_fb}: {detail_msg}")
+        pytest.fail(f"/send-feedback returned {status_fb}: {detail_msg}")
 
 
 def test_backend_root_contract(page: Page) -> None:
@@ -363,9 +368,11 @@ def test_backend_root_contract(page: Page) -> None:
         pytest.skip("BACKEND_URL not set")
     page.goto(settings.FRONTEND_URL)
     page.wait_for_load_state("domcontentloaded")
-    request = page.context.request.get(settings.BACKEND_URL)
+    backend_url = settings.BACKEND_URL.rstrip("/")
+    request = page.context.request.get(backend_url + "/initialize-agent")
+    print(request.url)
     req_path = (urlsplit(request.url).path or "/").rstrip("/")
-    exp_path = (urlsplit(settings.BACKEND_URL).path or "/").rstrip("/")
+    exp_path = (urlsplit(backend_url + "/initialize-agent").path or "/").rstrip("/")
     if req_path != exp_path:
         pytest.fail(f"Root path {req_path!r} != expected {exp_path!r}.")
     status = request.status

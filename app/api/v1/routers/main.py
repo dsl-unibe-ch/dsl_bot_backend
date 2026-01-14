@@ -51,8 +51,8 @@ def health_check() -> dict:
     return {"status": "healthy", "version": get_version()}
 
 
-@app.get("/")
-def generate_session_id() -> StartSessionResponse:
+@app.get("/initialize-agent")
+def initialize_agent() -> StartSessionResponse:
     """Create a new chatbot session and return its unique session ID.
 
     This endpoint initializes a new ChatBot instance and stores it in the session dictionary.
@@ -62,11 +62,11 @@ def generate_session_id() -> StartSessionResponse:
         StartSessionResponse: An object containing the generated session_id.
     """  # noqa: E501
     chatbot = ChatBot()
-    return chatbot.generate_session_id_wrapper(sessions=sessions)
+    return chatbot.initialize_agent_wrapper(sessions=sessions)
 
 
-@app.post("/rag-agent")
-def ask_chatbot(query: QueryInput) -> QueryOutput:
+@app.post("/invoke-agent")
+def invoke_agent(query: QueryInput) -> QueryOutput:
     """Query the chatbot for an answer using the provided session and user input.
 
     Args:
@@ -81,10 +81,10 @@ def ask_chatbot(query: QueryInput) -> QueryOutput:
         raise HTTPException(
             status_code=404, detail="Session not found. Call GET / to start a session."
         )
-    return chatbot.ask_chatbot_wrapper(query)
+    return chatbot.invoke_agent_wrapper(query)
 
 
-@app.post("/send_feedback")
+@app.post("/send-feedback")
 def send_feedback(feedback: Feedback) -> FeedbackResponse:
     """Submit user feedback for a chatbot session.
 

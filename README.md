@@ -261,10 +261,13 @@ The reason for this three-level separation is to have some common resources shar
             ```bash
             make terraform-output-var VAR=AZURE_OPENAI_ENDPOINT
             ```
-        - One stop deployment where {ENV} can be `dev` and `prod` envrironments which plans, applies, outputs and updates the respective env files
+        - **One-stop deployment** (recommended for E2E testing and full deploys):
             ```bash
-            make terraform-deploy-{ENV}
+            make terraform-deploy-dev
+            # or for production
+            make terraform-deploy-prod
             ```
+            This comprehensive command runs: terraform plan → apply → output → build Docker image → push to ACR → generate kubeconfig → helm upgrade → write outputs to .env file
        
             
     - Increase the `Tokens-Per-Minute` manually for the OpenAI model in the Azure Foundry up to a maximum of 1M for chat models and upto a maximum of 2M for embedding models. This is because Terraform doesn’t expose such a `Tokens-Per-Minute` for azurerm_cognitive_deployment. 
@@ -756,57 +759,198 @@ Log in to [LangSmith](https://smith.langchain.com/), navigate to `Datasets & Exp
 <details>
 <summary>Click to expand End2End tests</summary>
 
-- End2End tests
-    - Setup
-        - Follow the setup mentioned in [Frontend Repository](https://github.com/dsl-unibe-ch/kioskbot_frontend?tab=readme-ov-file#quickstart) 
-        - On the backend
-            - Install Chromium
-            ```python -m playwright install chromium```
-            - Update the `FRONTEND_URL` in `.env.dev` with `http://localhost:5173`.
-        - Note that the `PUBLIC_API` is set to the `BACKEND_URL` as mentioned in the `.env.dev`. For example `PUBLIC_API=http://127.0.0.1:8000`
-    - Run tests
-        - Start the frontend with `pnpm dev`.
-        - Start the backend container.
-        - Verify that the frontend and the backend are functioning correctly by visiting `http://localhost:5173/` and ensuring that the bot is operational.
-        - Run the end to end test with:
+E2E tests can be done on three levels with combinations of Frontend (FE) and Backend(BE) as shown below:
 
-            ```bash 
-            make e2e-tests
-            ```
-        - Note that whenever the backend returns an error, the test saves the request and response details to a snapshot file in `tests/e2e/contract-snapshots` for debugging.
-    </details>
+> <details>
+> <summary><b>FE Local and BE Local</b></summary>
+>
+> - **One Command Setup & Test**: 
+>   ```bash
+>   make e2e-local2local
+>   ```
+>   This command will:
+>   - Clone the frontend repository from `send-url` branch (first time only) or pull latest changes (if exists)
+>   - Install/update frontend dependencies
+>   - Install Chromium for Playwright
+>   - Configure environment variables for both FE and BE
+>   - Build and start the backend containers
+>   - Start the frontend development server
+>   - Run the E2E tests
+>   - Clean up and stop the frontend server
+>
+> - **Individual Commands** (for manual control):
+>   - Setup FE only:
+>     ```bash
+>     make setup-fe-local
+>     ```
+>     This clones the [Frontend Repository](https://github.com/dsl-unibe-ch/kioskbot_frontend) from `send-url` branch (first time only), pulls latest changes (if repo exists), installs dependencies, and configures `PUBLIC_API` to match `BACKEND_URL` from `.env.dev`.
+>   
+>   - Setup BE only:
+>     ```bash
+>     make setup-be-local
+>     ```
+>     This installs Chromium and updates `FRONTEND_URL` in `.env.dev` to `http://localhost:5173`.
+>   
+>   - Stop FE server:
+>     ```bash
+>     make stop-fe-local
+>     ```
+>
+> </details>
 
-    <details>
-    <summary>Click to expand Load tests</summary>
+> <details>
+> <summary><b>FE Local and BE Remote</b></summary>
+>
+> - **One Command Setup & Test**: Run everything with a single command:
+>   ```bash
+>   # For dev environment
+>   make e2e-local2remote ENV=dev
+>   
+>   # For prod environment
+>   make e2e-local2remote ENV=prod
+>   ```
+>   This will:
+>   - Automatically detect your external IP
+>   - Update AKS network security group to allow your IP
+>   - Deploy/update infrastructure with Terraform
+>   - Build and push Docker image to ACR
+>   - Deploy/upgrade Helm chart to AKS
+>   - Get AKS external IP
+>   - Configure frontend to connect to remote backend
+>   - Start frontend server
+>   - Run E2E tests
+>   - Clean up and stop frontend server
+>
+> - **Individual Commands** (for manual control or production):
+>   - Check your external IP:
+>     ```bash
+>     make get-my-ip
+>     ```
+>   
+>   - Allow your IP in AKS NSG:
+>     ```bash
+>     make setup-aks-allow-my-ip ENV=dev
+>     ```
+>     This automatically detects your IP and updates `aks_allowed_external_ips` in the tfvars file.
+>   
+>   - Deploy backend to AKS:
+>     ```bash
+>     make terraform-deploy-dev
+>     # or for production
+>     make terraform-deploy-prod
+>     ```
+>     This runs: terraform plan → apply → output → build image → push image → kubeconfig → helm upgrade → write env outputs
+>   
+>   - Get AKS external IP:
+>     ```bash
+>     make get-aks-external-ip ENV=dev
+>     ```
+>   
+>   - Setup frontend for remote backend:
+>     ```bash
+>     make setup-fe-remote ENV=dev
+>     ```
+>     This configures `PUBLIC_API` and `BACKEND_URL` automatically using the AKS external IP.
+>   
+>   - Run tests only:
+>     ```bash
+>     make e2e-local2remote ENV=dev
+>     ```
+>
+> </details>
 
-    In `.env.{ENV}` you need to set the the address and port where the backend is running, as follows: 
-        
-    - If your backend is running on your laptop, you should set it to `BACKEND_URL=http://localhost:8000/`. Remember to start the container prior to testing.
+> <details>
+> <summary><b>FE Remote and BE Remote</b></summary>
+>
+> - **One Command Setup, Deploy & Test**: Deploy backend and run tests against remote frontend:
+>   ```bash
+>   # For dev environment
+>   make e2e-remote2remote ENV=dev FRONTEND_IP=<frontend-ip> FRONTEND_URL=<frontend-url>
+>   
+>   # For prod environment
+>   make e2e-remote2remote ENV=prod FRONTEND_IP=<frontend-ip> FRONTEND_URL=<frontend-url>
+>   
+>   # Example:
+>   make e2e-remote2remote ENV=dev FRONTEND_IP=203.0.113.45 FRONTEND_URL=http://203.0.113.45:5173
+>   ```
+>   This will:
+>   - Update AKS network security group to allow the frontend IP
+>   - Deploy/update infrastructure with Terraform
+>   - Build and push Docker image to ACR
+>   - Deploy/upgrade Helm chart to AKS
+>   - Configure test environment with frontend and backend URLs
+>   - Run E2E tests from your local machine against both remote services
+>
+> - **Individual Commands** (for manual control):
+>   - Get your frontend's external IP
+>   
+>   - Allow frontend's external IP in AKS NSG:
+>     ```bash
+>     make setup-aks-allow-my-ip ENV=dev
+>     ```
+>     Note: You'll need to manually update `aks_allowed_external_ips` in the tfvars file with your frontend IP.
+>   
+>   - Deploy backend to AKS:
+>     ```bash
+>     make terraform-deploy-dev
+>     # or for production
+>     make terraform-deploy-prod
+>     ```
+>   
+>   - Get AKS external IP:
+>     ```bash
+>     make get-aks-external-ip ENV=dev
+>     ```
+>   
+>   - Configure your remote frontend with the backend IP:
+>     ```bash
+>     # On your frontend server, set:
+>     PUBLIC_API=http://<BACKEND_EXTERNAL_IP>:8000
+>     ```
+>   
+>   - Run tests manually:
+>     ```bash
+>     ENV=dev PYTHONPATH=$(pwd) pytest -v tests/e2e/
+>     ```
+>     Note: Ensure `FRONTEND_URL` and `BACKEND_URL` are set in `.env.dev`
+>
+> </details>
 
-    - If your backend is running on a Kubernetes cluster, add the LoadBalancer's external IP and port as `BACKEND_URL=http://<EXTERNAL_IP>:8000/`. You can find the external IP by running:
-    
-    ```bash
-    kubectl get svc --all-namespaces --kubeconfig=./scripts/terraform/azure/outputs/dev.kubeconfig
-    ```
+**Note:** Whenever the backend returns an error, the test saves the request and response details to a snapshot file in `tests/e2e/contract-snapshots` for debugging.
 
-    To start a load test with 50 users, where Locust is going to add 5 users per second until it reaches the total number of users, for 3 minutes, run:
-    ```bash
-    make load-tests-dev
-    ```
+</details>
 
-    Then, open your browser at http://localhost:8089 and start the test.
+<details>
+<summary>Click to expand Load tests</summary>
 
-    After the load test is over, you can check the events on kubernetes:
-    ```bash
-    KUBECONFIG="scripts/terraform/azure/outputs/dev.kubeconfig" kubectl get events -n kioskbot-dev --sort-by='.lastTimestamp' | grep -E "(Scaled|Created|Deleted|SuccessfulCreate|SuccessfulDelete|ScalingReplicaSet)" | tail -30
-    ```
+In `.env.{ENV}` you need to set the the address and port where the backend is running, as follows: 
 
-    To check the HPA status and history you can run:
-    ```bash
-    KUBECONFIG="scripts/terraform/azure/outputs/dev.kubeconfig" kubectl get hpa -n kioskbot-dev && echo "" && KUBECONFIG="scripts/terraform/azure/outputs/dev.kubeconfig" kubectl describe hpa -n kioskbot-dev | grep -A 20 "Events:"
-    ```
+- If your backend is running on your laptop, you should set it to `BACKEND_URL=http://localhost:8000/`. Remember to start the container prior to testing.
 
-    </details>
+- If your backend is running on a Kubernetes cluster, add the LoadBalancer's external IP and port as `BACKEND_URL=http://<EXTERNAL_IP>:8000/`. You can find the external IP by running:
+
+```bash
+kubectl get svc --all-namespaces --kubeconfig=./scripts/terraform/azure/outputs/dev.kubeconfig
+```
+
+To start a load test with 50 users, where Locust is going to add 5 users per second until it reaches the total number of users, for 3 minutes, run:
+```bash
+make load-tests-dev
+```
+
+Then, open your browser at http://localhost:8089 and start the test.
+
+After the load test is over, you can check the events on kubernetes:
+```bash
+KUBECONFIG="scripts/terraform/azure/outputs/dev.kubeconfig" kubectl get events -n kioskbot-dev --sort-by='.lastTimestamp' | grep -E "(Scaled|Created|Deleted|SuccessfulCreate|SuccessfulDelete|ScalingReplicaSet)" | tail -30
+```
+
+To check the HPA status and history you can run:
+```bash
+KUBECONFIG="scripts/terraform/azure/outputs/dev.kubeconfig" kubectl get hpa -n kioskbot-dev && echo "" && KUBECONFIG="scripts/terraform/azure/outputs/dev.kubeconfig" kubectl describe hpa -n kioskbot-dev | grep -A 20 "Events:"
+```
+
+</details>
 
 ## Run the demo
 <details>
@@ -838,27 +982,27 @@ make compose-up-dev
 
 - Start a session:
 ```bash
-curl -s http://127.0.0.1:8000/ | jq .
+curl -s http://127.0.0.1:8000/initialize-agent | jq .
 ```
 
 - Alternatively, start the session and save its session id in a shell variable:
 ```bash
-session=$(curl -s http://127.0.0.1:8000/ | jq -r .session_id)
+session=$(curl -s http://127.0.0.1:8000/initialize-agent | jq -r .session_id)
 echo $session
 ```
 
 - Interact with the Agent:
 ```bash
-curl -s -X POST "http://127.0.0.1:8000/rag-agent" -H "Content-Type: application/json" -d '{"session_id":"'"$session"'","text":"What is the email address of the QSE Department?"}' | jq .
+curl -s -X POST "http://127.0.0.1:8000/invoke-agent" -H "Content-Type: application/json" -d '{"session_id":"'"$session"'","text":"What is the email address of the QSE Department?"}' | jq .
 ```
 
 ```bash
-curl -s -X POST "http://127.0.0.1:8000/rag-agent" -H "Content-Type: application/json" -d '{"session_id":"'"$session"'","text":"Where it is located?"}' | jq .
+curl -s -X POST "http://127.0.0.1:8000/invoke-agent" -H "Content-Type: application/json" -d '{"session_id":"'"$session"'","text":"Where it is located?"}' | jq .
 ```
 
 - Send feedback:
 ```bash
-curl -s -X POST "http://127.0.0.1:8000/send_feedback" -H "Content-Type: application/json" -d '{"session_id":"'"$session"'","rating":5,"comments":"Works well"}' | jq .
+curl -s -X POST "http://127.0.0.1:8000/send-feedback" -H "Content-Type: application/json" -d '{"session_id":"'"$session"'","rating":5,"comments":"Works well"}' | jq .
 ```
 
 </details>

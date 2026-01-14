@@ -232,3 +232,6 @@ scripts/terraform/azure/*.tfstate*
 terraform.tfstate
 scripts/crawler/data/
 scripts/crawler/jobs/
+
+.fe-server.log
+.fe-server.pid

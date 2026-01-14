@@ -11,7 +11,7 @@ from scripts.assessment_data.generate_assessment_dataset import german2english
 def main() -> None:
     """Main function."""
     chatbot = ChatBot()
-    start_session_response = chatbot.generate_session_id_wrapper(sessions)
+    start_session_response = chatbot.initialize_agent_wrapper(sessions)
 
     while True:
         query = input("\nYou: ")
@@ -23,7 +23,7 @@ def main() -> None:
             text=query, session_id=start_session_response.session_id
         )
 
-        query_response = chatbot.ask_chatbot_wrapper(query_input)
+        query_response = chatbot.invoke_agent_wrapper(query_input)
         print(f"Output: {query_response['output']}")  # noqa: T201
         translated_text = german2english(query_response["output"])
         print(f"Translated output: {translated_text}")  # noqa: T201

@@ -11,6 +11,10 @@ metadata:
     app.kubernetes.io/component: api
 spec:
   type: {{ .Values.api.service.type }} # defines the type of Service for API (i.e., LoadBalancer, exposing the API externally via Azure Load Balancer)
+  sessionAffinity: ClientIP # ensures requests from the same client IP are routed to the same pod (fixes session management issue)
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800 # 3 hours - session affinity timeout
   ports:
   - name: http
     port: {{ .Values.api.service.port }}
