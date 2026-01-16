@@ -127,3 +127,8 @@ output "APIM_ID" {
   value       = try(module.api_management[0].apim_id, null)
   description = "ID of the API Management instance"
 }
+
+output "apim_public_ip_addresses" {
+  value       = try(module.api_management[0].apim_public_ip_addresses, null)
+  description = "Public IP addresses for the APIM gateway"
+}

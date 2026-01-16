@@ -265,6 +265,20 @@ get-aks-external-ip:
 	fi; \
 	echo "$$EXTERNAL_IP"
 
+update-apim-backend-url:
+	@echo "Updating apim_backend_url for $(ENV)..." >&2
+	@TFVARS_FILE=scripts/terraform/azure/environments/$(ENV).tfvars; \
+	if [ ! -f "$$TFVARS_FILE" ]; then \
+		echo "ERROR: $$TFVARS_FILE not found." >&2; \
+		exit 1; \
+	fi; \
+	EXTERNAL_IP=$$($(MAKE) --no-print-directory get-aks-external-ip ENV=$(ENV)); \
+	BACKEND_URL="http://$$EXTERNAL_IP:8000"; \
+	echo "Setting apim_backend_url=$$BACKEND_URL"; \
+	grep -v '^apim_backend_url' "$$TFVARS_FILE" > "$$TFVARS_FILE.tmp" || true; \
+	echo "apim_backend_url = \"$$BACKEND_URL\"" >> "$$TFVARS_FILE.tmp"; \
+	mv "$$TFVARS_FILE.tmp" "$$TFVARS_FILE"
+
 setup-fe-remote:
 	@echo "Setting up Frontend for remote backend testing ($(ENV))..."
 	@if [ ! -d "$(FE_DIR)" ]; then \
@@ -497,7 +511,10 @@ terraform-require-tfvars:
 	@test -f "$(TF_DIR)/$(TFVARS)" || (echo "ERROR: missing $(TF_DIR)/$(TFVARS)"; exit 1)
 
 terraform-plan: terraform-require-tfvars terraform-workspace
-	$(TF) -chdir=$(TF_DIR) plan -var-file=$(TFVARS) -out=$(ENV).plan
+	@ENV=$(ENV); \
+	VERSION="$$( $(PYTHON) scripts/terraform/azure/scripts/extract_pyproject_version.py --pyproject pyproject.toml )"; \
+	IMAGE_TAG="$${VERSION}-$${ENV}"; \
+	$(TF) -chdir=$(TF_DIR) plan -var-file=$(TFVARS) -var="image_tag_override=$${IMAGE_TAG}" -out=$(ENV).plan
 
 terraform-plan-dev:
 	@$(MAKE) terraform-plan ENV=dev
@@ -618,6 +635,9 @@ terraform-deploy-dev:
 	@$(MAKE) push-image-dev
 	@$(MAKE) kubeconfig-dev
 	@$(MAKE) helm-upgrade-dev
+	@$(MAKE) update-apim-backend-url ENV=dev
+	@$(MAKE) terraform-plan-dev
+	@$(MAKE) terraform-apply-dev
 	@echo "Backend deployment complete!"
 
 
@@ -642,6 +662,9 @@ terraform-deploy-prod:
 	@$(MAKE) push-image-prod
 	@$(MAKE) kubeconfig-prod
 	@$(MAKE) helm-upgrade-prod
+	@$(MAKE) update-apim-backend-url ENV=prod
+	@$(MAKE) terraform-plan-prod
+	@$(MAKE) terraform-apply-prod
 	@echo "Backend deployment complete!"
 	
 
@@ -716,14 +739,21 @@ helm-upgrade:
 	. ./.env.$${ENV}; \
 	KUBECONFIG_FILE=$(TF_DIR)/outputs/$${ENV}.kubeconfig; \
 	test -f "$${KUBECONFIG_FILE}" || { echo "ERROR: kubeconfig not found at $${KUBECONFIG_FILE}. Run 'make kubeconfig-$${ENV}' first."; exit 1; }; \
+	APIM_IP="$$( $(TF) -chdir=$(TF_DIR) output -json apim_public_ip_addresses 2>/dev/null | jq -r '.[0] // empty' )"; \
+	if [ -z "$${APIM_IP}" ]; then \
+		echo "ERROR: APIM public IP not found. Run 'make terraform-output-$${ENV}' first."; \
+		exit 1; \
+	fi; \
 	IMAGE_REPO="$${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER}/kioskbot-backend-api"; \
 	IMAGE_TAG="$(VERSION)-$${ENV}"; \
 	echo "Upgrading Helm release for environment: $${ENV}"; \
 	echo "Using image: $${IMAGE_REPO}:$${IMAGE_TAG}"; \
+	echo "Allowing APIM IP: $${APIM_IP}/32"; \
 	KUBECONFIG="$${KUBECONFIG_FILE}" helm upgrade kioskbot-backend-$${ENV} ./scripts/helm \
 		--values ./scripts/helm/values-$${ENV}.yaml \
 		--set api.image.repository="$${IMAGE_REPO}" \
 		--set api.image.tag="$${IMAGE_TAG}" \
+		--set api.service.loadBalancerSourceRanges[0]="$${APIM_IP}/32" \
 		--set kafkaConsumer.image.repository="$${IMAGE_REPO}" \
 		--set kafkaConsumer.image.tag="$${IMAGE_TAG}" \
 		--namespace kioskbot-$${ENV} \

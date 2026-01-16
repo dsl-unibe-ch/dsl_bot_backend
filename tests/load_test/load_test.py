@@ -26,7 +26,7 @@ class KioskbotUser(HttpUser):
 
         It initializes a new chatbot session by calling the root endpoint.
         """
-        response = self.client.get("/")
+        response = self.client.get("/initialize-agent")
         if response.status_code in SUCCESS_STATUS_CODES:
             self.session_id = response.json().get("session_id")
             logger.debug("[on_start] Got session_id: %s", self.session_id)

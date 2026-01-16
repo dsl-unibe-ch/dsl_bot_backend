@@ -61,6 +61,12 @@ variable "owner" {
   default = null
 }
 
+variable "image_tag_override" {
+  type        = string
+  description = "Override image tag (e.g., 0.1.2-dev)."
+  default     = null
+}
+
 # ----- Container Registry --------
 variable "container_registry_name" {type = string}
 variable "container_registry_sku" {
@@ -327,37 +333,37 @@ variable "apim_subscription_required" {
 variable "apim_initialize_rate_limit_calls" {
   type        = number
   description = "Number of session initialization calls allowed per minute"
-  default     = null
+  default     = 100
 }
 
 variable "apim_initialize_quota_calls" {
   type        = number
   description = "Total session initialization calls allowed per day"
-  default     = null
+  default     = 10000
 }
 
 # Rate limiting for /invoke-agent (OpenAI calls - STRICT)
 variable "apim_invoke_rate_limit_calls" {
   type        = number
   description = "Number of AI query calls allowed per minute (STRICT - controls OpenAI costs)"
-  default     = null
+  default     = 100
 }
 
 variable "apim_invoke_quota_calls" {
   type        = number
   description = "Total AI query calls allowed per day (STRICT - controls OpenAI costs)"
-  default     = null
+  default     = 10000
 }
 
 # Rate limiting for /send-feedback
 variable "apim_feedback_rate_limit_calls" {
   type        = number
   description = "Number of feedback submissions allowed per minute"
-  default     = null
+  default     = 100
 }
 
 variable "apim_feedback_quota_calls" {
   type        = number
   description = "Total feedback submissions allowed per day"
-  default     = null
+  default     = 10000
 }

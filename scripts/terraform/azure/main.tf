@@ -28,7 +28,7 @@ data "azurerm_client_config" "current" {}
 locals {
   # Global has no app deployments; skip image tag resolution entirely.
   # For non-global envs: prefer explicit var, else read env-specific tag file, else empty string.
-  image_tag                       = var.environment == "global" ? "" : "${regexall("version\\s*=\\s*\"([^\"]+)\"", file("${path.module}/../../pyproject.toml"))[0][1]}-${var.environment}"
+  image_tag                       = var.environment == "global" ? "" : var.image_tag_override
   tenant_id_effective             = data.azurerm_client_config.current.tenant_id
   apim_public_ips                 = var.environment == "global" ? [] : try(module.api_management[0].apim_public_ip_addresses, [])
   default_tags = {

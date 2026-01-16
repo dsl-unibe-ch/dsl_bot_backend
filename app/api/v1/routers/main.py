@@ -4,8 +4,9 @@ import logging
 import tomllib
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from app.agent.chatbot_azure import ChatBot, sessions
 from app.agent.feedback import Feedback
@@ -43,6 +44,17 @@ app.add_middleware(
     allow_methods=settings.ALLOWED_METHODS,  #  HTTP methods GET, POST, PUT, DELETE are allowed. Improvement: only allow necessary HTTP methods, i.e., GET, POST. TBD # noqa: E501
     allow_headers=settings.ALLOWED_HEADERS,  #  the API will accept requests with any HTTP headers. Improvement: only allow needed header, i.e., Authorization, Content-Type # noqa: E501
 )
+
+
+@app.exception_handler(Exception)
+def unhandled_exception_handler(
+    request: Request, exc: Exception
+) -> JSONResponse:
+    """Log unexpected exceptions with stack traces."""
+    logger.exception("Unhandled exception at %s", request.url.path)
+    return JSONResponse(
+        status_code=500, content={"detail": "Internal server error"}
+    )
 
 
 @app.get("/health")

@@ -11,6 +11,12 @@ metadata:
     app.kubernetes.io/component: api
 spec:
   type: {{ .Values.api.service.type }} # defines the type of Service for API (i.e., LoadBalancer, exposing the API externally via Azure Load Balancer)
+  {{- if .Values.api.service.loadBalancerSourceRanges }}
+  loadBalancerSourceRanges:
+  {{- range .Values.api.service.loadBalancerSourceRanges }}
+    - {{ . | quote }}
+  {{- end }}
+  {{- end }}
   sessionAffinity: ClientIP # ensures requests from the same client IP are routed to the same pod (fixes session management issue)
   sessionAffinityConfig:
     clientIP:
