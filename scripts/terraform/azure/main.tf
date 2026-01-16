@@ -13,7 +13,7 @@ module "network_aks" {
   subnet_name             = var.aks_subnet_name
   subnet_address_prefix   = var.aks_subnet_address_prefix
   network_security_group_name = var.aks_network_security_group_name
-  allowed_external_ips    = var.aks_allowed_external_ips
+  allowed_external_ips    = distinct(concat(var.aks_allowed_external_ips, local.apim_public_ips))
   api_destination_port    = var.aks_api_destination_port
 }
 # --- Resource group ---
@@ -28,8 +28,9 @@ data "azurerm_client_config" "current" {}
 locals {
   # Global has no app deployments; skip image tag resolution entirely.
   # For non-global envs: prefer explicit var, else read env-specific tag file, else empty string.
-  image_tag                       = var.environment == "global" ? "" : trimspace(file("${path.module}/environments/${var.environment}.deployment_container_version"))
+  image_tag                       = var.environment == "global" ? "" : "${regexall("version\\s*=\\s*\"([^\"]+)\"", file("${path.module}/../../pyproject.toml"))[0][1]}-${var.environment}"
   tenant_id_effective             = data.azurerm_client_config.current.tenant_id
+  apim_public_ips                 = var.environment == "global" ? [] : try(module.api_management[0].apim_public_ip_addresses, [])
   default_tags = {
     environment = var.environment
     project     = "kioskbot"
@@ -158,4 +159,37 @@ module "azurerm_key_vault" {
   tenant_id = local.tenant_id_effective
   key_vault_sku_name = var.key_vault_sku_name
   key_vault_tags = var.key_vault_tags
+}
+
+# --- API Management ---
+module "api_management" {
+  count                   = var.environment == "global" ? 0 : 1
+  source                  = "./modules/api_management"
+  resource_group_location = azurerm_resource_group.rg.location
+  resource_group_name     = azurerm_resource_group.rg.name
+  
+  apim_name        = var.apim_name
+  apim_sku_name    = var.apim_sku_name
+  publisher_name   = var.apim_publisher_name
+  publisher_email  = var.apim_publisher_email
+  backend_url      = var.apim_backend_url
+  
+  # API configuration
+  api_name         = var.apim_api_name
+  api_display_name = var.apim_api_display_name
+  api_path         = var.apim_api_path
+  api_revision     = var.apim_api_revision
+  api_protocols    = var.apim_api_protocols
+  
+  # Rate limiting configuration per endpoint
+  initialize_rate_limit_calls = var.apim_initialize_rate_limit_calls
+  initialize_quota_calls      = var.apim_initialize_quota_calls
+  invoke_rate_limit_calls     = var.apim_invoke_rate_limit_calls
+  invoke_quota_calls          = var.apim_invoke_quota_calls
+  feedback_rate_limit_calls   = var.apim_feedback_rate_limit_calls
+  feedback_quota_calls        = var.apim_feedback_quota_calls
+  
+  subscription_required = var.apim_subscription_required
+  
+  tags = local.default_tags
 }

@@ -255,3 +255,109 @@ variable "aks_additional_node_pools" {
   }))
   default = {}
 }
+
+# ----- API Management (APIM) -----
+variable "apim_name" {
+  type        = string
+  description = "Name of the API Management instance"
+  default     = null
+}
+
+variable "apim_sku_name" {
+  type        = string
+  description = "SKU name for APIM (Consumption_0 for pay-as-you-go with 1M free requests/month)"
+  default     = null
+}
+
+variable "apim_publisher_name" {
+  type        = string
+  description = "Publisher organization name for APIM"
+  default     = null
+}
+
+variable "apim_publisher_email" {
+  type        = string
+  description = "Publisher email address for APIM"
+  default     = null
+}
+
+variable "apim_backend_url" {
+  type        = string
+  description = "Backend AKS service URL (e.g., http://kioskbot-api.default.svc.cluster.local:80)"
+  default     = null
+}
+
+variable "apim_api_name" {
+  type        = string
+  description = "Name of the API"
+  default     = null
+}
+
+variable "apim_api_display_name" {
+  type        = string
+  description = "Display name of the API"
+  default     = null
+}
+
+variable "apim_api_path" {
+  type        = string
+  description = "Path segment for the API"
+  default     = null
+}
+
+variable "apim_api_revision" {
+  type        = string
+  description = "Revision number of the API"
+  default     = null
+}
+
+variable "apim_api_protocols" {
+  type        = list(string)
+  description = "Protocols supported by the API"
+  default     = null
+}
+
+variable "apim_subscription_required" {
+  type        = bool
+  description = "Whether API requires subscription key"
+  default     = null
+}
+
+# Rate limiting for /initialize-agent
+variable "apim_initialize_rate_limit_calls" {
+  type        = number
+  description = "Number of session initialization calls allowed per minute"
+  default     = null
+}
+
+variable "apim_initialize_quota_calls" {
+  type        = number
+  description = "Total session initialization calls allowed per day"
+  default     = null
+}
+
+# Rate limiting for /invoke-agent (OpenAI calls - STRICT)
+variable "apim_invoke_rate_limit_calls" {
+  type        = number
+  description = "Number of AI query calls allowed per minute (STRICT - controls OpenAI costs)"
+  default     = null
+}
+
+variable "apim_invoke_quota_calls" {
+  type        = number
+  description = "Total AI query calls allowed per day (STRICT - controls OpenAI costs)"
+  default     = null
+}
+
+# Rate limiting for /send-feedback
+variable "apim_feedback_rate_limit_calls" {
+  type        = number
+  description = "Number of feedback submissions allowed per minute"
+  default     = null
+}
+
+variable "apim_feedback_quota_calls" {
+  type        = number
+  description = "Total feedback submissions allowed per day"
+  default     = null
+}

@@ -101,3 +101,29 @@ output "kube_config_raw" {
 output "AKS_CLUSTER_NAME" {
   value = try(module.kubernetes_cluster[0].AZURE_AKS_NAME, null)
 }
+
+#----- API Management (APIM) --------------
+output "APIM_GATEWAY_URL" {
+  value       = try(module.api_management[0].apim_gateway_url, null)
+  description = "APIM Gateway URL - use this as your API endpoint"
+}
+
+output "APIM_FULL_API_URL" {
+  value       = try(module.api_management[0].full_api_url, null)
+  description = "Full API URL including path (e.g., https://apim-kb-dev-001.azure-api.net/api)"
+}
+
+output "BACKEND_URL" {
+  value       = try(module.api_management[0].full_api_url, null)
+  description = "Frontend/Public URL - This is the URL your frontend application should use"
+}
+
+output "APIM_NAME" {
+  value       = try(module.api_management[0].apim_name, null)
+  description = "Name of the API Management instance"
+}
+
+output "APIM_ID" {
+  value       = try(module.api_management[0].apim_id, null)
+  description = "ID of the API Management instance"
+}

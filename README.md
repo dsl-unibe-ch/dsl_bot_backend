@@ -367,19 +367,6 @@ Common tags are applied via a shared local map and passed to modules:
 - These are injected into resources by Terraform automatically through module inputs.
 - If you need resource-specific extra tags, you can still set resource-level tags in the module; they will override common tags on key conflicts.
 
-### Steps for Deployment
-1. Push the Docker the `dev` and `prod` images to the `container_registry` by following the steps in section [Docker](#docker).
-2. Update the image version under `scripts\terraform\azure\environments\dev|prod.deployment_container_version`.
-2. Assign yourself `PIM_Azure_mg-dsl-informationskiosk-owner` on Azure PIM to be authorized to pull the image from he container registry. Make sure you `az logout` and `make az-login` again.
-3. [Optional] If index is not already present,  create and populate the respective index in the `search_service` for `dev` and `prod` by following the steps in **ETL pipeline for Azure Search**.  
-4. Deploy VM [**To Do**]
-5. Run e2e tests on `dev` deployment and `staging` slot of the `prod`. 
-    1. Set the IP of the user node pool to the `PUBLIC_API` on the local frontend.
-    2. Ensure that the VM is reachable from the local frontend by interacting with the frontend locally. 
-    3. Run e2e tests.
-
-
-
 </details>
 
 
