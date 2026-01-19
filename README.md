@@ -852,13 +852,13 @@ E2E tests can be done on three levels with combinations of Frontend (FE) and Bac
 > - **One Command Setup, Deploy & Test**: Deploy backend and run tests against remote frontend:
 >   ```bash
 >   # For dev environment
->   make e2e-remote2remote ENV=dev FRONTEND_IP=<frontend-ip> FRONTEND_URL=<frontend-url>
+>   make e2e-remote2remote ENV=dev FRONTEND_URL=<frontend-url>
 >   
 >   # For prod environment
->   make e2e-remote2remote ENV=prod FRONTEND_IP=<frontend-ip> FRONTEND_URL=<frontend-url>
+>   make e2e-remote2remote ENV=prod FRONTEND_URL=<frontend-url>
 >   
 >   # Example:
->   make e2e-remote2remote ENV=dev FRONTEND_IP=203.0.113.45 FRONTEND_URL=http://203.0.113.45:5173
+>   make e2e-remote2remote ENV=dev FRONTEND_URL=http://203.0.113.45:5173
 >   ```
 >   This will:
 >   - Update AKS network security group to allow the frontend IP

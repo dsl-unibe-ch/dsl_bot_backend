@@ -216,40 +216,11 @@ e2e-local2local: setup-be-local setup-fe-local build-image-dev compose-down-dev 
 	@echo "========================================"
 
 # ---- E2E Testing with Local FE and Remote BE (AKS) ----
-.PHONY: get-my-ip setup-aks-allow-my-ip deploy-be-remote get-aks-external-ip setup-fe-remote e2e-local2remote e2e-remote2remote
-
-get-my-ip:
-	@echo "Detecting your external IP..."
-	@curl -s https://api.ipify.org
-
-setup-aks-allow-my-ip:
-	@echo "Setting up AKS to allow your IP for remote testing..."
-	@MY_IP=$$(curl -s https://api.ipify.org); \
-	echo "Your external IP: $$MY_IP"; \
-	TFVARS_FILE=scripts/terraform/azure/environments/$(ENV).tfvars; \
-	if [ ! -f "$$TFVARS_FILE" ]; then \
-		echo "ERROR: $$TFVARS_FILE not found"; \
-		exit 1; \
-	fi; \
-	echo "Updating $$TFVARS_FILE..."; \
-	grep -v '^aks_allowed_external_ips' "$$TFVARS_FILE" > "$$TFVARS_FILE.tmp" || true; \
-	echo 'aks_allowed_external_ips = ["'$$MY_IP'/32"]' >> "$$TFVARS_FILE.tmp"; \
-	mv "$$TFVARS_FILE.tmp" "$$TFVARS_FILE"; \
-	echo "Updated $$TFVARS_FILE with your IP: $$MY_IP/32"
+.PHONY: get-my-ip deploy-be-remote get-aks-external-ip setup-fe-remote e2e-local2remote e2e-remote2remote
 
 deploy-be-remote:
 	@echo "Deploying backend to AKS ($(ENV))..."
-	@echo "Step 1: Planning Terraform..."
-	@$(MAKE) terraform-plan-$(ENV)
-	@echo "Step 2: Applying Terraform..."
-	@$(MAKE) terraform-apply-$(ENV)
-	@echo "Step 3: Building Docker image..."
-	@$(MAKE) build-image-$(ENV)
-	@echo "Step 4: Pushing Docker image..."
-	@$(MAKE) push-image-$(ENV)
-	@echo "Step 5: Upgrading Helm deployment..."
-	@$(MAKE) helm-upgrade-$(ENV)
-	@echo "Backend deployment to AKS is complete!"
+	@$(MAKE) terraform-deploy-$(ENV)
 
 get-aks-external-ip:
 	@echo "Getting AKS external IP for $(ENV)..." >&2
@@ -316,9 +287,6 @@ e2e-local2remote:
 	@echo "Local FE to Remote BE E2E Test Workflow ($(ENV))"
 	@echo "========================================"
 	@echo ""
-	@echo "Step 1/3: Setting up AKS to allow your IP..."
-	@$(MAKE) setup-aks-allow-my-ip ENV=$(ENV)
-	@echo ""
 	@echo "Step 2/3: Deploying backend to AKS..."
 	@$(MAKE) terraform-deploy-$(ENV)
 	@echo ""
@@ -358,12 +326,8 @@ e2e-remote2remote:
 	@echo "========================================"
 	@echo ""
 	@echo "Step 1/3: Setting up AKS to allow frontend IP..."
-	@if [ -z "$(FRONTEND_IP)" ]; then \
-		echo "ERROR: FRONTEND_IP is required. Usage: make e2e-remote2remote ENV=dev FRONTEND_IP=<ip> FRONTEND_URL=<url>"; \
-		exit 1; \
-	fi; \
 	if [ -z "$(FRONTEND_URL)" ]; then \
-		echo "ERROR: FRONTEND_URL is required. Usage: make e2e-remote2remote ENV=dev FRONTEND_IP=<ip> FRONTEND_URL=<url>"; \
+		echo "ERROR: FRONTEND_URL is required. Usage: make e2e-remote2remote ENV=dev FRONTEND_URL=<url>"; \
 		exit 1; \
 	fi; \
 	TFVARS_FILE=scripts/terraform/azure/environments/$(ENV).tfvars; \
@@ -371,24 +335,23 @@ e2e-remote2remote:
 		echo "ERROR: $$TFVARS_FILE not found"; \
 		exit 1; \
 	fi; \
-	echo "Updating $$TFVARS_FILE to allow frontend IP: $(FRONTEND_IP)"; \
-	grep -v '^aks_allowed_external_ips' "$$TFVARS_FILE" > "$$TFVARS_FILE.tmp" || true; \
-	echo 'aks_allowed_external_ips = ["$(FRONTEND_IP)/32"]' >> "$$TFVARS_FILE.tmp"; \
-	mv "$$TFVARS_FILE.tmp" "$$TFVARS_FILE"; \
-	echo "Updated $$TFVARS_FILE with frontend IP: $(FRONTEND_IP)/32"
 	@echo ""
 	@echo "Step 2/3: Deploying backend to AKS..."
 	@$(MAKE) terraform-deploy-$(ENV)
 	@echo ""
 	@echo "Step 3/3: Running E2E tests..."
 	@echo "Configuring test environment..."
-	@EXTERNAL_IP=$$($(MAKE) --no-print-directory get-aks-external-ip ENV=$(ENV)); \
+	BACKEND_URL=$$(grep -E '^BACKEND_URL=' .env.$(ENV) | cut -d'=' -f2- | tr -d '"' | sed 's:/*$$::'); \
+	if [ -z "$$BACKEND_URL" ]; then \
+		echo "ERROR: BACKEND_URL is required in .env.$(ENV)"; \
+		exit 1; \
+	fi; \
 	echo "Frontend URL: $(FRONTEND_URL)"; \
-	echo "Backend URL: http://$$EXTERNAL_IP:8000"; \
+	echo "Backend URL: $$BACKEND_URL"; \
 	grep -v '^FRONTEND_URL=' .env.$(ENV) > .env.$(ENV).tmp || true; \
 	grep -v '^BACKEND_URL=' .env.$(ENV).tmp > .env.$(ENV).tmp2 || true; \
 	echo "FRONTEND_URL=$(FRONTEND_URL)" >> .env.$(ENV).tmp2; \
-	echo "BACKEND_URL=http://$$EXTERNAL_IP:8000" >> .env.$(ENV).tmp2; \
+	echo "BACKEND_URL=$$BACKEND_URL" >> .env.$(ENV).tmp2; \
 	mv .env.$(ENV).tmp2 .env.$(ENV); \
 	rm -f .env.$(ENV).tmp
 	@echo "Running E2E tests against remote FE and remote BE..."
@@ -454,15 +417,13 @@ help:
 	@echo "  make stop-fe-local         # Stop frontend development server"
 	@echo "\nE2E Testing (Local FE + Remote BE on AKS):"
 	@echo "  make e2e-local2remote ENV=dev         # Complete: setup IP + deploy + test (ONE COMMAND)"
-	@echo "  make get-my-ip                        # Display your external IP"
-	@echo "  make setup-aks-allow-my-ip ENV=dev    # Add your IP to AKS allowed list"
 	@echo "  make terraform-deploy-dev             # Full deploy: terraform + build + push + helm"
 	@echo "  make terraform-deploy-prod            # Full deploy for production"
 	@echo "  make deploy-be-remote ENV=dev         # Deploy backend to AKS (legacy)"
 	@echo "  make get-aks-external-ip ENV=dev      # Get AKS cluster external IP"
 	@echo "  make setup-fe-remote ENV=dev          # Setup FE to connect to remote BE"
 	@echo "\nE2E Testing (Remote FE + Remote BE on AKS):"
-	@echo "  make e2e-remote2remote ENV=dev FRONTEND_IP=<ip> FRONTEND_URL=<url>   # Deploy BE + run tests"
+	@echo "  make e2e-remote2remote ENV=dev FRONTEND_URL=<url>   # Deploy BE + run tests"
 	@echo "\nKubernetes Dashboard:"
 	@echo "  make helm-dashboard-install     # install/upgrade dashboard"
 	@echo "  make helm-dashboard-status      # show dashboard release status"
