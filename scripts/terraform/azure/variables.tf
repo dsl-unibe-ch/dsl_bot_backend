@@ -7,6 +7,14 @@ variable "resource_group_location" { type = string }
 
 
 # ----- OpenAI --------
+variable "cognitive_model_embedding_deployment_capacity" {
+  type    = number
+  default = null
+}
+variable "cognitive_model_deployment_capacity" {
+  type    = number
+  default = null
+}
 variable "cognitive_model_account_name" {
   type    = string
   default = null
@@ -234,12 +242,6 @@ variable "aks_subnet_address_prefix" {
 variable "aks_network_security_group_name" {
   type    = string
   default = null
-}
-
-variable "aks_allowed_external_ips" {
-  description = "List of external IP addresses allowed to access the kioskbot-api (CIDR notation, e.g., '203.0.113.10/32')"
-  type        = list(string)
-  default     = []
 }
 
 variable "aks_api_destination_port" {

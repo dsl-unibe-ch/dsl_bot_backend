@@ -13,7 +13,7 @@ module "network_aks" {
   subnet_name             = var.aks_subnet_name
   subnet_address_prefix   = var.aks_subnet_address_prefix
   network_security_group_name = var.aks_network_security_group_name
-  allowed_external_ips    = distinct(concat(var.aks_allowed_external_ips, local.apim_public_ips))
+  allowed_external_ips    = local.apim_public_ips
   api_destination_port    = var.aks_api_destination_port
 }
 # --- Resource group ---
@@ -55,6 +55,8 @@ module "openai" {
   cognitive_model_embedding_name                = var.cognitive_model_embedding_name
   cognitive_model_embedding_version             = var.cognitive_model_embedding_version
   cognitive_model_embedding_deployment_sku_name = var.cognitive_model_embedding_deployment_sku_name
+  cognitive_model_embedding_deployment_capacity = var.cognitive_model_embedding_deployment_capacity
+  cognitive_model_deployment_capacity           = var.cognitive_model_deployment_capacity
   source                                        = "./modules/openai"
 }
 

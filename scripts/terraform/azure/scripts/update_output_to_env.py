@@ -79,13 +79,14 @@ def update_env_vars(
                 env,
             )
         if key == "BACKEND_URL":
-            if key in env_vars:
+            if key in env_vars and env_vars[key] is not None and len(env_vars[key])>5:
                 updated_env_vars[key] = env_vars[key]
             elif key in global_vars:
                 updated_env_vars[key] = global_vars[key]
             else:
                 updated_env_vars[key] = value
                 logger.warning("Warning: %s assigned a default value, not found in Terraform outputs", key)
+            
         elif not key.startswith("AZURE"):
             updated_env_vars[key] = value
         elif key in env_vars:

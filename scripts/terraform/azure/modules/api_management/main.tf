@@ -99,6 +99,19 @@ resource "azurerm_api_management_api_operation_policy" "health_policy" {
 <policies>
     <inbound>
         <base />
+        <cors allow-credentials="false">
+          <allowed-origins>
+            <origin>*</origin>
+          </allowed-origins>
+          <allowed-methods>
+            <method>GET</method>
+            <method>POST</method>
+            <method>OPTIONS</method>
+          </allowed-methods>
+          <allowed-headers>
+            <header>*</header>
+          </allowed-headers>
+        </cors>
     </inbound>
     <backend>
         <base />
@@ -124,6 +137,19 @@ resource "azurerm_api_management_api_operation_policy" "initialize_policy" {
 <policies>
     <inbound>
         <base />
+        <cors allow-credentials="false">
+          <allowed-origins>
+            <origin>*</origin>
+          </allowed-origins>
+          <allowed-methods>
+            <method>GET</method>
+            <method>POST</method>
+            <method>OPTIONS</method>
+          </allowed-methods>
+          <allowed-headers>
+            <header>*</header>
+          </allowed-headers>
+        </cors>
         <rate-limit-by-key calls="${var.initialize_rate_limit_calls}" renewal-period="60" counter-key="@(context.Request.IpAddress)" />
         <quota-by-key calls="${var.initialize_quota_calls}" renewal-period="86400" counter-key="@(context.Request.IpAddress)" />
     </inbound>
@@ -148,6 +174,19 @@ resource "azurerm_api_management_api_operation_policy" "invoke_policy" {
 <policies>
     <inbound>
         <base />
+        <cors allow-credentials="false">
+          <allowed-origins>
+            <origin>*</origin>
+          </allowed-origins>
+          <allowed-methods>
+            <method>GET</method>
+            <method>POST</method>
+            <method>OPTIONS</method>
+          </allowed-methods>
+          <allowed-headers>
+            <header>*</header>
+          </allowed-headers>
+        </cors>
         <rate-limit-by-key calls="${var.invoke_rate_limit_calls}" renewal-period="60" counter-key="@(context.Request.IpAddress)" />
         <quota-by-key calls="${var.invoke_quota_calls}" renewal-period="86400" counter-key="@(context.Request.IpAddress)" />
     </inbound>
@@ -172,6 +211,19 @@ resource "azurerm_api_management_api_operation_policy" "feedback_policy" {
 <policies>
     <inbound>
         <base />
+        <cors allow-credentials="false">
+          <allowed-origins>
+            <origin>*</origin>
+          </allowed-origins>
+          <allowed-methods>
+            <method>GET</method>
+            <method>POST</method>
+            <method>OPTIONS</method>
+          </allowed-methods>
+          <allowed-headers>
+            <header>*</header>
+          </allowed-headers>
+        </cors>
         <rate-limit-by-key calls="${var.feedback_rate_limit_calls}" renewal-period="60" counter-key="@(context.Request.IpAddress)" />
         <quota-by-key calls="${var.feedback_quota_calls}" renewal-period="86400" counter-key="@(context.Request.IpAddress)" />
     </inbound>

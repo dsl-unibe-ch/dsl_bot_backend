@@ -25,6 +25,7 @@ resource "azurerm_cognitive_deployment" "model" {
 
   sku {
     name = var.cognitive_model_deployment_sku_name
+    capacity = var.cognitive_model_deployment_capacity
   }
 
 }
@@ -42,6 +43,7 @@ resource "azurerm_cognitive_deployment" "embedding" {
 
   sku {
     name = var.cognitive_model_embedding_deployment_sku_name
+    capacity = var.cognitive_model_embedding_deployment_capacity
   }
 }
 

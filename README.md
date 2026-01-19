@@ -147,7 +147,7 @@ The reason for this three-level separation is to have some common resources shar
     
     - Replace `"your-azure-subscription_id"` in `{ENV}.tfvars` with the actual subscription ID you are using—this should match the subscription that the command `make az-set-subscription` returned. This ensures Terraform uses the correct Azure subscription for resource creation.
 
-    - If you want the APIs to be accessible from outside, you need to set `aks_allowed_external_ips` in `{ENV}.tfvars` with the IP(s) using CIDR notation (e.g., `["203.0.113.10/32", "198.51.100.0/24"]`). Use `/32` for a single IP address, or a smaller number for a range (e.g., `/24` for 256 addresses). Optionally, with `aks_api_destination_port` you can restrict which port(s) are open: `"*"` opens all ports (default), a specific port like `"8000"`, or a port range like `"30000-32767"`.
+    - API access is routed through APIM; the AKS service is locked down to APIM IPs. You can optionally use `aks_api_destination_port` to restrict which port(s) are open: `"*"` opens all ports (default), a specific port like `"8000"`, or a port range like `"30000-32767"`.
     
     - Initialise terraform
         ```bash
@@ -261,7 +261,7 @@ The reason for this three-level separation is to have some common resources shar
             ```bash
             make terraform-output-var VAR=AZURE_OPENAI_ENDPOINT
             ```
-        - **One-stop deployment** (recommended for E2E testing and full deploys):
+        - **One-stop deployment** (**Recommended** for E2E testing and full deploys):
             ```bash
             make terraform-deploy-dev
             # or for production
@@ -269,8 +269,6 @@ The reason for this three-level separation is to have some common resources shar
             ```
             This comprehensive command runs: terraform plan → apply → output → build Docker image → push to ACR → generate kubeconfig → helm upgrade → write outputs to .env file
        
-            
-    - Increase the `Tokens-Per-Minute` manually for the OpenAI model in the Azure Foundry up to a maximum of 1M for chat models and upto a maximum of 2M for embedding models. This is because Terraform doesn’t expose such a `Tokens-Per-Minute` for azurerm_cognitive_deployment. 
 
 </details>
 
@@ -809,17 +807,6 @@ E2E tests can be done on three levels with combinations of Frontend (FE) and Bac
 >   - Clean up and stop frontend server
 >
 > - **Individual Commands** (for manual control or production):
->   - Check your external IP:
->     ```bash
->     make get-my-ip
->     ```
->   
->   - Allow your IP in AKS NSG:
->     ```bash
->     make setup-aks-allow-my-ip ENV=dev
->     ```
->     This automatically detects your IP and updates `aks_allowed_external_ips` in the tfvars file.
->   
 >   - Deploy backend to AKS:
 >     ```bash
 >     make terraform-deploy-dev
@@ -861,7 +848,7 @@ E2E tests can be done on three levels with combinations of Frontend (FE) and Bac
 >   make e2e-remote2remote ENV=dev FRONTEND_URL=http://203.0.113.45:5173
 >   ```
 >   This will:
->   - Update AKS network security group to allow the frontend IP
+>   - Deploy/update infrastructure with Terraform
 >   - Deploy/update infrastructure with Terraform
 >   - Build and push Docker image to ACR
 >   - Deploy/upgrade Helm chart to AKS
@@ -869,14 +856,6 @@ E2E tests can be done on three levels with combinations of Frontend (FE) and Bac
 >   - Run E2E tests from your local machine against both remote services
 >
 > - **Individual Commands** (for manual control):
->   - Get your frontend's external IP
->   
->   - Allow frontend's external IP in AKS NSG:
->     ```bash
->     make setup-aks-allow-my-ip ENV=dev
->     ```
->     Note: You'll need to manually update `aks_allowed_external_ips` in the tfvars file with your frontend IP.
->   
 >   - Deploy backend to AKS:
 >     ```bash
 >     make terraform-deploy-dev
@@ -914,18 +893,21 @@ In `.env.{ENV}` you need to set the the address and port where the backend is ru
 
 - If your backend is running on your laptop, you should set it to `BACKEND_URL=http://localhost:8000/`. Remember to start the container prior to testing.
 
-- If your backend is running on a Kubernetes cluster, add the LoadBalancer's external IP and port as `BACKEND_URL=http://<EXTERNAL_IP>:8000/`. You can find the external IP by running:
+- If your backend is running on a Kubernetes cluster, add the `APIM_URL` in the `BACKEND_URL=http://<APIM_URL>`. 
 
-```bash
-kubectl get svc --all-namespaces --kubeconfig=./scripts/terraform/azure/outputs/dev.kubeconfig
-```
-
-To start a load test with 50 users, where Locust is going to add 5 users per second until it reaches the total number of users, for 3 minutes, run:
+To start a load test with 10 users, where Locust is going to add 1 users per second until it reaches the total number of users, for 3 minutes, run:
 ```bash
 make load-tests-dev
 ```
 
 Then, open your browser at http://localhost:8089 and start the test.
+A chart is created after the tests are run as the following.
+
+![plot](./.assets/load_test_example.jpeg)
+
+Here the chart shows that for every minute, the requests continue to rise as per the predetermined test settings. Since the APIM limits are refreshed every minute, the cycle repeats every minute where initially the failure/s are low for a time period until the APIM limits are reached which causes the failure/s to rise. This is by design to understand what is the limitations of our approach. 
+
+The current limits of the APIM are defined in the `scripts\terraform\azure\environments\{ENV}.tfvars.example` files. 
 
 After the load test is over, you can check the events on kubernetes:
 ```bash
@@ -936,6 +918,8 @@ To check the HPA status and history you can run:
 ```bash
 KUBECONFIG="scripts/terraform/azure/outputs/dev.kubeconfig" kubectl get hpa -n kioskbot-dev && echo "" && KUBECONFIG="scripts/terraform/azure/outputs/dev.kubeconfig" kubectl describe hpa -n kioskbot-dev | grep -A 20 "Events:"
 ```
+
+
 
 </details>
 

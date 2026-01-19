@@ -49,6 +49,15 @@ variable "cognitive_model_embedding_version" {
     description = "Cognitive model embedding version."
     type = string 
 }
+variable "cognitive_model_embedding_deployment_capacity" { 
+    description = "Cognitive model embedding deployment capacity."
+    type = number 
+}
+
+variable "cognitive_model_deployment_capacity" { 
+    description = "Cognitive model deployment capacity."
+    type = number 
+}
 
 # ----- API Versions (for SDK/REST) ------
 

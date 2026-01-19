@@ -13,11 +13,13 @@ resource_group_location = "Switzerland North"
 cognitive_model_account_name        = "ao-kb-prod-001"
 cognitive_model_account_sku_name    = "S0"
 cognitive_model_deployment_sku_name = "GlobalStandard"
+cognitive_model_deployment_capacity = 500 #500,000 tokens per minute 
 cognitive_model_deployment_name     = "gpt-4.1"
 cognitive_model_name                = "gpt-4.1"
 cognitive_model_version             = "2025-04-14"
 cognitive_model_account_kind        = "OpenAI"
 # embedding deployment
+cognitive_model_embedding_deployment_capacity = 1000 #1,000,000 tokens per minute 
 cognitive_model_embedding_deployment_name     = "text-embedding-3-large"
 cognitive_model_embedding_name                = "text-embedding-3-large"
 cognitive_model_embedding_version             = "1"
@@ -77,8 +79,6 @@ aks_subnet_name               = "snet-aks-kb-prod-001"
 aks_subnet_address_prefix     = "10.41.1.0/24"
 aks_network_security_group_name = "nsg-aks-kb-prod-001"
 
-aks_allowed_external_ips = []
-
 # aks_api_destination_port = "*" # optional parameter to open port(s)
 
 # ----- API Management (APIM) -----
@@ -87,7 +87,7 @@ apim_name                 = "apim-kb-prod-001"
 apim_sku_name            = "Developer_1"
 apim_publisher_name       = "University of Bern"
 apim_publisher_email      = "support.dsl@unibe.ch"
-apim_backend_url          = "http://<your-service-name>.<namespace>.svc.cluster.local:80"
+apim_backend_url          = "http://<AKS_CLUSTER_IP>:8000"
 
 # API Configuration
 apim_api_name             = "<your-api-name>"

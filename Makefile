@@ -189,7 +189,7 @@ e2e-local2local: setup-be-local setup-fe-local build-image-dev compose-down-dev 
 	@echo "Stopping any existing frontend servers..."
 	@$(MAKE) stop-fe-local
 	@echo "Starting frontend server in background..."
-	@(cd $(FE_DIR) && pnpm dev > $(shell pwd)/.fe-server.log 2>&1 & echo $$! > $(shell pwd)/.fe-server.pid)
+	@(cd $(FE_DIR) && pnpm dev -- --port $(FE_PORT) --strictPort > $(shell pwd)/.fe-server.log 2>&1 & echo $$! > $(shell pwd)/.fe-server.pid)
 	@echo "Waiting for frontend server to be ready..."
 	@timeout=60; \
 	while ! curl -s http://localhost:$(FE_PORT) > /dev/null 2>&1; do \
@@ -205,7 +205,7 @@ e2e-local2local: setup-be-local setup-fe-local build-image-dev compose-down-dev 
 	done
 	@echo "Frontend server is ready!"
 	@echo "Running E2E tests..."
-	@ENV=dev PYTHONPATH=$(shell pwd) pytest -v tests/e2e/ || \
+	@KAFKA_LOGGING_ENABLED=false ENV=dev PYTHONPATH=$(shell pwd) pytest -v tests/e2e/ || \
 		(echo "Tests failed, cleaning up..."; $(MAKE) stop-fe-local; exit 1)
 	@echo "Tests completed successfully!"
 	@$(MAKE) stop-fe-local
@@ -216,7 +216,7 @@ e2e-local2local: setup-be-local setup-fe-local build-image-dev compose-down-dev 
 	@echo "========================================"
 
 # ---- E2E Testing with Local FE and Remote BE (AKS) ----
-.PHONY: get-my-ip deploy-be-remote get-aks-external-ip setup-fe-remote e2e-local2remote e2e-remote2remote
+.PHONY: deploy-be-remote get-aks-external-ip setup-fe-remote e2e-local2remote e2e-remote2remote
 
 deploy-be-remote:
 	@echo "Deploying backend to AKS ($(ENV))..."
@@ -229,12 +229,12 @@ get-aks-external-ip:
 		echo "ERROR: $$KUBECONFIG_FILE not found. Run 'make kubeconfig-$(ENV)' first." >&2; \
 		exit 1; \
 	fi; \
-	EXTERNAL_IP=$$(KUBECONFIG="$$KUBECONFIG_FILE" kubectl get svc -n kioskbot-$(ENV) -o jsonpath='{.items[?(@.spec.type=="LoadBalancer")].status.loadBalancer.ingress[0].ip}' 2>/dev/null); \
-	if [ -z "$$EXTERNAL_IP" ]; then \
+	AKS_EXTERNAL_IP=$$(KUBECONFIG="$$KUBECONFIG_FILE" kubectl get svc -n kioskbot-$(ENV) -o jsonpath='{.items[?(@.spec.type=="LoadBalancer")].status.loadBalancer.ingress[0].ip}' 2>/dev/null); \
+	if [ -z "$$AKS_EXTERNAL_IP" ]; then \
 		echo "ERROR: Could not find external IP. Make sure the service is deployed." >&2; \
 		exit 1; \
 	fi; \
-	echo "$$EXTERNAL_IP"
+	echo "$$AKS_EXTERNAL_IP"
 
 update-apim-backend-url:
 	@echo "Updating apim_backend_url for $(ENV)..." >&2
@@ -243,11 +243,11 @@ update-apim-backend-url:
 		echo "ERROR: $$TFVARS_FILE not found." >&2; \
 		exit 1; \
 	fi; \
-	EXTERNAL_IP=$$($(MAKE) --no-print-directory get-aks-external-ip ENV=$(ENV)); \
-	BACKEND_URL="http://$$EXTERNAL_IP:8000"; \
-	echo "Setting apim_backend_url=$$BACKEND_URL"; \
+	AKS_EXTERNAL_IP=$$($(MAKE) --no-print-directory get-aks-external-ip ENV=$(ENV)); \
+	AKS_BACKEND_URL="http://$$AKS_EXTERNAL_IP:8000"; \
+	echo "Setting apim_backend_url=$$AKS_BACKEND_URL"; \
 	grep -v '^apim_backend_url' "$$TFVARS_FILE" > "$$TFVARS_FILE.tmp" || true; \
-	echo "apim_backend_url = \"$$BACKEND_URL\"" >> "$$TFVARS_FILE.tmp"; \
+	echo "apim_backend_url = \"$$AKS_BACKEND_URL\"" >> "$$TFVARS_FILE.tmp"; \
 	mv "$$TFVARS_FILE.tmp" "$$TFVARS_FILE"
 
 setup-fe-remote:
@@ -262,10 +262,11 @@ setup-fe-remote:
 	fi
 	@echo "Installing frontend dependencies..."
 	@cd $(FE_DIR) && pnpm install
-	@echo "Getting AKS external IP..."
-	@EXTERNAL_IP=$$($(MAKE) --no-print-directory get-aks-external-ip ENV=$(ENV)); \
-	echo "AKS External IP: $$EXTERNAL_IP"; \
-	BACKEND_URL_REMOTE="http://$$EXTERNAL_IP:8000"; \
+	@BACKEND_URL_REMOTE=$$(grep -E '^BACKEND_URL=' .env.$(ENV) | cut -d'=' -f2- | tr -d '"' | sed 's:/*$$::'); \
+	if [ -z "$$BACKEND_URL_REMOTE" ]; then \
+		echo "ERROR: BACKEND_URL is required in .env.$(ENV)"; \
+		exit 1; \
+	fi; \
 	echo "Configuring frontend to use remote backend: $$BACKEND_URL_REMOTE"; \
 	if [ -f "$(FE_DIR)/.env" ]; then \
 		grep -v '^PUBLIC_API=' "$(FE_DIR)/.env" > "$(FE_DIR)/.env.tmp" || true; \
@@ -275,11 +276,7 @@ setup-fe-remote:
 	@echo "Configuring backend .env.$(ENV) with FRONTEND_URL..."
 	@grep -v '^FRONTEND_URL=' .env.$(ENV) > .env.$(ENV).tmp || true
 	@echo "FRONTEND_URL=http://localhost:$(FE_PORT)" >> .env.$(ENV).tmp
-	@grep -v '^BACKEND_URL=' .env.$(ENV).tmp > .env.$(ENV).tmp2 || true
-	@EXTERNAL_IP=$$($(MAKE) --no-print-directory get-aks-external-ip ENV=$(ENV)); \
-	echo "BACKEND_URL=http://$$EXTERNAL_IP:8000" >> .env.$(ENV).tmp2
-	@mv .env.$(ENV).tmp2 .env.$(ENV)
-	@rm -f .env.$(ENV).tmp
+	@mv .env.$(ENV).tmp .env.$(ENV)
 	@echo "Frontend setup for remote backend testing is complete!"
 
 e2e-local2remote:
@@ -287,15 +284,17 @@ e2e-local2remote:
 	@echo "Local FE to Remote BE E2E Test Workflow ($(ENV))"
 	@echo "========================================"
 	@echo ""
-	@echo "Step 2/3: Deploying backend to AKS..."
+	@echo "Step 1/2: Deploying backend to AKS..."
 	@$(MAKE) terraform-deploy-$(ENV)
+	@echo "[audit] BACKEND_URL after deploy:  $$(rg -m 1 '^BACKEND_URL=' .env.$(ENV) | cut -d'=' -f2- | tr -d '"')"
 	@echo ""
-	@echo "Step 3/3: Running E2E tests..."
+	@echo "Step 2/2: Running E2E tests..."
 	@$(MAKE) setup-fe-remote ENV=$(ENV)
+	@echo "[audit] BACKEND_URL after setup-fe-remote: $$(rg -m 1 '^BACKEND_URL=' .env.$(ENV) | cut -d'=' -f2- | tr -d '"')"
 	@echo "Stopping any existing frontend servers..."
 	@$(MAKE) stop-fe-local
 	@echo "Starting frontend server in background..."
-	@(cd $(FE_DIR) && pnpm dev > $(shell pwd)/.fe-server.log 2>&1 & echo $$! > $(shell pwd)/.fe-server.pid)
+	@(cd $(FE_DIR) && pnpm dev -- --port $(FE_PORT) --strictPort > $(shell pwd)/.fe-server.log 2>&1 & echo $$! > $(shell pwd)/.fe-server.pid)
 	@echo "Waiting for frontend server to be ready..."
 	@timeout=60; \
 	while ! curl -s http://localhost:$(FE_PORT) > /dev/null 2>&1; do \
@@ -310,8 +309,12 @@ e2e-local2remote:
 		sleep 1; \
 	done
 	@echo "Frontend server is ready!"
+	@FRONTEND_URL_VAL=$$(grep -E '^FRONTEND_URL=' .env.$(ENV) | cut -d'=' -f2- | tr -d '"'); \
+	BACKEND_URL_VAL=$$(grep -E '^BACKEND_URL=' .env.$(ENV) | cut -d'=' -f2- | tr -d '"'); \
+	echo "Using FRONTEND_URL=$$FRONTEND_URL_VAL"; \
+	echo "Using BACKEND_URL=$$BACKEND_URL_VAL"
 	@echo "Running E2E tests with local FE and remote BE..."
-	@ENV=$(ENV) PYTHONPATH=$(shell pwd) pytest -v tests/e2e/ || \
+	@KAFKA_LOGGING_ENABLED=false ENV=$(ENV) PYTHONPATH=$(shell pwd) pytest -v tests/e2e/ || \
 		(echo "Tests failed, cleaning up..."; $(MAKE) stop-fe-local; exit 1)
 	@$(MAKE) stop-fe-local
 	@rm -f .fe-server.log
@@ -355,7 +358,7 @@ e2e-remote2remote:
 	mv .env.$(ENV).tmp2 .env.$(ENV); \
 	rm -f .env.$(ENV).tmp
 	@echo "Running E2E tests against remote FE and remote BE..."
-	@ENV=$(ENV) PYTHONPATH=$(shell pwd) pytest -v tests/e2e/ || \
+	@KAFKA_LOGGING_ENABLED=false ENV=$(ENV) PYTHONPATH=$(shell pwd) pytest -v tests/e2e/ || \
 		(echo "Tests failed!"; exit 1)
 	@echo ""
 	@echo "========================================"
@@ -368,7 +371,7 @@ e2e-remote2remote:
 load-tests-dev:
 	@echo $@
 	$(eval BACKEND_URL := $(shell grep -E '^BACKEND_URL=' .env.dev | cut -d'=' -f2- | tr -d '"' | sed 's:/*$$::'))
-	@ENV=dev PYTHONPATH=$(shell pwd) locust -f tests/load_test/load_test.py --web-host 0.0.0.0 --host $(BACKEND_URL) -u 50 -r 5 --run-time 3m
+	@ENV=dev PYTHONPATH=$(shell pwd) locust -f tests/load_test/load_test.py --web-host 0.0.0.0 --host $(BACKEND_URL) -u 10 -r 1 --run-time 3m
 
 # ---- config ----
 TF      ?= terraform
@@ -579,18 +582,8 @@ terraform-deploy-dev:
 	@$(MAKE) terraform-plan-dev
 	@$(MAKE) terraform-apply-dev
 	@$(MAKE) terraform-output-dev
+	@sleep 10
 	@$(MAKE) write-output-to-env-dev
-	@echo ""
-	@echo "   - IMPORTANT: Update OpenAI Tokens-Per-Minute quotas in Azure Foundry:"
-	@echo "   - Chat models: up to 1M TPM"
-	@echo "   - Embedding models: up to 2M TPM"
-	@echo "   (Terraform does not expose this setting)"
-	@echo ""
-	@read -p "Have you updated the OpenAI quotas? [y/N]: " CONFIRM; \
-	if [ "$$CONFIRM" != "y" ] && [ "$$CONFIRM" != "Y" ]; then \
-		echo "Deployment cancelled. Please update quotas and try again."; \
-		exit 1; \
-	fi
 	@echo "Continuing with deployment..."
 	@$(MAKE) build-image-dev
 	@$(MAKE) push-image-dev
@@ -599,6 +592,9 @@ terraform-deploy-dev:
 	@$(MAKE) update-apim-backend-url ENV=dev
 	@$(MAKE) terraform-plan-dev
 	@$(MAKE) terraform-apply-dev
+	@$(MAKE) terraform-output-dev
+	@sleep 10
+	@$(MAKE) write-output-to-env-dev
 	@echo "Backend deployment complete!"
 
 
@@ -606,18 +602,8 @@ terraform-deploy-prod:
 	@$(MAKE) terraform-plan-prod
 	@$(MAKE) terraform-apply-prod
 	@$(MAKE) terraform-output-prod
+	@sleep 10
 	@$(MAKE) write-output-to-env-prod
-	@echo ""
-	@echo "   - IMPORTANT: Update OpenAI Tokens-Per-Minute quotas in Azure Foundry:"
-	@echo "   - Chat models: up to 1M TPM"
-	@echo "   - Embedding models: up to 2M TPM"
-	@echo "   (Terraform does not expose this setting)"
-	@echo ""
-	@read -p "Have you updated the OpenAI quotas? [y/N]: " CONFIRM; \
-	if [ "$$CONFIRM" != "y" ] && [ "$$CONFIRM" != "Y" ]; then \
-		echo "Deployment cancelled. Please update quotas and try again."; \
-		exit 1; \
-	fi
 	@echo "Continuing with deployment..."
 	@$(MAKE) build-image-prod
 	@$(MAKE) push-image-prod
@@ -626,6 +612,9 @@ terraform-deploy-prod:
 	@$(MAKE) update-apim-backend-url ENV=prod
 	@$(MAKE) terraform-plan-prod
 	@$(MAKE) terraform-apply-prod
+	@$(MAKE) terraform-output-prod
+	@sleep 10
+	@$(MAKE) write-output-to-env-prod
 	@echo "Backend deployment complete!"
 	
 
