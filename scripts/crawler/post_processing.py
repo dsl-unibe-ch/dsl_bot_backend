@@ -1,14 +1,17 @@
 import json
+import logging
 import os
 import re
-import logging
+from argparse import ArgumentParser
 from pathlib import Path
-from app.config import settings
+
+import pandas as pd
+import requests
 from openai import AzureOpenAI
 from pydantic import BaseModel
-import requests
-import pandas as pd
 from tqdm import tqdm
+
+from app.config import settings
 
 
 logging.basicConfig(
@@ -224,9 +227,21 @@ def find_empty_text_content(processed_file: Path) -> list:
     return empty_text_content
 
 
-def main():
-    jsonl_file = Path("scripts/crawler/data/qse/qse_content.jsonl")
-    customer_name = "qse"
+def main() -> None:
+    arg_parser = ArgumentParser(
+        description="Post-process crawled content into a structured dataset."
+    )
+    arg_parser.add_argument(
+        "--customer_name",
+        type=str,
+        required=True,
+        help="Customer name used to resolve input/output paths.",
+    )
+    args = arg_parser.parse_args()
+    customer_name = args.customer_name
+    jsonl_file = Path(
+        f"scripts/crawler/data/{customer_name}/{customer_name}_content.jsonl"
+    )
     logger.info("Starting post-processing...")
     all_data = post_process_data(jsonl_file, customer_name)
     output_file = Path(f"scripts/crawler/data/{customer_name}/processed_data.xlsx")

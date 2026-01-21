@@ -24,6 +24,7 @@ from openai import AzureOpenAI
 from app.agent.prompt_templates import qa_prompt, translation_prompt
 from app.agent.query import QueryInput, QueryOutput, Source
 from app.agent.schemas import StartSessionResponse
+from app.agent.utils import get_customer_name_from_url
 from app.config import settings
 from app.logging_config import kioskbot_logger as logger
 
@@ -39,15 +40,18 @@ environment = os.environ.get("ENV", "unknown")
 class ChatBot:
     """ChatBot class to interact with Azure OpenAI and Azure AI Search."""
 
-    def __init__(self) -> None:
+    def __init__(self, index_name: str) -> None:
         """Initialize the ChatBot with Azure clients and prompt chains."""
+        if not index_name:
+            raise ValueError("index_name is required and must be non-empty.")
+        self.index_name = index_name
         search_credential = AzureKeyCredential(
             settings.AZURE_SEARCH_SERVICE_PRIMARY_ADMIN_KEY
         )
 
         self.search_client = SearchClient(
             endpoint=settings.AZURE_SEARCH_ENDPOINT,
-            index_name=settings.AZURE_AI_SEARCH_INDEX_NAME,
+            index_name=self.index_name,
             credential=search_credential,
         )
         self.embedding_client = AzureOpenAI(
@@ -270,6 +274,12 @@ class ChatBot:
             sources = query_response.get("sources", [])
             sources_json = json.dumps([str(s) for s in sources]) if sources else "[]"
 
+            resolved_customer = None
+            if query.origin:
+                resolved_customer = get_customer_name_from_url(query.origin)
+            if not resolved_customer and self.index_name.startswith("kb-"):
+                resolved_customer = self.index_name.removeprefix("kb-")
+
             log_content = {
                 "session_id": str(query.session_id),
                 "timestamp": timestamp,
@@ -279,6 +289,9 @@ class ChatBot:
                 "sources": sources_json,
                 "version": version,
                 "environment": environment,
+                "origin": query.origin,
+                "index_name": self.index_name,
+                "customer_name": resolved_customer,
             }
             logger.info(
                 json.dumps(log_content)

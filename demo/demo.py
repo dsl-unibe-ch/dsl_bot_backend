@@ -3,6 +3,7 @@
 from app.agent.chatbot_azure import ChatBot, sessions
 from app.agent.feedback import Feedback
 from app.agent.query import QueryInput
+from app.config import settings
 from app.logging_config import close_kafka
 from app.logging_config import kioskbot_logger as logger
 from scripts.assessment_data.generate_assessment_dataset import german2english
@@ -10,7 +11,7 @@ from scripts.assessment_data.generate_assessment_dataset import german2english
 
 def main() -> None:
     """Main function."""
-    chatbot = ChatBot()
+    chatbot = ChatBot(index_name=settings.AZURE_AI_SEARCH_INDEX_NAME)
     start_session_response = chatbot.initialize_agent_wrapper(sessions)
 
     while True:

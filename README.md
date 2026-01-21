@@ -74,8 +74,12 @@ Note that the raw data source (Excel file path, name, and sheet) are hardcoded i
 To run the ETL pipeline for Azure Search, specify your desired index name in the respective `.{ENV}.dev` file using the `AZURE_AI_SEARCH_INDEX_NAME` variable, then execute the following command for the respective environment :
 
 ```bash
-make etl-pipeline-azure-search-{ENV}
+make etl-pipeline-azure-search-{ENV} customer_name={CUSTOMER_NAME}
 ```
+For example, `make etl-pipeline-azure-search-dev customer_name=quality`
+
+
+- Naming Convention of the Indexes: An index is named after the customer such as `kb-{CUSTOMER_NAME}`. For example, `kb-quality`or `kb-innovation`
 
 </details>
 
@@ -1026,13 +1030,14 @@ curl -s -X POST "http://127.0.0.1:8000/send-feedback" -H "Content-Type: applicat
 ## Crawler
 <details>
 
-- Scrape QSE website
+- Scrape Customer website
 ```bash
-make scrape-qse
+make scrape customer_name={CUSTOMER_NAME}
 ```
-This command does the following steps
-1. At first a list of URLs is created to scrape from following the rules of the crawler set in `scripts\crawler\configs\qse.yml` and stored in `url_list.jsonl`
-2. Then the list of URLs is parsed to either extract HTML or PDF content and stored in a `qse_content.jsonl` file.
+
+For instance, `make scrape customer_name=quality`. This command does the following steps
+1. At first a list of URLs is created to scrape from following the rules of the crawler set in `scripts\crawler\configs\quality.yml` and stored in `url_list.jsonl`
+2. Then the list of URLs is parsed to either extract HTML or PDF content and stored in a `quality_content.jsonl` file.
 3. Finally in the post processing step, keywords and example questions are appended and a basic clean up is performed. An excel file is created which is then meant to be used for the index creation.
 
 **Note** 

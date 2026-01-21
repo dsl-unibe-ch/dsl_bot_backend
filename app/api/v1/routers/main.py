@@ -15,6 +15,7 @@ from app.agent.schemas import (
     FeedbackResponse,
     StartSessionResponse,
 )
+from app.agent.utils import get_customer_name_from_url
 from app.config import settings
 
 logger = logging.getLogger("Kioskbot")
@@ -64,7 +65,7 @@ def health_check() -> dict:
 
 
 @app.get("/initialize-agent")
-def initialize_agent() -> StartSessionResponse:
+def initialize_agent(origin: str | None = None) -> StartSessionResponse:
     """Create a new chatbot session and return its unique session ID.
 
     This endpoint initializes a new ChatBot instance and stores it in the session dictionary.
@@ -73,7 +74,12 @@ def initialize_agent() -> StartSessionResponse:
     Returns:
         StartSessionResponse: An object containing the generated session_id.
     """  # noqa: E501
-    chatbot = ChatBot()
+    if origin:
+        customer_name = get_customer_name_from_url(origin)
+        index_name = "kb-"+ customer_name
+    else:
+        index_name = settings.AZURE_AI_SEARCH_INDEX_NAME
+    chatbot = ChatBot(index_name=index_name)
     return chatbot.initialize_agent_wrapper(sessions=sessions)
 
 
@@ -108,4 +114,14 @@ def send_feedback(feedback: Feedback) -> FeedbackResponse:
     """  # noqa: E501
     chatbot = sessions.get(feedback.session_id)
     interaction_count = chatbot.interaction_count
-    return feedback.send_feedback_wrapper(interaction_count)
+    origin = feedback.origin
+    index_name = chatbot.index_name
+    resolved_customer = get_customer_name_from_url(origin) if origin else None
+    if not resolved_customer and index_name and index_name.startswith("kb-"):
+        resolved_customer = index_name.removeprefix("kb-")
+    return feedback.send_feedback_wrapper(
+        interaction_count,
+        origin=origin,
+        index_name=index_name,
+        customer_name=resolved_customer,
+    )

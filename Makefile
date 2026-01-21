@@ -12,11 +12,11 @@ lint:
 
 etl-pipeline-azure-search-dev:
 	@echo $@
-	@ENV=dev PYTHONPATH=$(shell pwd) python scripts/rag_data/etl_azure_search.py	
+	@ENV=dev PYTHONPATH=$(shell pwd) python scripts/rag_data/etl_azure_search.py --customer_name $(customer_name) 
 
 etl-pipeline-azure-search-prod:
 	@echo $@
-	@ENV=prod PYTHONPATH=$(shell pwd) python scripts/rag_data/etl_azure_search.py
+	@ENV=prod PYTHONPATH=$(shell pwd) python scripts/rag_data/etl_azure_search.py --customer_name $(customer_name) 
 
 generate-assessment-dataset:
 	@echo $@
@@ -36,27 +36,27 @@ scrape-unibe-innovation:
 
 convert-mht-to-txt-innovation:
 	@echo $@
-	@PYTHONPATH=$(shell pwd) python scripts/crawler/one_note_mht_reader.py scripts/crawler/data/raw/Notizbuch_fuer_Ideenlabor.mht scripts/crawler/data/raw/Notizbuch_fuer_Ideenlabor.txt
+	@PYTHONPATH=$(shell pwd) python scripts/crawler/one_note_mht_reader.py scripts/crawler/data/innovation/raw/Notizbuch_fuer_Ideenlabor.mht scripts/crawler/data/innovation/raw/Notizbuch_fuer_Ideenlabor.txt
 
-collect-urls-qse:
+collect-urls:
 	@echo $@
-	@rm -rf scripts/crawler/jobs/qse
-	@rm -f  scripts/crawler/data/raw/qse.jsonl
-	@rm -f  scripts/crawler/data/qse/url_list.jsonl
-	@PYTHONPATH=$(shell pwd) scrapy runspider scripts/crawler/unibe_crawler.py -a config=scripts/crawler/configs/qse.yml -o scripts/crawler/data/qse/url_list.jsonl -s JOBDIR=scripts/crawler/jobs/qse
+	@rm -rf scripts/crawler/jobs/$(customer_name)
+	@rm -f  scripts/crawler/data/raw/$(customer_name).jsonl
+	@rm -f  scripts/crawler/data/$(customer_name)/url_list.jsonl
+	@PYTHONPATH=$(shell pwd) scrapy runspider scripts/crawler/unibe_crawler.py -a config=scripts/crawler/configs/$(customer_name).yml -o scripts/crawler/data/$(customer_name)/url_list.jsonl -s JOBDIR=scripts/crawler/jobs/$(customer_name)
 
-extract-content-qse:
+extract-content:
 	@echo $@	
-	@rm -rf scripts/crawler/data/qse/qse_content.jsonl
-	@rm -rf scripts/crawler/data/qse/processed_data.xlsx
-	@PYTHONPATH=$(shell pwd) python scripts/crawler/url_content_extractor.py --jsonl_file scripts/crawler/data/qse/url_list.jsonl --customer_name qse
-	@PYTHONPATH=$(shell pwd) python scripts/crawler/pdf_content_extractor.py --jsonl_file scripts/crawler/data/qse/url_list.jsonl --customer_name qse
-	@ENV=dev PYTHONPATH=$(shell pwd) python scripts/crawler/post_processing.py
+	@rm -rf scripts/crawler/data/$(customer_name)/$(customer_name)_content.jsonl
+	@rm -rf scripts/crawler/data/$(customer_name)/processed_data.xlsx
+	@PYTHONPATH=$(shell pwd) python scripts/crawler/url_content_extractor.py --jsonl_file scripts/crawler/data/$(customer_name)/url_list.jsonl --customer_name $(customer_name)
+	@PYTHONPATH=$(shell pwd) python scripts/crawler/pdf_content_extractor.py --jsonl_file scripts/crawler/data/$(customer_name)/url_list.jsonl --customer_name $(customer_name)
+	@ENV=dev PYTHONPATH=$(shell pwd) python scripts/crawler/post_processing.py --customer_name $(customer_name)
 
-scrape-qse:
+scrape:
 	@echo $@
-	@make collect-urls-qse
-	@make extract-content-qse
+	@make collect-urls customer_name=$(customer_name)
+	@make extract-content customer_name=$(customer_name)
 
 build-image-dev:
 	@ENV=dev; \

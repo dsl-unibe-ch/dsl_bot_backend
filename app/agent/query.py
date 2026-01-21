@@ -11,10 +11,12 @@ class QueryInput(BaseModel):
     Args:
         text: The text of the query
         session_id: The session ID
+        origin: Optional origin for customer resolution
     """
 
     text: str
     session_id: UUID
+    origin: str | None = None
 
 
 class Source(BaseModel):

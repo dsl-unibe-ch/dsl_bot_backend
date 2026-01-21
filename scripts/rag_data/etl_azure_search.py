@@ -29,7 +29,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_experimental.text_splitter import SemanticChunker
 from langchain_openai import AzureChatOpenAI
 from openai import AzureOpenAI
-
+from argparse import ArgumentParser
 from app.config import settings
 from scripts.assessment_data.generate_assessment_dataset import german2english
 
@@ -43,6 +43,7 @@ logger.addHandler(handler)
 
 
 http_status_bad_request = 400
+http_status_not_found = 404
 
 
 class AzureEmbeddingWrapper:
@@ -73,7 +74,7 @@ def get_embedding(embedding_client: AzureOpenAI, text: str) -> list:
     return resp.data[0].embedding
 
 
-def generate_title(chunk: str) -> str:
+def generate_title(chunk: str, document_title: str) -> str:
     """Generate a title for a given text chunk using Azure OpenAI."""
     title_generation_system_prompt = """Given the following document chunk, generate a concise and informative title that summarizes its main topic or purpose.
 
@@ -94,10 +95,16 @@ def generate_title(chunk: str) -> str:
         azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
         api_key=settings.AZURE_OPENAI_PRIMARY_KEY,
     )
-
     title_generation_chain = title_generation_prompt | chat_client
+    try:
+        return title_generation_chain.invoke({"input": chunk}).content
+    except Exception as exc:  # noqa: BLE001
+        logger.warning(
+            "Title generation failed (%s). Using document title.",
+            type(exc).__name__,
+        )
+        return document_title
 
-    return title_generation_chain.invoke({"input": chunk}).content
 
 
 def run_etl(  # noqa: PLR0915
@@ -105,7 +112,7 @@ def run_etl(  # noqa: PLR0915
     xlsx_file_name: str,
     sheet_name: str,
     index_name: str,
-    processed_data_path: Path,
+    output_dir_path: Path,
 ) -> dict:
     """Run the ETL process to create index, process docs and upload them.
 
@@ -229,6 +236,14 @@ def run_etl(  # noqa: PLR0915
         semantic_search=semantic_search,
     )
 
+    try:
+        index_client.delete_index(index_name)
+        logger.info("Deleted existing index '%s'.", index_name)
+    except HttpResponseError as e:
+        if e.status_code != http_status_not_found:
+            logger.exception("Azure API error deleting index:")
+            sys.exit(1)
+
     # create the index
     try:
         index_client.create_index(index)
@@ -255,6 +270,7 @@ def run_etl(  # noqa: PLR0915
         Path(xlsx_file_path) / f"{xlsx_file_name}.xlsx", sheet_name=sheet_name
     )
     chunk_id = 0
+    logger.info("Total number of %d rows", len(df))
     for i, row in df.iterrows():
         logger.debug("Processing row %d", i)
         list_of_chunks = text_splitter.create_documents([row["text"]])
@@ -262,8 +278,17 @@ def run_etl(  # noqa: PLR0915
             chunk_content = chunk.page_content.strip()
             if not chunk_content:
                 continue
-            title_for_chunk = generate_title(chunk_content)
+            title_for_chunk = generate_title(chunk_content, row["Title"])
             vector = get_embedding(embedding_client, chunk_content)
+
+            try:
+                translated_text = german2english(chunk_content)
+            except Exception as exc:  # noqa: BLE001
+                logger.warning(
+                    "Translation failed (%s). Using empty translation.",
+                    type(exc).__name__,
+                )
+                translated_text = ""
 
             document = {
                 "chunk_id": f"doc_{chunk_id}",
@@ -277,7 +302,7 @@ def run_etl(  # noqa: PLR0915
                 "Date_Last_Modified": row["Date_Last_Modified"],
                 "Data_Gathered_On": row["Data_Gathered_On"],
                 "chunk": chunk_content,
-                "chunk_translated": german2english(chunk_content),
+                "chunk_translated": translated_text,
                 "Keyword": row["Keyword"],
                 "Example_Questions": row["Example_Questions"].split(","),
                 "text_vector": vector,
@@ -287,7 +312,7 @@ def run_etl(  # noqa: PLR0915
 
     environment = getattr(settings, "ENV", "dev")
     with Path.open(
-        processed_data_path
+        output_dir_path
         / f"{xlsx_file_name}_azure_semantic_search_{environment}.json",
         "w",
     ) as f:
@@ -318,16 +343,56 @@ def run_etl(  # noqa: PLR0915
 
 def main() -> None:
     """Simple CLI entrypoint for the ETL script."""
-    xlsx_file_path = "tests/data/raw/"
-    xlsx_file_name = "data_overview_ver4"
-    sheet_name = "quality_new"
-    index_name = settings.AZURE_AI_SEARCH_INDEX_NAME
-    processed_data_path = Path("scripts/rag_data/data/processed/")
+    arg_parser = ArgumentParser(
+        description="ETL script to create an Azure Cognitive Search."
+    )
+    arg_parser.add_argument(
+        "--customer_name",
+        type=str,
+        required=True,
+        help="The name of the customer.",
+    )
+    arg_parser.add_argument(
+        "--file_path",
+        type=str,
+        required=False,
+        help="Path to the processed xlsx file.",
+    )
+    arg_parser.add_argument(
+        "--sheet_name",
+        type=str,
+        default="Sheet1",
+        help="Optional sheet name. Defaults to first sheet.",
+    )
+    arg_parser.add_argument(
+        "--output_dir",
+        type=str,
+        required=False,
+        help="Directory to write processed JSON output.",
+    )
+    args = arg_parser.parse_args()
+    customer_name = args.customer_name
+    index_name = f"kb-{customer_name}"
+    output_dir = args.output_dir if args.output_dir else f"scripts/rag_data/data/processed/{customer_name}"
+    file_path = (
+        args.file_path
+        if args.file_path
+        else f"scripts/crawler/data/{customer_name}/processed_data.xlsx"
+    )
+    sheet_name = args.sheet_name
+    xlsx_path = Path(file_path)
+    xlsx_file_path = str(xlsx_path.parent)
+    xlsx_file_name = xlsx_path.stem
+    output_dir_path = Path(output_dir)
+    output_dir_path.mkdir(parents=True, exist_ok=True)
     summary = run_etl(
-        xlsx_file_path, xlsx_file_name, sheet_name, index_name, processed_data_path
+        xlsx_file_path,
+        xlsx_file_name,
+        sheet_name,
+        index_name,
+        output_dir_path,
     )
     logger.info("ETL finished: %s", summary)
-
 
 if __name__ == "__main__":
     main()

@@ -26,9 +26,14 @@ class Feedback(BaseModel):
     rating: int  # 1 for thumbs up, 0 for thumbs down
     comments: str = None  # Optional additional comments
     session_id: UUID
+    origin: str | None = None
 
     def send_feedback_wrapper(
-        self: "Feedback", interaction_count: int
+        self: "Feedback",
+        interaction_count: int,
+        origin: str | None = None,
+        index_name: str | None = None,
+        customer_name: str | None = None,
     ) -> FeedbackResponse:
         """Send feedback to Azure Table Storage."""
         if self.session_id:
@@ -42,6 +47,9 @@ class Feedback(BaseModel):
                 "interaction_count": interaction_count,
                 "version": version,
                 "environment": environment,
+                "origin": origin,
+                "index_name": index_name,
+                "customer_name": customer_name,
             }
             logger.info(json.dumps(log_content))
 
