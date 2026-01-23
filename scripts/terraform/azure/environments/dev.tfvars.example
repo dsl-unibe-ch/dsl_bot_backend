@@ -89,8 +89,8 @@ apim_publisher_email      = "support.dsl@unibe.ch"
 apim_backend_url          = "http://<AKS_CLUSTER_IP>:8000"
 
 # API Configuration
-apim_api_name             = "<your-api-name>"
-apim_api_display_name     = "Your API Display Name"
+apim_api_name             = "kioskbot-api"
+apim_api_display_name     = "Kioskbot API"
 apim_api_path             = "api"
 apim_api_revision         = "1"
 apim_api_protocols        = ["https"]
