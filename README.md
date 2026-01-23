@@ -892,7 +892,7 @@ In `.env.{ENV}` you need to set the the address and port where the backend is ru
 
 - If your backend is running on your laptop, you should set it to `BACKEND_URL=http://localhost:8000/`. Remember to start the container prior to testing.
 
-- If your backend is running on a Kubernetes cluster, add the `APIM_URL` in the `BACKEND_URL=http://<APIM_URL>`. 
+- If your backend is running on a Kubernetes cluster, verify that the `BACKEND_URL` is set to the remote url (this is automatically set during the deployment). 
 
 To start a load test with 10 users, where Locust is going to add 1 users per second until it reaches the total number of users, for 3 minutes, run:
 ```bash
@@ -906,7 +906,7 @@ A chart is created after the tests are run as the following.
 
 Here the chart shows that for every minute, the requests continue to rise as per the predetermined test settings. Since the APIM limits are refreshed every minute, the cycle repeats every minute where initially the failure/s are low for a time period until the APIM limits are reached which causes the failure/s to rise. This is by design, as we intentionally limit the number of requests per minute to the invoke-agent endpoint to mitigate potential attacks. 
 
-The current limits of the APIM are defined in the `scripts\terraform\azure\environments\{ENV}.tfvars.example` files. 
+The current limits of the APIM are defined in the `scripts\terraform\azure\environments\{ENV}.tfvars.example` files with the help of the variables `apim_initialize_rate_limit_calls` and `apim_initialize_quota_calls`.
 
 After the load test is over, you can check the events on kubernetes:
 ```bash

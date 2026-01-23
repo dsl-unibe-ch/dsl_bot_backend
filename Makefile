@@ -216,11 +216,7 @@ e2e-local2local: setup-be-local setup-fe-local build-image-dev compose-down-dev 
 	@echo "========================================"
 
 # ---- E2E Testing with Local FE and Remote BE (AKS) ----
-.PHONY: deploy-be-remote get-aks-external-ip setup-fe-remote e2e-local2remote e2e-remote2remote
-
-deploy-be-remote:
-	@echo "Deploying backend to AKS ($(ENV))..."
-	@$(MAKE) terraform-deploy-$(ENV)
+.PHONY: get-aks-external-ip setup-fe-remote e2e-local2remote e2e-remote2remote
 
 get-aks-external-ip:
 	@echo "Getting AKS external IP for $(ENV)..." >&2
@@ -422,7 +418,6 @@ help:
 	@echo "  make e2e-local2remote ENV=dev         # Complete: setup IP + deploy + test (ONE COMMAND)"
 	@echo "  make terraform-deploy-dev             # Full deploy: terraform + build + push + helm"
 	@echo "  make terraform-deploy-prod            # Full deploy for production"
-	@echo "  make deploy-be-remote ENV=dev         # Deploy backend to AKS (legacy)"
 	@echo "  make get-aks-external-ip ENV=dev      # Get AKS cluster external IP"
 	@echo "  make setup-fe-remote ENV=dev          # Setup FE to connect to remote BE"
 	@echo "\nE2E Testing (Remote FE + Remote BE on AKS):"
