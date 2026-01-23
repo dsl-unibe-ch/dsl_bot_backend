@@ -147,7 +147,7 @@ The reason for this three-level separation is to have some common resources shar
     
     - Replace `"your-azure-subscription_id"` in `{ENV}.tfvars` with the actual subscription ID you are using—this should match the subscription that the command `make az-set-subscription` returned. This ensures Terraform uses the correct Azure subscription for resource creation.
 
-    - API access is routed through APIM; the AKS service is locked down to APIM IPs. You can optionally use `aks_api_destination_port` to restrict which port(s) are open: `"*"` opens all ports (default), a specific port like `"8000"`, or a port range like `"30000-32767"`.
+    - API access is routed through APIM; only requests coming from APIM's public outbound IP addresses are allowed to reach the AKS, and requests coming from other IPs get blocked by the NSG. You can optionally use `aks_api_destination_port` to restrict which port(s) are open: `"*"` opens all ports (default), a specific port like `"8000"`, or a port range like `"30000-32767"`.
     
     - Initialise terraform
         ```bash
@@ -849,7 +849,6 @@ E2E tests can be done on three levels with combinations of Frontend (FE) and Bac
 >   ```
 >   This will:
 >   - Deploy/update infrastructure with Terraform
->   - Deploy/update infrastructure with Terraform
 >   - Build and push Docker image to ACR
 >   - Deploy/upgrade Helm chart to AKS
 >   - Configure test environment with frontend and backend URLs
@@ -905,7 +904,7 @@ A chart is created after the tests are run as the following.
 
 ![plot](./.assets/load_test_example.jpeg)
 
-Here the chart shows that for every minute, the requests continue to rise as per the predetermined test settings. Since the APIM limits are refreshed every minute, the cycle repeats every minute where initially the failure/s are low for a time period until the APIM limits are reached which causes the failure/s to rise. This is by design to understand what is the limitations of our approach. 
+Here the chart shows that for every minute, the requests continue to rise as per the predetermined test settings. Since the APIM limits are refreshed every minute, the cycle repeats every minute where initially the failure/s are low for a time period until the APIM limits are reached which causes the failure/s to rise. This is by design, as we intentionally limit the number of requests per minute to the invoke-agent endpoint to mitigate potential attacks. 
 
 The current limits of the APIM are defined in the `scripts\terraform\azure\environments\{ENV}.tfvars.example` files. 
 

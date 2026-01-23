@@ -476,8 +476,7 @@ terraform-require-tfvars:
 
 terraform-plan: terraform-require-tfvars terraform-workspace
 	@ENV=$(ENV); \
-	VERSION="$$( $(PYTHON) scripts/terraform/azure/scripts/extract_pyproject_version.py --pyproject pyproject.toml )"; \
-	IMAGE_TAG="$${VERSION}-$${ENV}"; \
+	IMAGE_TAG="$(VERSION)-$${ENV}"; \
 	$(TF) -chdir=$(TF_DIR) plan -var-file=$(TFVARS) -var="image_tag_override=$${IMAGE_TAG}" -out=$(ENV).plan
 
 terraform-plan-dev:
