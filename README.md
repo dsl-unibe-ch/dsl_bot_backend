@@ -78,7 +78,9 @@ make etl-pipeline-azure-search-{ENV} customer_name={CUSTOMER_NAME}
 For example, `make etl-pipeline-azure-search-dev customer_name=quality`
 
 
-- Naming Convention of the Indexes: An index is named after the customer such as `kb-{CUSTOMER_NAME}`. For example, `kb-quality`or `kb-innovation`
+- Naming Convention of the Indexes: An index is named after the customer such as `kb-{CUSTOMER_NAME}`. For example, `kb-quality`or `kb-innovation`. 
+
+The list of customers can be found in `app\agent\utils.py` under the `customer_name_root_url_mapping` dict.
 
 </details>
 
