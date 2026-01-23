@@ -8,7 +8,7 @@ COPY pyproject.toml .
 COPY app ./app
 COPY scripts/kafka_to_azure_consumer.py ./scripts/kafka_to_azure_consumer.py
 
-RUN uv pip install -r pyproject.toml --system
+RUN uv pip install . --system
 
 EXPOSE 8000
 
