@@ -21,13 +21,10 @@ from langchain_core.messages import AIMessage, HumanMessage
 from langchain_openai import AzureChatOpenAI
 from openai import AzureOpenAI
 
-from app.agent.prompt_templates import (
-    get_qa_prompt,
-    system_prompt_dict,
-    translation_prompt,
-)
+from app.agent.prompt_templates import get_qa_prompt, translation_prompt
 from app.agent.query import QueryInput, QueryOutput, Source
 from app.agent.schemas import StartSessionResponse
+from app.agent.utils import customer_full_name_dict, customer_name_contact_dict
 from app.config import settings
 from app.logging_config import kioskbot_logger as logger
 
@@ -47,11 +44,6 @@ class ChatBot:
         """Initialize the ChatBot with Azure clients and prompt chains."""
         if not customer_name:
             raise ValueError("customer_name is required and must be non-empty.")
-        if customer_name not in system_prompt_dict:
-            raise ValueError(
-                f"Unsupported customer_name '{customer_name}'. "
-                f"Supported values: {', '.join(system_prompt_dict.keys())}."
-            )
         self.customer_name = customer_name
         if customer_name == settings.DEFAULT_CUSTOMER:
             self.index_name = settings.AZURE_DEFAULT_AI_SEARCH_INDEX_NAME

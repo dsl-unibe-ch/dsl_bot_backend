@@ -31,7 +31,11 @@ collect-urls:
 	@TIMESTAMP=$$(date +%s); \
 		DATA_DIR=scripts/crawler/data/$(customer_name)/$$TIMESTAMP; \
 		mkdir -p $$DATA_DIR; \
-		PYTHONPATH=$(shell pwd) scrapy runspider scripts/crawler/unibe_crawler.py -a config=scripts/crawler/configs/$(customer_name).yml -o $$DATA_DIR/url_list.jsonl -s JOBDIR=scripts/crawler/jobs/$(customer_name)
+		PYTHONPATH=$(shell pwd) scrapy runspider scripts/crawler/unibe_crawler.py -a config=scripts/crawler/configs/$(customer_name).yml -o $$DATA_DIR/url_list.jsonl -s JOBDIR=scripts/crawler/jobs/$(customer_name); \
+		if [ ! -s "$$DATA_DIR/url_list.jsonl" ]; then \
+			echo "No URLs collected; removing empty directory $$DATA_DIR."; \
+			rm -rf "$$DATA_DIR"; \
+		fi
 
 extract-content:
 	@echo $@	
