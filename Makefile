@@ -26,32 +26,36 @@ run-demo: build-image-dev compose-down-dev compose-up-dev
 	@echo $@
 	@ENV=dev PYTHONPATH=$(shell pwd) python demo/demo.py
 
-
-.PHONY: scrape-unibe-innovation
-scrape-unibe-innovation:
-	@echo $@
-	@rm -rf scripts/crawler/jobs/innovation
-	@rm -f  scripts/crawler/data/raw/innovation.jsonl
-	@PYTHONPATH=$(shell pwd) scrapy runspider scripts/crawler/unibe_crawler.py -a config=scripts/crawler/configs/innovation.yml -o scripts/crawler/data/raw/innovation.jsonl -s JOBDIR=scripts/crawler/jobs/innovation
-
-convert-mht-to-txt-innovation:
-	@echo $@
-	@PYTHONPATH=$(shell pwd) python scripts/crawler/one_note_mht_reader.py scripts/crawler/data/innovation/raw/Notizbuch_fuer_Ideenlabor.mht scripts/crawler/data/innovation/raw/Notizbuch_fuer_Ideenlabor.txt
-
 collect-urls:
 	@echo $@
-	@rm -rf scripts/crawler/jobs/$(customer_name)
-	@rm -f  scripts/crawler/data/raw/$(customer_name).jsonl
-	@rm -f  scripts/crawler/data/$(customer_name)/url_list.jsonl
-	@PYTHONPATH=$(shell pwd) scrapy runspider scripts/crawler/unibe_crawler.py -a config=scripts/crawler/configs/$(customer_name).yml -o scripts/crawler/data/$(customer_name)/url_list.jsonl -s JOBDIR=scripts/crawler/jobs/$(customer_name)
+	@TIMESTAMP=$$(date +%s); \
+		DATA_DIR=scripts/crawler/data/$(customer_name)/$$TIMESTAMP; \
+		mkdir -p $$DATA_DIR; \
+		PYTHONPATH=$(shell pwd) scrapy runspider scripts/crawler/unibe_crawler.py -a config=scripts/crawler/configs/$(customer_name).yml -o $$DATA_DIR/url_list.jsonl -s JOBDIR=scripts/crawler/jobs/$(customer_name)
 
 extract-content:
 	@echo $@	
-	@rm -rf scripts/crawler/data/$(customer_name)/$(customer_name)_content.jsonl
-	@rm -rf scripts/crawler/data/$(customer_name)/processed_data.xlsx
-	@PYTHONPATH=$(shell pwd) python scripts/crawler/url_content_extractor.py --jsonl_file scripts/crawler/data/$(customer_name)/url_list.jsonl --customer_name $(customer_name)
-	@PYTHONPATH=$(shell pwd) python scripts/crawler/pdf_content_extractor.py --jsonl_file scripts/crawler/data/$(customer_name)/url_list.jsonl --customer_name $(customer_name)
-	@ENV=dev PYTHONPATH=$(shell pwd) python scripts/crawler/post_processing.py --customer_name $(customer_name)
+	@LATEST_DIR=$$(ls -1d scripts/crawler/data/$(customer_name)/[0-9]* 2>/dev/null | awk -F/ '{print $$NF}' | sort -n | tail -1); \
+		if [ -z "$$LATEST_DIR" ]; then \
+			echo "No timestamped data directory found for customer $(customer_name). Run make collect-urls first."; \
+			exit 1; \
+		fi; \
+		DATA_DIR=scripts/crawler/data/$(customer_name)/$$LATEST_DIR; \
+		PYTHONPATH=$(shell pwd) python scripts/crawler/url_content_extractor.py --jsonl_file $$DATA_DIR/url_list.jsonl --customer_name $(customer_name) --output-dir $$DATA_DIR; \
+		PYTHONPATH=$(shell pwd) python scripts/crawler/pdf_content_extractor.py --jsonl_file $$DATA_DIR/url_list.jsonl --customer_name $(customer_name) --output_dir $$DATA_DIR --download_dir $$DATA_DIR/raw/pdf_files; \
+		ENV=dev PYTHONPATH=$(shell pwd) python scripts/crawler/post_processing.py --customer_name $(customer_name) --data_dir $$DATA_DIR
+
+
+post-process-content:
+	@echo $@	
+	@LATEST_DIR=$$(ls -1d scripts/crawler/data/$(customer_name)/[0-9]* 2>/dev/null | awk -F/ '{print $$NF}' | sort -n | tail -1); \
+		if [ -z "$$LATEST_DIR" ]; then \
+			echo "No timestamped data directory found for customer $(customer_name). Run make collect-urls first."; \
+			exit 1; \
+		fi; \
+		DATA_DIR=scripts/crawler/data/$(customer_name)/$$LATEST_DIR; \
+		ENV=dev PYTHONPATH=$(shell pwd) python scripts/crawler/post_processing.py --customer_name $(customer_name) --data_dir $$DATA_DIR
+
 
 scrape:
 	@echo $@
@@ -599,6 +603,7 @@ write-output-to-env-dev:
 
 write-output-to-env-prod:
 	@$(MAKE) write-output-to-env ENV=prod
+
 write-secrets-to-container-file:
 	@PYTHONPATH=$(shell pwd) python scripts/terraform/azure/scripts/push_secrets_to_container.py -f "$(FILES)"
 

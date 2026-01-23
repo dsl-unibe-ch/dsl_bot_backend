@@ -61,7 +61,7 @@ def correctness_evaluator(
 
 def invoke_agent(input_: str, index_name: str) -> dict:
     """Invoke the RAG agent with the given input and return the output."""
-    index_name = settings.AZURE_AI_SEARCH_INDEX_NAME
+    index_name = settings.AZURE_DEFAULT_AI_SEARCH_INDEX_NAME
     chatbot = ChatBot(index_name=index_name)
     session_id = uuid.uuid4()
     query_input = QueryInput(text=input_, session_id=session_id)

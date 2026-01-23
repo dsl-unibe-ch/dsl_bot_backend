@@ -74,7 +74,7 @@ def get_embedding(embedding_client: AzureOpenAI, text: str) -> list:
     return resp.data[0].embedding
 
 
-def generate_title(chunk: str, document_title: str) -> str:
+def generate_title(chunk: str) -> str:
     """Generate a title for a given text chunk using Azure OpenAI."""
     title_generation_system_prompt = """Given the following document chunk, generate a concise and informative title that summarizes its main topic or purpose.
 
@@ -100,10 +100,10 @@ def generate_title(chunk: str, document_title: str) -> str:
         return title_generation_chain.invoke({"input": chunk}).content
     except Exception as exc:  # noqa: BLE001
         logger.warning(
-            "Title generation failed (%s). Using document title.",
+            "Title generation failed (%s). Using 'No title generated'.",
             type(exc).__name__,
         )
-        return document_title
+        return "No title generated"
 
 
 
@@ -278,7 +278,7 @@ def run_etl(  # noqa: PLR0915
             chunk_content = chunk.page_content.strip()
             if not chunk_content:
                 continue
-            title_for_chunk = generate_title(chunk_content, row["Title"])
+            title_for_chunk = generate_title(chunk_content)
             vector = get_embedding(embedding_client, chunk_content)
 
             try:

@@ -1,5 +1,7 @@
 """Utility functions for the integration app."""
 
+# This is the mapping between URL and customer name which is used as the postfix in the search index name
+
 customer_name_root_url_mapping = {
     "quality": ["https://www.unibe.ch/universitaet/portraet/selbstverstaendnis/qualitaet/",
             "https://www.unibe.ch/university/portrait/self_image/quality/",

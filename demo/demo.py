@@ -11,7 +11,7 @@ from scripts.assessment_data.generate_assessment_dataset import german2english
 
 def main() -> None:
     """Main function."""
-    chatbot = ChatBot(index_name=settings.AZURE_AI_SEARCH_INDEX_NAME)
+    chatbot = ChatBot(index_name=settings.AZURE_DEFAULT_AI_SEARCH_INDEX_NAME)
     start_session_response = chatbot.initialize_agent_wrapper(sessions)
 
     while True:

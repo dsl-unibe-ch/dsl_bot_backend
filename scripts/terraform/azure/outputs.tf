@@ -73,7 +73,7 @@ output "AZURE_SEARCH_ENDPOINT" {
   value = try(module.azurerm_search_service[0].AZURE_SEARCH_ENDPOINT, null)
 }
 
-output "AZURE_AI_SEARCH_INDEX_NAME" {
+output "AZURE_DEFAULT_AI_SEARCH_INDEX_NAME" {
   value = try(module.azurerm_search_service[0].AZURE_SEARCH_INDEX_NAME, null)
 }
 

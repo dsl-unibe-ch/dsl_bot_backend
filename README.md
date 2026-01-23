@@ -61,6 +61,7 @@ pre-commit install
 This script automates the process of reading raw input data, processing it, and uploading it to a newly created index in Azure Search.
 
 Key Steps in the ETL Pipeline:
+- Data Loading: In this step, based on the `CUSTOMER_NAME` argument, the excel_sheet with the formatted information is picked by the script. Each row on this sheet refers to text content and meta data for a given URL/ PDF. 
 - Chunking and Embedding: Uses SemanticChunker (with Azure OpenAI embeddings) to split documents into semantically meaningful chunks. Each chunk is embedded using Azure OpenAI's embedding model.
 - Title Generation: For each chunk, a concise and informative title is generated using Azure OpenAI's chat model.
 - Index Configuration: Configures the Azure Search index with custom vectorizer, vector search algorithm (HNSW), semantic search configuration, and a detailed set of fields (including metadata, chunk content, translations, keywords, example questions, and vector embeddings).
@@ -69,9 +70,7 @@ Key Steps in the ETL Pipeline:
 - Local Export: Stores a local JSON export of all processed documents for debugging and auditing purposes.
 
 
-Note that the raw data source (Excel file path, name, and sheet) are hardcoded in the script's main() function.
-
-To run the ETL pipeline for Azure Search, specify your desired index name in the respective `.{ENV}.dev` file using the `AZURE_AI_SEARCH_INDEX_NAME` variable, then execute the following command for the respective environment :
+To run the ETL pipeline for Azure Search, use the following command 
 
 ```bash
 make etl-pipeline-azure-search-{ENV} customer_name={CUSTOMER_NAME}
@@ -1043,21 +1042,6 @@ For instance, `make scrape customer_name=quality`. This command does the followi
 **Note** 
 1. The current pipeline does not take care of scanned pdfs without a layout structure. 
 2. Everytime the command is run the files are overwritten.
-
-- Scrape UniBe Innovation website: 
-
-```bash
-make scrape-unibe-innovation
-```
-
-- Convert One Note .mht files from Ideenlabor (UniBe Innovation) to text: 
-1. Extract One Note in .mht. 
-2. Place the mht file under ```scripts/crawler/data/raw```
-3. Verify that input name of file matches in makefile. 
-
-```bash
-make convert-mht-to-txt-ideenlabor
-```
 
 </details>
 

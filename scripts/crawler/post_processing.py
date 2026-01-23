@@ -237,14 +237,40 @@ def main() -> None:
         required=True,
         help="Customer name used to resolve input/output paths.",
     )
+    arg_parser.add_argument(
+        "--data_dir",
+        type=Path,
+        default=None,
+        help=(
+            "Directory containing crawl outputs (default: latest timestamped "
+            "folder under scripts/crawler/data/<customer_name> or legacy "
+            "customer folder)."
+        ),
+    )
     args = arg_parser.parse_args()
     customer_name = args.customer_name
-    jsonl_file = Path(
-        f"scripts/crawler/data/{customer_name}/{customer_name}_content.jsonl"
-    )
+
+    if args.data_dir:
+        data_dir = args.data_dir
+    else:
+        base_dir = Path("scripts/crawler/data") / customer_name
+        if base_dir.exists():
+            timestamp_dirs = [
+                entry
+                for entry in base_dir.iterdir()
+                if entry.is_dir() and entry.name.isdigit()
+            ]
+            if timestamp_dirs:
+                data_dir = max(timestamp_dirs, key=lambda path: int(path.name))
+            else:
+                data_dir = base_dir
+        else:
+            data_dir = base_dir
+
+    jsonl_file = data_dir / f"{customer_name}_content.jsonl"
     logger.info("Starting post-processing...")
     all_data = post_process_data(jsonl_file, customer_name)
-    output_file = Path(f"scripts/crawler/data/{customer_name}/processed_data.xlsx")
+    output_file = data_dir / "processed_data.xlsx"
     output_file.parent.mkdir(parents=True, exist_ok=True)
     df = pd.DataFrame(all_data)
     df.to_excel(output_file, index=False, engine='openpyxl')
