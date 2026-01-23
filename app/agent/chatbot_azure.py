@@ -21,10 +21,13 @@ from langchain_core.messages import AIMessage, HumanMessage
 from langchain_openai import AzureChatOpenAI
 from openai import AzureOpenAI
 
-from app.agent.prompt_templates import qa_prompt, translation_prompt
+from app.agent.prompt_templates import (
+    get_qa_prompt,
+    system_prompt_dict,
+    translation_prompt,
+)
 from app.agent.query import QueryInput, QueryOutput, Source
 from app.agent.schemas import StartSessionResponse
-from app.agent.utils import get_customer_name_from_url
 from app.config import settings
 from app.logging_config import kioskbot_logger as logger
 
@@ -40,11 +43,20 @@ environment = os.environ.get("ENV", "unknown")
 class ChatBot:
     """ChatBot class to interact with Azure OpenAI and Azure AI Search."""
 
-    def __init__(self, index_name: str) -> None:
+    def __init__(self, customer_name: str) -> None:
         """Initialize the ChatBot with Azure clients and prompt chains."""
-        if not index_name:
-            raise ValueError("index_name is required and must be non-empty.")
-        self.index_name = index_name
+        if not customer_name:
+            raise ValueError("customer_name is required and must be non-empty.")
+        if customer_name not in system_prompt_dict:
+            raise ValueError(
+                f"Unsupported customer_name '{customer_name}'. "
+                f"Supported values: {', '.join(system_prompt_dict.keys())}."
+            )
+        self.customer_name = customer_name
+        if customer_name == settings.DEFAULT_CUSTOMER:
+            self.index_name = settings.AZURE_DEFAULT_AI_SEARCH_INDEX_NAME
+        else:
+            self.index_name = f"kb-{customer_name}"
         search_credential = AzureKeyCredential(
             settings.AZURE_SEARCH_SERVICE_PRIMARY_ADMIN_KEY
         )
@@ -67,7 +79,9 @@ class ChatBot:
             api_key=settings.AZURE_OPENAI_PRIMARY_KEY,
         )
         self.qa_chain = create_stuff_documents_chain(
-            llm=self.chat_client, prompt=qa_prompt, document_variable_name="context"
+            llm=self.chat_client,
+            prompt=get_qa_prompt(self.customer_name),
+            document_variable_name="context",
         )
         self.translation_chain = translation_prompt | self.chat_client
         self.chat_history = []
@@ -274,12 +288,6 @@ class ChatBot:
             sources = query_response.get("sources", [])
             sources_json = json.dumps([str(s) for s in sources]) if sources else "[]"
 
-            resolved_customer = None
-            if query.origin:
-                resolved_customer = get_customer_name_from_url(query.origin)
-            if not resolved_customer and self.index_name.startswith("kb-"):
-                resolved_customer = self.index_name.removeprefix("kb-")
-
             log_content = {
                 "session_id": str(query.session_id),
                 "timestamp": timestamp,
@@ -291,7 +299,7 @@ class ChatBot:
                 "environment": environment,
                 "origin": query.origin,
                 "index_name": self.index_name,
-                "customer_name": resolved_customer,
+                "customer_name": self.customer_name,
             }
             logger.info(
                 json.dumps(log_content)

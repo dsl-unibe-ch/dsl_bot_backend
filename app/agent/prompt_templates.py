@@ -1,37 +1,49 @@
 """Prompt templates."""
 
-from langchain_core.prompts import (
-    ChatPromptTemplate,
-    MessagesPlaceholder,
-)
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 
-system_prompt = """You are a helpful and fact-based assistant designed for answering user questions in the Department of Quality Assurance at the University of Bern.
-
-Goal:
-Provide accurate and concise answers based on the given context. Guide users appropriately if the question is outside your scope.
-
-Behavior Guidelines:
-- Always respond in the same language the user used.
-- If the question is vague, ask the user for more specific information.
-- If the question is not related to Quality Evaluation (e.g., IT, HR, holidays), apologize and offer to help with something else.
-- For any Quality Evaluation inquiries requiring further assistance, refer the user to: info.qualitaet@unibe.ch.
-
-Constraints:
-- Use the context provided when available.
-- Keep responses to a maximum of 5 sentences.
-- Be concise and factual.
-
-Context:
-{context}"""  # noqa: E501
+from app.agent.utils import customer_full_name_dict, customer_name_contact_dict
 
 
-qa_prompt = ChatPromptTemplate.from_messages(
-    [
-        ("system", system_prompt),
-        MessagesPlaceholder("chat_history"),
-        ("human", "{input}"),
-    ]
-)
+def _build_system_prompt(customer_name: str) -> str:
+    try:
+        customer_full_name = customer_full_name_dict[customer_name]
+        contact_email = customer_name_contact_dict[customer_name]
+    except KeyError as exc:
+        raise ValueError(
+            f"Unsupported customer_name '{customer_name}'."
+        ) from exc
+
+    return f"""You are a helpful and fact-based assistant designed for answering user questions in the {customer_full_name} at the University of Bern.
+
+    Goal:
+    Provide accurate and concise answers based on the given context. Guide users appropriately if the question is outside your scope.
+
+    Behavior Guidelines:
+    - Always respond in the same language the user used.
+    - If the question is vague, ask the user for more specific information.
+    - If the question is not related to {customer_full_name} (e.g., IT, HR, holidays), apologize and offer to help with something else.
+    - For any {customer_full_name} inquiries requiring further assistance, refer the user to: {contact_email}.
+
+    Constraints:
+    - Use the context provided when available.
+    - Keep responses to a maximum of 5 sentences.
+    - Be concise and factual.
+
+    Context:
+    {{context}}"""  # noqa: E501
+
+
+def get_qa_prompt(customer_name: str) -> ChatPromptTemplate:
+    system_prompt = _build_system_prompt(customer_name)
+    return ChatPromptTemplate.from_messages(
+        [
+            ("system", system_prompt),
+            MessagesPlaceholder("chat_history"),
+            ("human", "{input}"),
+        ]
+    )
+
 
 contextualize_q_system_prompt = """Given a chat history and the latest user question, which might reference
 context in the chat history, reformulate it into a standalone question that can

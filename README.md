@@ -774,8 +774,12 @@ helm template kioskbot-backend-{ENV} ./scripts/helm \
 <summary>Click to expand Unit tests</summary>
 
 - Unit tests
-```bash 
+```bash
 make unit-tests
+```
+Optional: set a customer for tests via `CUSTOMER_NAME` (defaults to `DEFAULT_CUSTOMER` from `.env.*`):
+```bash
+CUSTOMER_NAME=quality make unit-tests
 ```
 
 Log in to [LangSmith](https://smith.langchain.com/), navigate to `Datasets & Experiments`, and review the test results.
@@ -982,9 +986,13 @@ KUBECONFIG="scripts/terraform/azure/outputs/dev.kubeconfig" kubectl get hpa -n k
 source .venv/bin/activate
 ```
 
-- Run the demo:
-```bash 
+- Run the demo (uses `DEFAULT_CUSTOMER` from `.env.*`):
+```bash
 make run-demo
+```
+- Run the demo for a specific customer:
+```bash
+ENV=dev PYTHONPATH=$(pwd) python demo/demo.py --customer_name quality
 ```
 
 </details>

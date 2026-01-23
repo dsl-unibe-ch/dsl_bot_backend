@@ -18,7 +18,18 @@ customer_name_root_url_mapping = {
             ]
     }
 
+customer_name_contact_dict={
+    "quality": "info.qualitaet@unibe.ch",
+    "innovation": "innovationoffice@unibe.ch",
+}
+
+customer_full_name_dict={
+    "quality": "Department of Quality Assurance",
+    "innovation": "Innovation Office",
+}
+
 def get_customer_name_from_url(url: str) -> str | None:
+    """Get the customer name from the URL."""
     for customer_name, url_list in customer_name_root_url_mapping.items():
         for url_root in url_list:
             if url_root in url:

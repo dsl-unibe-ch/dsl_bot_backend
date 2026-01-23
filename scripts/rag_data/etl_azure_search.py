@@ -109,7 +109,6 @@ def generate_title(chunk: str) -> str:
 
 def run_etl(  # noqa: PLR0915
     xlsx_file_path: str,
-    xlsx_file_name: str,
     sheet_name: str,
     index_name: str,
     output_dir_path: Path,
@@ -266,9 +265,7 @@ def run_etl(  # noqa: PLR0915
 
     # process the row data to generate the fields that will be pushed to the index
     documents = []
-    df = pd.read_excel(
-        Path(xlsx_file_path) / f"{xlsx_file_name}.xlsx", sheet_name=sheet_name
-    )
+    df = pd.read_excel(Path(xlsx_file_path), sheet_name=sheet_name)
     chunk_id = 0
     logger.info("Total number of %d rows", len(df))
     for i, row in df.iterrows():
@@ -313,7 +310,7 @@ def run_etl(  # noqa: PLR0915
     environment = getattr(settings, "ENV", "dev")
     with Path.open(
         output_dir_path
-        / f"{xlsx_file_name}_azure_semantic_search_{environment}.json",
+        / f"processed_data_azure_semantic_search_{environment}.json",
         "w",
     ) as f:
         json.dump(documents, f, indent=2, ensure_ascii=False)
@@ -352,42 +349,33 @@ def main() -> None:
         required=True,
         help="The name of the customer.",
     )
-    arg_parser.add_argument(
-        "--file_path",
-        type=str,
-        required=False,
-        help="Path to the processed xlsx file.",
-    )
-    arg_parser.add_argument(
-        "--sheet_name",
-        type=str,
-        default="Sheet1",
-        help="Optional sheet name. Defaults to first sheet.",
-    )
-    arg_parser.add_argument(
-        "--output_dir",
-        type=str,
-        required=False,
-        help="Directory to write processed JSON output.",
-    )
     args = arg_parser.parse_args()
     customer_name = args.customer_name
     index_name = f"kb-{customer_name}"
-    output_dir = args.output_dir if args.output_dir else f"scripts/rag_data/data/processed/{customer_name}"
-    file_path = (
-        args.file_path
-        if args.file_path
-        else f"scripts/crawler/data/{customer_name}/processed_data.xlsx"
+    output_dir = f"scripts/rag_data/data/processed/{customer_name}"
+    base_dir = Path("scripts/crawler/data") / customer_name
+    if not base_dir.exists():
+        error_message = (
+            "No crawl output found. Run the crawler first for customer "
+            f"'{customer_name}'."
+        )
+        raise FileNotFoundError(error_message)
+    timestamp_dirs = [
+        entry
+        for entry in base_dir.iterdir()
+        if entry.is_dir() and entry.name.isdigit()
+    ]
+    data_dir = (
+        max(timestamp_dirs, key=lambda path: int(path.name))
+        if timestamp_dirs
+        else base_dir
     )
-    sheet_name = args.sheet_name
-    xlsx_path = Path(file_path)
-    xlsx_file_path = str(xlsx_path.parent)
-    xlsx_file_name = xlsx_path.stem
+    xlsx_file_path = str(data_dir / "processed_data.xlsx")
+    sheet_name = "Sheet1"
     output_dir_path = Path(output_dir)
     output_dir_path.mkdir(parents=True, exist_ok=True)
     summary = run_etl(
         xlsx_file_path,
-        xlsx_file_name,
         sheet_name,
         index_name,
         output_dir_path,

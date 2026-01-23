@@ -1,5 +1,7 @@
 """Demo script of kioskbot."""
 
+from argparse import ArgumentParser
+
 from app.agent.chatbot_azure import ChatBot, sessions
 from app.agent.feedback import Feedback
 from app.agent.query import QueryInput
@@ -11,7 +13,16 @@ from scripts.assessment_data.generate_assessment_dataset import german2english
 
 def main() -> None:
     """Main function."""
-    chatbot = ChatBot(index_name=settings.AZURE_DEFAULT_AI_SEARCH_INDEX_NAME)
+    arg_parser = ArgumentParser(description="Run the kioskbot demo.")
+    arg_parser.add_argument(
+        "--customer_name",
+        type=str,
+        required=False,
+        default=settings.DEFAULT_CUSTOMER,
+        help="Optional customer name. Defaults to DEFAULT_CUSTOMER.",
+    )
+    args = arg_parser.parse_args()
+    chatbot = ChatBot(customer_name=args.customer_name)
     start_session_response = chatbot.initialize_agent_wrapper(sessions)
 
     while True:

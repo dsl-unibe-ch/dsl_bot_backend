@@ -76,10 +76,11 @@ def initialize_agent(origin: str | None = None) -> StartSessionResponse:
     """  # noqa: E501
     if origin:
         customer_name = get_customer_name_from_url(origin)
-        index_name = "kb-"+ customer_name
+        if not customer_name:
+            customer_name = settings.DEFAULT_CUSTOMER
     else:
-        index_name = settings.AZURE_DEFAULT_AI_SEARCH_INDEX_NAME
-    chatbot = ChatBot(index_name=index_name)
+        customer_name = settings.DEFAULT_CUSTOMER
+    chatbot = ChatBot(customer_name=customer_name)
     return chatbot.initialize_agent_wrapper(sessions=sessions)
 
 
