@@ -1,6 +1,6 @@
 #---- Owner--------
 environment = "dev"
-owner = "support.dsl@unibe.ch"
+owner = "kb-support.dsl@unibe.ch"
 
 #------- Global --------
 
@@ -85,8 +85,8 @@ aks_network_security_group_name = "nsg-aks-kb-dev-001"
 apim_name                 = "apim-kb-dev-001"
 apim_sku_name            = "Developer_1"
 apim_publisher_name       = "Data Science Lab, University of Bern"
-apim_publisher_email      = "support.dsl@unibe.ch"
-apim_backend_url          = "http://<AKS_CLUSTER_IP>:8000"
+apim_publisher_email      = "kb-support.dsl@unibe.ch"
+apim_backend_url          = "http://127.0.0.1:8000"
 
 # API Configuration
 apim_api_name             = "kioskbot-api"

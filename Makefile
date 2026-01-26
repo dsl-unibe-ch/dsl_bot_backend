@@ -573,6 +573,7 @@ write-secrets-to-container-global:
 
 ## One-shot deploy: plan, apply, then write kubeconfig
 terraform-deploy-dev:
+	@$(MAKE) terraform-workspace-dev
 	@$(MAKE) terraform-plan-dev
 	@$(MAKE) terraform-apply-dev
 	@$(MAKE) terraform-output-dev
@@ -589,10 +590,12 @@ terraform-deploy-dev:
 	@$(MAKE) terraform-output-dev
 	@sleep 10
 	@$(MAKE) write-output-to-env-dev
+	@$(MAKE) write-secrets-to-container-dev
 	@echo "Backend deployment complete!"
 
 
 terraform-deploy-prod:
+	@$(MAKE) terraform-workspace-prod
 	@$(MAKE) terraform-plan-prod
 	@$(MAKE) terraform-apply-prod
 	@$(MAKE) terraform-output-prod
@@ -609,9 +612,10 @@ terraform-deploy-prod:
 	@$(MAKE) terraform-output-prod
 	@sleep 10
 	@$(MAKE) write-output-to-env-prod
+	@echo "Continuing with deployment..."
+	@$(MAKE) write-secrets-to-container-prod
 	@echo "Backend deployment complete!"
 	
-
 # ---- Helm deployment targets ----
 .PHONY: helm-install
 helm-install:

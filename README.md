@@ -186,71 +186,86 @@ The reason for this three-level separation is to have some common resources shar
             make terraform-destroy-global
             ```
     - Provisioning the `dev` environment
-        - Create or select workspace (if already created)
-            ```bash
-            make terraform-workspace-dev
-            ```
-        - Create a plan (plans are output and stored as `scripts/terraform/azure/dev.plan`)
-            ```bash
-            make terraform-plan-dev
-            ```
         - Go to Azure portal -> PIM -> Groups -> Activate `PIM_Azure_mg-dsl-informationskiosk-owner`
-        - Run `az logout` and `make az-login` to refresh credentials
-        - Apply the plan created above
-            ```bash
-            make terraform-apply-dev
-            ```
-        - Configure Kubernetes Dashboard by following [Kubernetes Dashboard](#kubernetes-dashboard)
-        - Extract Output (The output is used to populate the `.env.dev` file)
-            ```bash
-            make terraform-output-dev
-            ```
-        - Update the `.env.dev` file
-            ```bash
-            make write-output-to-env-dev
-            ```
-            - In `.env.dev`, populate only the non-Azure entries (LangSmith keys, frontend URLs, feature toggles, etc.)
-        -  Save secrets on Storage container account [Optional]
-            ```bash
-            make write-secrets-to-container-dev
-            ```
-        - Destroy resources
-            ```bash
-            make terraform-destroy-dev
-            ```
+            - Run `az logout` and `make az-login` to refresh credentials
+        -  **One-stop deployment** (**Recommended** for E2E testing and full deploys):
+
+                ```bash
+                make terraform-deploy-dev
+                ```
+                This comprehensive command runs: terraform workspace → plan → apply → output → build Docker image → push to ACR → generate kubeconfig → helm upgrade → write outputs to .env file → write secrets to storage container
+        - **Individual Commands** (for manual control):
+            - Create or select workspace (if already created)
+                ```bash
+                make terraform-workspace-dev
+                ```
+            - Create a plan (plans are output and stored as `scripts/terraform/azure/dev.plan`)
+                ```bash
+                make terraform-plan-dev
+                ```
+            - Apply the plan created above
+                ```bash
+                make terraform-apply-dev
+                ```
+            - Configure Kubernetes Dashboard by following [Kubernetes Dashboard](#kubernetes-dashboard)
+            - Extract Output (The output is used to populate the `.env.dev` file)
+                ```bash
+                make terraform-output-dev
+                ```
+            - Update the `.env.dev` file
+                ```bash
+                make write-output-to-env-dev
+                ```
+                - In `.env.dev`, populate only the non-Azure entries (LangSmith keys, frontend URLs, feature toggles, etc.)
+            -  Save secrets on Storage container account [Optional]
+                ```bash
+                make write-secrets-to-container-dev
+                ```
+            - Destroy resources
+                ```bash
+                make terraform-destroy-dev
+                ```
 
     - Provisioning the `prod` environment
-        - Create or select workspace (if already created)
-            ```bash
-            make terraform-workspace-prod
-            ```
-        - Create a plan (plans are output and stored as `scripts/terraform/azure/prod.plan`)
-            ```bash
-            make terraform-plan-prod
-            ```
         - Go to Azure portal -> PIM -> Groups -> Activate `PIM_Azure_mg-dsl-informationskiosk-owner`
-        - Run `az logout` and `make az-login` to refresh credentials
-        - Apply the plan created above
-            ```bash
-            make terraform-apply-prod
-            ```
-        - Configure Kubernetes Dashboard by following [Kubernetes Dashboard](#kubernetes-dashboard)
-        - Extract Output (The output is used to populate the `.env.prod` files)
-            ```bash
-            make terraform-output-prod
-            ```
-        - Update the `.env.prod` file
-            ```bash
-            make write-output-to-env-prod
-            ```
-            - In `.env.prod`, populate only the non-Azure entries (LangSmith keys, frontend URLs, feature toggles, etc.)
-        -  Save secrets on Storage container account [Optional]
-            ```bash
-            make write-secrets-to-container-prod
-            ```
-        - Destroy resources
-            ```bash
-            make terraform-destroy-prod
+            - Run `az logout` and `make az-login` to refresh credentials
+        -  **One-stop deployment** (**Recommended** for E2E testing and full deploys):
+
+                ```bash
+                make terraform-deploy-prod
+                ```
+                This comprehensive command runs: terraform workspace → plan → apply → output → build Docker image → push to ACR → generate kubeconfig → helm upgrade → write outputs to .env file → write secrets to storage container
+        - **Individual Commands** (for manual control):
+            - Create or select workspace (if already created)
+                ```bash
+                make terraform-workspace-prod
+                ```
+            - Create a plan (plans are output and stored as `scripts/terraform/azure/prod.plan`)
+                ```bash
+                make terraform-plan-prod
+                ```
+            - Apply the plan created above
+                ```bash
+                make terraform-apply-prod
+                ```
+            - Configure Kubernetes Dashboard by following [Kubernetes Dashboard](#kubernetes-dashboard)
+            - Extract Output (The output is used to populate the `.env.dev` file)
+                ```bash
+                make terraform-output-prod
+                ```
+            - Update the `.env.dev` file
+                ```bash
+                make write-output-to-env-prod
+                ```
+                - In `.env.dev`, populate only the non-Azure entries (LangSmith keys, frontend URLs, feature toggles, etc.)
+            -  Save secrets on Storage container account [Optional]
+                ```bash
+                make write-secrets-to-container-prod
+                ```
+            - Destroy resources
+                ```bash
+                make terraform-destroy-prod
+                ```
             ```
     - Additional utility commands (optional)
         - Rewrite Terraform configuration files to a canonical format and style.
@@ -261,13 +276,7 @@ The reason for this three-level separation is to have some common resources shar
             ```bash
             make terraform-output-var VAR=AZURE_OPENAI_ENDPOINT
             ```
-        - **One-stop deployment** (**Recommended** for E2E testing and full deploys):
-            ```bash
-            make terraform-deploy-dev
-            # or for production
-            make terraform-deploy-prod
-            ```
-            This comprehensive command runs: terraform plan → apply → output → build Docker image → push to ACR → generate kubeconfig → helm upgrade → write outputs to .env file
+       
        
 
 </details>
