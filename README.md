@@ -813,11 +813,15 @@ E2E tests can be done on three levels with combinations of Frontend (FE) and Bac
 >     # or for production
 >     make terraform-deploy-prod
 >     ```
->     This runs: terraform plan → apply → output → build image → push image → kubeconfig → helm upgrade → write env outputs
+>     This runs: terraform plan → apply → output → build image → push image → kubeconfig → helm upgrade → update APIM backend URL write env outputs
 >   
 >   - Get AKS external IP:
 >     ```bash
 >     make get-aks-external-ip ENV=dev
+>     ```
+>   - Update APIM backend URL in {ENV}.tfvars based on AKS external IP: 
+>     ```bash
+>     make update-apim-backend-url ENV=dev”
 >     ```
 >   
 >   - Setup frontend for remote backend:
