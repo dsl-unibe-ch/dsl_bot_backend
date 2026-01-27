@@ -609,8 +609,6 @@ write-secrets-to-container-global:
 ## One-shot deploy: plan, apply, then write kubeconfig
 terraform-deploy-dev:
 	@$(MAKE) terraform-workspace-dev
-	@$(MAKE) terraform-apply-target ENV=dev TARGET=module.api_management
-	@$(MAKE) apim-delete-echo ENV=dev
 	@$(MAKE) terraform-plan-dev
 	@$(MAKE) terraform-apply-dev
 	@$(MAKE) terraform-output-dev
