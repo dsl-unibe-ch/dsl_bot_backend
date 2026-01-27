@@ -82,7 +82,7 @@ aks_network_security_group_name = "nsg-aks-kb-dev-001"
 # aks_api_destination_port = "*" # optional parameter to open port(s)
 
 # ----- API Management (APIM) -----
-apim_name                 = "apim-kb-dev-001"
+apim_name                 = "apim-kb-dev-001" # Must be globally unique in the subscription
 apim_sku_name            = "Developer_1"
 apim_publisher_name       = "Data Science Lab, University of Bern"
 apim_publisher_email      = "kb-support.dsl@unibe.ch"

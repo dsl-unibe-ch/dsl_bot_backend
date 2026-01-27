@@ -194,6 +194,8 @@ The reason for this three-level separation is to have some common resources shar
                 make terraform-deploy-dev
                 ```
                 This comprehensive command runs: terraform workspace → plan → apply → output → build Docker image → push to ACR → generate kubeconfig → helm upgrade → write outputs to .env file → write secrets to storage container
+
+                **NOTE** The name of the `apim_name` defined in `{ENV}.tfvars` **must** be globally unique in the subscription, otherwise the deployment will fail.
         - **Individual Commands** (for manual control):
             - Create or select workspace (if already created)
                 ```bash
@@ -235,6 +237,8 @@ The reason for this three-level separation is to have some common resources shar
                 make terraform-deploy-prod
                 ```
                 This comprehensive command runs: terraform workspace → plan → apply → output → build Docker image → push to ACR → generate kubeconfig → helm upgrade → write outputs to .env file → write secrets to storage container
+
+                 **NOTE** The name of the `apim_name` defined in `{ENV}.tfvars` **must** be globally unique in the subscription, otherwise the deployment will fail.
         - **Individual Commands** (for manual control):
             - Create or select workspace (if already created)
                 ```bash

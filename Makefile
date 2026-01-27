@@ -483,6 +483,15 @@ terraform-plan-prod:
 terraform-plan-global:
 	@$(MAKE) terraform-plan ENV=global
 
+terraform-apply-target: terraform-require-tfvars terraform-workspace
+	@ENV=$(ENV); \
+	IMAGE_TAG="$(VERSION)-$${ENV}"; \
+	if [ -z "$(TARGET)" ]; then \
+		echo "ERROR: TARGET not set (e.g., TARGET=module.api_management)"; \
+		exit 1; \
+	fi; \
+	$(TF) -chdir=$(TF_DIR) apply -auto-approve -var-file=$(TFVARS) -var="image_tag_override=$${IMAGE_TAG}" -target=$(TARGET)
+
 terraform-apply: 
 	@test -f "${TF_DIR}/${ENV}.plan" || { echo "No plan at ${TF_DIR}/${ENV}.plan. Run 'make terraform-plan-${ENV}' first."; exit 1; }
 	$(TF) -chdir=$(TF_DIR) apply -auto-approve ${ENV}.plan
@@ -495,6 +504,32 @@ terraform-apply-prod:
 
 terraform-apply-global:
 	@$(MAKE) terraform-apply ENV=global
+
+apim-delete-echo:
+	@TFVARS_FILE=$(TF_DIR)/$(TFVARS); \
+	if [ ! -f "$$TFVARS_FILE" ]; then \
+		echo "ERROR: $$TFVARS_FILE not found." >&2; \
+		exit 1; \
+	fi; \
+	RG_NAME=$$(awk -F'=' '/^resource_group_name/{gsub(/"/,"",$2); gsub(/[[:space:]]+/,"",$2); print $$2}' "$$TFVARS_FILE"); \
+	APIM_NAME=$$(awk -F'=' '/^apim_name/{gsub(/"/,"",$2); gsub(/[[:space:]]+/,"",$2); print $$2}' "$$TFVARS_FILE"); \
+	if [ -z "$$RG_NAME" ] || [ -z "$$APIM_NAME" ]; then \
+		echo "ERROR: resource_group_name or apim_name missing in $$TFVARS_FILE" >&2; \
+		exit 1; \
+	fi; \
+	APIM_WAIT_SECONDS=$${APIM_WAIT_SECONDS:-600}; \
+	echo "Waiting $$APIM_WAIT_SECONDS seconds before deleting echo-api..."; \
+	sleep $$APIM_WAIT_SECONDS; \
+	for i in 1 2 3 4 5 6 7 8 9 10; do \
+		if az apim api delete -g "$$RG_NAME" --service-name "$$APIM_NAME" --api-id "echo-api" --yes; then \
+			echo "echo-api deleted."; \
+			exit 0; \
+		fi; \
+		echo "echo-api delete failed; retrying in 30s ($$i/10)..."; \
+		sleep 30; \
+	done; \
+	echo "ERROR: Unable to delete echo-api after retries." >&2; \
+	exit 1
 
 terraform-destroy: terraform-require-tfvars terraform-workspace
 	$(TF) -chdir=$(TF_DIR) destroy -auto-approve -var-file=$(TFVARS)
@@ -574,6 +609,8 @@ write-secrets-to-container-global:
 ## One-shot deploy: plan, apply, then write kubeconfig
 terraform-deploy-dev:
 	@$(MAKE) terraform-workspace-dev
+	@$(MAKE) terraform-apply-target ENV=dev TARGET=module.api_management
+	@$(MAKE) apim-delete-echo ENV=dev
 	@$(MAKE) terraform-plan-dev
 	@$(MAKE) terraform-apply-dev
 	@$(MAKE) terraform-output-dev
