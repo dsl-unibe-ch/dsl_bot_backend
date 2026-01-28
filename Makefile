@@ -240,6 +240,10 @@ update-apim-backend-url:
 		exit 1; \
 	fi; \
 	AKS_EXTERNAL_IP=$$($(MAKE) --no-print-directory get-aks-external-ip ENV=$(ENV)); \
+	if [ -z "$$AKS_EXTERNAL_IP" ]; then \
+		echo "ERROR: AKS external IP is empty. Ensure the service exists and has a LoadBalancer IP." >&2; \
+		exit 1; \
+	fi; \
 	AKS_BACKEND_URL="http://$$AKS_EXTERNAL_IP:8000"; \
 	echo "Setting apim_backend_url=$$AKS_BACKEND_URL"; \
 	grep -v '^apim_backend_url' "$$TFVARS_FILE" > "$$TFVARS_FILE.tmp" || true; \
