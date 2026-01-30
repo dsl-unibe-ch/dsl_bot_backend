@@ -99,190 +99,203 @@ When extracting supporting sentences, the script checks that each sentence actua
 Currently, the datasets to be processed and their corresponding excel sheets are specified directly within the `generate_assessment_dataset.py` script.
 </details>
 
-## Terraform 
+## Terraform
 <details>
-<summary>Click to expand</summary>
+<summary>Description</summary>
 
-The `terraform` setup is separated on three levels. 
+The `terraform` setup is separated on three levels.
 1. `global` contains the resources for `container_registry`, `storage_account` and `keyvault` under a global resource group.
 2. `dev` and `prod` each have their own resource groups containing respective `openai`, `network_aks` and `search_services` resources.
-3. `dev-node` and `prod-node` each have a kubernetes cluster intended for usage in `dev` and `prod` environments respectively. 
+3. `dev-node` and `prod-node` each have a kubernetes cluster intended for usage in `dev` and `prod` environments respectively.
 
-The reason for this three-level separation is to have some common resources shared between `dev` and `prod` environments under `global` which cannot be destroyed. The `global` resources shoud be created before `dev` and `prod`.
+The reason for this three-level separation is to have some common resources shared between `dev` and `prod` environments under `global` which cannot be destroyed. The `global` resources should be created before `dev` and `prod`.
 
+<details>
+<summary>Setup</summary>
 
-- Setup
-    - Install Terraform
-        - Windows : Run from Powershell as admin
-            ```bash
-            choco install terraform 
-            choco install azure-cli 
-            Invoke-WebRequest -Uri https://aka.ms/installazurecliwindows -OutFile .\AzureCLI.msi; Start-Process msiexec.exe -Wait -ArgumentList '/I AzureCLI.msi /quiet'; rm .\AzureCLI.msi
-            ```
-        - Mac :  
-            ```bash
-            brew install tfenv
-            tfenv install 1.13.3
-            tfenv use 1.13.3
-            terraform version
-            ```
-    - Under the folder `scripts/terraform/azure/environments/`, create `dev.tfvars`, `prod.tfvars` and `global.tfvars` using the templates `dev.tfvars.example`, `prod.tfvars.example` and `global.tfvars.example` respectively.
+- Install Terraform
+  - Windows: Run from Powershell as admin
+    ```bash
+    choco install terraform
+    choco install azure-cli
+    Invoke-WebRequest -Uri https://aka.ms/installazurecliwindows -OutFile .\AzureCLI.msi; Start-Process msiexec.exe -Wait -ArgumentList '/I AzureCLI.msi /quiet'; rm .\AzureCLI.msi
+    ```
+  - Mac:
+    ```bash
+    brew install tfenv
+    tfenv install 1.13.3
+    tfenv use 1.13.3
+    terraform version
+    ```
+- Under the folder `scripts/terraform/azure/environments/`, create `dev.tfvars`, `prod.tfvars` and `global.tfvars` using the templates `dev.tfvars.example`, `prod.tfvars.example` and `global.tfvars.example` respectively.
+- Create a new ssh key for the Kubernetes VM
+  ```bash
+  ssh-keygen -t rsa -b 2048 -f ~/.ssh/id_rsa_aks -C "Your_Email_Address"
+  ```
+- Copy the public ssh key with `cat ~/.ssh/id_rsa_aks.pub` and assign it to `aks_admin_ssh_public_keys` in `scripts\terraform\azure\environments\dev.tfvars` and `scripts\terraform\azure\environments\prod.tfvars`.
+- Login: Select the subscription id.
+  ```bash
+  make az-login
+  ```
+- Set subscription: The subscription selected while login in is set again explicitly.
+  ```bash
+  make az-set-subscription
+  ```
+- Replace `"your-azure-subscription_id"` in `{ENV}.tfvars` with the actual subscription ID you are using—this should match the subscription that the command `make az-set-subscription` returned. This ensures Terraform uses the correct Azure subscription for resource creation.
+- API access is routed through APIM; only requests coming from APIM's public outbound IP addresses are allowed to reach the AKS, and requests coming from other IPs get blocked by the NSG. You can optionally use `aks_api_destination_port` to restrict which port(s) are open: `"*"` opens all ports (default), a specific port like `"8000"`, or a port range like `"30000-32767"`.
+- Initialise terraform
+  ```bash
+  make terraform-init
+  ```
+- Validate terraform
+  ```bash
+  make terraform-validate
+  ```
+</details>
 
-    - Create a new ssh key for the Kubernetes VM 
+<details>
+<summary>Provisioning the `global` environment</summary>
+
+- Provisioning the `global` environment (should precede `dev` and `prod` provisioning)
+  - Create or select workspace (if already created)
+    ```bash
+    make terraform-workspace-global
+    ```
+  - Create a plan (plans are output and stored as `scripts/terraform/azure/global.plan`)
+    ```bash
+    make terraform-plan-global
+    ```
+  - Apply the plan created above
+    ```bash
+    make terraform-apply-global
+    ```
+  - Extract Output (The output is used to populate the `dev|prod` .env files)
+    ```bash
+    make terraform-output-global
+    ```
+  - Save secrets on Storage container account [Optional]
+    ```bash
+    make write-secrets-to-container-global
+    ```
+  - Destroy resources
+    - For `global` environment destroying is not possible by design. Therefore, following command will echo an error.
+      ```bash
+      make terraform-destroy-global
+      ```
+</details>
+
+<details>
+<summary>Provisioning the `dev` environment</summary>
+
+ - Provisioning the `dev` environment
+   - Go to Azure portal -> PIM -> Groups -> Activate `PIM_Azure_mg-dsl-informationskiosk-owner`
+   - Run `az logout` and `make az-login` to refresh credentials
+   - Create or select workspace (if already created)
+    ```bash
+    make terraform-workspace-dev
+    ```
+   - <a id="terraform-plan-dev"></a> Create a plan. Plans are output and stored as `scripts/terraform/azure/dev.plan`.
         ```bash
-        ssh-keygen -t rsa -b 2048 -f ~/.ssh/id_rsa_aks -C "Your_Email_Address"
+        make terraform-plan-dev
         ```
-    
-    - Copy the public ssh key with `cat ~/.ssh/id_rsa_aks.pub` and assign it to `aks_admin_ssh_public_keys` in `scripts\terraform\azure\environments\dev.tfvars` and `scripts\terraform\azure\environments\prod.tfvars`.
-
-    - Login: Select the subscription id.
-        ```bash 
-        make az-login
-        ```
-    
-    - Set subscription: The subscription selected while login in is set again explicitly.
+   - <a id="terraform-apply-dev"></a> Apply the plan created above (dev)
         ```bash
-        make az-set-subscription
+        make terraform-apply-dev
         ```
-    
-    - Replace `"your-azure-subscription_id"` in `{ENV}.tfvars` with the actual subscription ID you are using—this should match the subscription that the command `make az-set-subscription` returned. This ensures Terraform uses the correct Azure subscription for resource creation.
-
-    - API access is routed through APIM; only requests coming from APIM's public outbound IP addresses are allowed to reach the AKS, and requests coming from other IPs get blocked by the NSG. You can optionally use `aks_api_destination_port` to restrict which port(s) are open: `"*"` opens all ports (default), a specific port like `"8000"`, or a port range like `"30000-32767"`.
-    
-    - Initialise terraform
+   - Configure Kubernetes Dashboard by following [Kubernetes Dashboard](#kubernetes-dashboard)
+   - <a id="terraform-output-dev"></a> Extract Output (dev)
+    The output is used to populate the `.env.dev` file.
         ```bash
-        make terraform-init
+        make terraform-output-dev
         ```
-    
-    - Validate terraform
+   - <a id="write-output-to-env-dev"></a> Update the `.env.dev` file (dev)
+    ```bash
+    make write-output-to-env-dev
+    ```
+   - In `.env.dev`, populate only the non-Azure entries (LangSmith keys, frontend URLs, feature toggles, etc.)
+   - <a id="write-secrets-to-container-dev"></a> Save secrets on Storage container account [Optional] (dev)
+    ```bash
+    make write-secrets-to-container-dev
+    ```
+   - Follow the Deployment process as described in [Helm](#helm)
+    ### First Time Only Deployment Dev
+    If you are deploying for the first time with Helm, the Helm chart creates the API service as LoadBalancer and Azure assigns an `EXTERNAL_IP` to the service `kioskbot-backend-{ENV}-api`. This LoadBalancer `EXTERNAL_IP` is then used by the API Management resource to create the backend API. To finish the setting up of the API Management resource, the following steps need to be completed.
+   - Update the APIM backend URL
         ```bash
-        make terraform-validate
+        @$(MAKE) update-apim-backend-url ENV=dev
         ```
+        **NOTE** The name of the `apim_name` defined in `{ENV}.tfvars` **must** be unique in Azure, otherwise the deployment will fail.
+   - Run the commands for [plan](#terraform-plan-dev), [apply](#terraform-apply-dev) and [output](#terraform-output-dev) respectively and wait for the deployment to finish.
+   - Run the command for [writing the output to the env file](#write-output-to-env-dev).
+   - Run the command for [writing the secrets to the container](#write-secrets-to-container-dev).
+   - Destroy resources
+    ```bash
+    make terraform-destroy-dev
+    ```
+</details>
 
-    - Provisioning the `global` environment (should precede `dev` and `prod` provisioning)
-        - Create or select workspace (if already created)
-            ```bash
-            make terraform-workspace-global
-            ```
-        - Create a plan (plans are output and stored as `scripts/terraform/azure/global.plan`)
-            ```bash
-            make terraform-plan-global
-            ```
-        - Apply the plan created above
-            ```bash
-            make terraform-apply-global
-            ```
-        - Extract Output (The output is used to populate the `dev|prod` .env files)
-            ```bash
-            make terraform-output-global
-            ```
-        -  Save secrets on Storage container account [Optional]
-            ```bash
-            make write-secrets-to-container-global
-            ```
-        - Destroy resources 
-            - For `global` environment destroying is not possible by design. Therefore, following command will echo an error. 
-            ```bash
-            make terraform-destroy-global
-            ```
-    - Provisioning the `dev` environment
-        - Go to Azure portal -> PIM -> Groups -> Activate `PIM_Azure_mg-dsl-informationskiosk-owner`
-            - Run `az logout` and `make az-login` to refresh credentials
-        -  **One-stop deployment** (**Recommended** for E2E testing and full deploys):
+<details>
+<summary>Provisioning the `prod` environment</summary>
 
-                ```bash
-                make terraform-deploy-dev
-                ```
-                This comprehensive command runs: terraform workspace → plan → apply → output → build Docker image → push to ACR → generate kubeconfig → helm upgrade → write outputs to .env file → write secrets to storage container
+ - Provisioning the `prod` environment
+   - Go to Azure portal -> PIM -> Groups -> Activate `PIM_Azure_mg-dsl-informationskiosk-owner`
+   - Run `az logout` and `make az-login` to refresh credentials
+   - Create or select workspace (if already created)
+    ```bash
+    make terraform-workspace-prod
+    ```
+   - <a id="terraform-plan-prod"></a> Create a plan. Plans are output and stored as `scripts/terraform/azure/prod.plan`.
+        ```bash
+        make terraform-plan-prod
+        ```
+   - <a id="terraform-apply-prod"></a> Apply the plan created above (prod)
+        ```bash
+        make terraform-apply-prod
+        ```
+   - Configure Kubernetes Dashboard by following [Kubernetes Dashboard](#kubernetes-dashboard)
+   - <a id="terraform-output-prod"></a> Extract Output (prod)
+    The output is used to populate the `.env.prod` file.
+        ```bash
+        make terraform-output-prod
+        ```
+   - <a id="write-output-to-env-prod"></a> Update the `.env.prod` file (prod)
+    ```bash
+    make write-output-to-env-prod
+    ```
+   - In `.env.prod`, populate only the non-Azure entries (LangSmith keys, frontend URLs, feature toggles, etc.)
+   - <a id="write-secrets-to-container-prod"></a> Save secrets on Storage container account [Optional] (prod)
+    ```bash
+    make write-secrets-to-container-prod
+    ```
+   - Follow the Deployment process as described in [Helm](#helm)
+    ### First Time Only Deployment Prod
+    If you are deploying for the first time with Helm, the Helm chart creates the API service as LoadBalancer and Azure assigns an `EXTERNAL_IP` to the service `kioskbot-backend-{ENV}-api`. This LoadBalancer `EXTERNAL_IP` is then used by the API Management resource to create the backend API. To finish the setting up of the API Management resource, the following steps need to be completed.
+   - Update the APIM backend URL
+        ```bash
+        @$(MAKE) update-apim-backend-url ENV=prod
+        ```
+        **NOTE** The name of the `apim_name` defined in `{ENV}.tfvars` **must** be unique in Azure, otherwise the deployment will fail.
+   - Run the commands for [plan](#terraform-plan-prod), [apply](#terraform-apply-prod) and [output](#terraform-output-prod) respectively and wait for the deployment to finish.
+   - Run the command for [writing the output to the env file](#write-output-to-env-prod).
+   - Run the command for [writing the secrets to the container](#write-secrets-to-container-prod).
+   - Destroy resources
+    ```bash
+    make terraform-destroy-prod
+    ```
+</details>
 
-                **NOTE** The name of the `apim_name` defined in `{ENV}.tfvars` **must** be globally unique in the subscription, otherwise the deployment will fail.
-        - **Individual Commands** (for manual control):
-            - Create or select workspace (if already created)
-                ```bash
-                make terraform-workspace-dev
-                ```
-            - Create a plan (plans are output and stored as `scripts/terraform/azure/dev.plan`)
-                ```bash
-                make terraform-plan-dev
-                ```
-            - Apply the plan created above
-                ```bash
-                make terraform-apply-dev
-                ```
-            - Configure Kubernetes Dashboard by following [Kubernetes Dashboard](#kubernetes-dashboard)
-            - Extract Output (The output is used to populate the `.env.dev` file)
-                ```bash
-                make terraform-output-dev
-                ```
-            - Update the `.env.dev` file
-                ```bash
-                make write-output-to-env-dev
-                ```
-                - In `.env.dev`, populate only the non-Azure entries (LangSmith keys, frontend URLs, feature toggles, etc.)
-            -  Save secrets on Storage container account [Optional]
-                ```bash
-                make write-secrets-to-container-dev
-                ```
-            - Destroy resources
-                ```bash
-                make terraform-destroy-dev
-                ```
+<details>
+<summary>Additional utility commands (optional)</summary>
 
-    - Provisioning the `prod` environment
-        - Go to Azure portal -> PIM -> Groups -> Activate `PIM_Azure_mg-dsl-informationskiosk-owner`
-            - Run `az logout` and `make az-login` to refresh credentials
-        -  **One-stop deployment** (**Recommended** for E2E testing and full deploys):
-
-                ```bash
-                make terraform-deploy-prod
-                ```
-                This comprehensive command runs: terraform workspace → plan → apply → output → build Docker image → push to ACR → generate kubeconfig → helm upgrade → write outputs to .env file → write secrets to storage container
-
-                 **NOTE** The name of the `apim_name` defined in `{ENV}.tfvars` **must** be globally unique in the subscription, otherwise the deployment will fail.
-        - **Individual Commands** (for manual control):
-            - Create or select workspace (if already created)
-                ```bash
-                make terraform-workspace-prod
-                ```
-            - Create a plan (plans are output and stored as `scripts/terraform/azure/prod.plan`)
-                ```bash
-                make terraform-plan-prod
-                ```
-            - Apply the plan created above
-                ```bash
-                make terraform-apply-prod
-                ```
-            - Configure Kubernetes Dashboard by following [Kubernetes Dashboard](#kubernetes-dashboard)
-            - Extract Output (The output is used to populate the `.env.dev` file)
-                ```bash
-                make terraform-output-prod
-                ```
-            - Update the `.env.dev` file
-                ```bash
-                make write-output-to-env-prod
-                ```
-                - In `.env.dev`, populate only the non-Azure entries (LangSmith keys, frontend URLs, feature toggles, etc.)
-            -  Save secrets on Storage container account [Optional]
-                ```bash
-                make write-secrets-to-container-prod
-                ```
-            - Destroy resources
-                ```bash
-                make terraform-destroy-prod
-                ```
-            ```
-    - Additional utility commands (optional)
-        - Rewrite Terraform configuration files to a canonical format and style.
-            ```bash
-            make terraform-fmt
-            ```
-        - Output the value of a single variable, For example:
-            ```bash
-            make terraform-output-var VAR=AZURE_OPENAI_ENDPOINT
-            ```
-       
-       
-
+ - Rewrite Terraform configuration files to a canonical format and style.
+    ```bash
+    make terraform-fmt
+    ```
+ - Output the value of a single variable, For example:
+    ```bash
+    make terraform-output-var VAR=AZURE_OPENAI_ENDPOINT
+    ```
+</details>
 </details>
 
 ## Kubernetes Dashboard
@@ -440,6 +453,7 @@ make k8s-create-namespace-prod
 make k8s-create-secrets-prod
 ```
 
+
 2. **Deploy with Helm**
 
 Deploy the app on the cluster:
@@ -452,6 +466,10 @@ make helm-install-prod
 ```
 
 > **Note:** After deployment, Kafka may take 2-3 minutes to fully initialize. During this time, API and consumer pods may show `CrashLoopBackOff` or `Error` status while waiting for Kafka to become available. This is expected behavior and the pods will automatically recover once Kafka is ready.
+
+3. **Create API Management Resource**
+
+After deployment, go to the section [ First Time Only Deployment Dev ](#first_time_only_deployment_dev) or  [ First Time Only Deployment Prod ](#first_time_only_deployment_prod) respectively, to finish provisioning the API Management Resource. 
 
 ### Updating the Deployment with a new version of the app
 
