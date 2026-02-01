@@ -374,6 +374,8 @@ else # else (the system is not Windows)
 KUBECONFIG ?= $(HOME)/.kube/config
 endif
 DASHBOARD_CHART_VERSION = 7.14.0
+# GitHub Pages index.yaml is currently unavailable; use gh-pages raw URL.
+DASHBOARD_CHART_REPO ?= https://raw.githubusercontent.com/kubernetes/dashboard/gh-pages/
 
 # ---- phony targets ----
 .PHONY: help login set-sub init workspace plan apply destroy output fmt validate clean
@@ -740,7 +742,7 @@ helm-uninstall-prod:
 helm-dashboard-install:
 	@echo $@
 	KUBECONFIG="$(KUBECONFIG)" helm upgrade --install kubernetes-dashboard kubernetes-dashboard \
-	  --repo https://kubernetes.github.io/dashboard/ \
+	  --repo $(DASHBOARD_CHART_REPO) \
 	  --namespace kubernetes-dashboard --create-namespace \
 	  --version $(DASHBOARD_CHART_VERSION) \
 	  --set metricsScraper.enabled=true \
