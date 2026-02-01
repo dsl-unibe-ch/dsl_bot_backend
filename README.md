@@ -109,7 +109,7 @@ The `terraform` setup is separated on three levels.
 3. `dev-node` and `prod-node` each have a kubernetes cluster intended for usage in `dev` and `prod` environments respectively.
 
 The reason for this three-level separation is to have some common resources shared between `dev` and `prod` environments under `global` which cannot be destroyed. The `global` resources should be created before `dev` and `prod`.
-
+</details>
 <details>
 <summary>Setup</summary>
 
@@ -191,49 +191,52 @@ The reason for this three-level separation is to have some common resources shar
    - Go to Azure portal -> PIM -> Groups -> Activate `PIM_Azure_mg-dsl-informationskiosk-owner`
    - Run `az logout` and `make az-login` to refresh credentials
    - Create or select workspace (if already created)
-    ```bash
-    make terraform-workspace-dev
-    ```
-   - <a id="terraform-plan-dev"></a> Create a plan. Plans are output and stored as `scripts/terraform/azure/dev.plan`.
+        ```bash
+        make terraform-workspace-dev
+        ```
+   - <a id="terraform-plan-dev"></a> **Create a plan.** Plans are output and stored as `scripts/terraform/azure/dev.plan`.
         ```bash
         make terraform-plan-dev
         ```
-   - <a id="terraform-apply-dev"></a> Apply the plan created above (dev)
+   - <a id="terraform-apply-dev"></a> **Apply the plan** created above (dev)
         ```bash
         make terraform-apply-dev
         ```
-   - Configure Kubernetes Dashboard by following [Kubernetes Dashboard](#kubernetes-dashboard)
-   - <a id="terraform-output-dev"></a> Extract Output (dev)
+        **Note** that the execution of the apply command might take approximately 1 hour, as the Azure API Management process requires some time to be created.
+   - **Configure Kubernetes Dashboard** by following [Kubernetes Dashboard](#kubernetes-dashboard)
+   - <a id="terraform-output-dev"></a> **Extract Output (dev)**
     The output is used to populate the `.env.dev` file.
         ```bash
         make terraform-output-dev
         ```
-   - <a id="write-output-to-env-dev"></a> Update the `.env.dev` file (dev)
-    ```bash
-    make write-output-to-env-dev
-    ```
-   - In `.env.dev`, populate only the non-Azure entries (LangSmith keys, frontend URLs, feature toggles, etc.)
-   - <a id="write-secrets-to-container-dev"></a> Save secrets on Storage container account [Optional] (dev)
-    ```bash
-    make write-secrets-to-container-dev
-    ```
-   - Follow the Deployment process as described in [Helm](#helm)
-    ### First Time Only Deployment Dev
-    If you are deploying for the first time with Helm, the Helm chart creates the API service as LoadBalancer and Azure assigns an `EXTERNAL_IP` to the service `kioskbot-backend-{ENV}-api`. This LoadBalancer `EXTERNAL_IP` is then used by the API Management resource to create the backend API. To finish the setting up of the API Management resource, the following steps need to be completed.
-   - Update the APIM backend URL
+   - <a id="write-output-to-env-dev"></a> **Update the `.env.dev` file (dev)**
         ```bash
-        @$(MAKE) update-apim-backend-url ENV=dev
+        make write-output-to-env-dev
         ```
-        **NOTE** The name of the `apim_name` defined in `{ENV}.tfvars` **must** be unique in Azure, otherwise the deployment will fail.
-   - Run the commands for [plan](#terraform-plan-dev), [apply](#terraform-apply-dev) and [output](#terraform-output-dev) respectively and wait for the deployment to finish.
-   - Run the command for [writing the output to the env file](#write-output-to-env-dev).
-   - Run the command for [writing the secrets to the container](#write-secrets-to-container-dev).
-   - Destroy resources
-    ```bash
-    make terraform-destroy-dev
-    ```
+   - In `.env.dev`, populate only the non-Azure entries (LangSmith keys, frontend URLs, feature toggles, etc.)
+   - <a id="write-secrets-to-container-dev"></a> **Save secrets** on Storage container account [Optional] (dev)
+        ```bash
+        make write-secrets-to-container-dev
+        ```
+   - Follow the Deployment process as described in [Helm](#helm)
+      ### First Time Only Deployment Dev
+      If you are deploying for the first time with Helm, the Helm chart creates the API service as LoadBalancer. Azure then assigns an `EXTERNAL_IP` to the service `kioskbot-backend-{ENV}-api`. This LoadBalancer `EXTERNAL_IP` is extracted with `make get-aks-external-ip` to be used by the API Management resource to generate the `APIM_URL`. The `APIM_URL` is then saved as the `BACKEND_URL`. To finish the setting up of the API Management resource, the following steps need to be completed.
+      - Update the APIM backend URL: 
+      **NOTE** The name of the `apim_name` defined in `{ENV}.tfvars` **must** be unique in Azure, otherwise the deployment will fail.
+          ```bash
+          @$(MAKE) update-apim-backend-url ENV=dev
+          ```
+          
+      - Run the commands for [plan](#terraform-plan-dev), [apply](#terraform-apply-dev) and [output](#terraform-output-dev) respectively and wait for one minute for the deployment to finish.
+      - Run the command for [writing the output to the env file](#write-output-to-env-dev). This will copy the `APIM_URL` into the `BACKEND_URL` in the `.env.{ENV}` file. The updated  `BACKEND_URL` can then be used inside the app and for any `e2e` tests. 
+      - Run the command for [writing the secrets to the container](#write-secrets-to-container-dev).
+   - **Destroy resources**: Some resources such as OpenAI and APIM are soft deleted due to UniBE Policies. As part of the destroy processess, we purge these resources. The destroy command uses the `PURGE_LOCATION=SwitzerlandNorth` by default. If the resources are in a different location, the `PURGE_LOCATION` needs to be set explicitly.
+        
+        ```bash
+        make terraform-destroy-dev
+        ```
+      **Note** that the execution of the destroy command might take approximately 1 hour, as the Azure API Management process requires some time to be destroyed.
 </details>
-
 <details>
 <summary>Provisioning the `prod` environment</summary>
 
@@ -241,9 +244,9 @@ The reason for this three-level separation is to have some common resources shar
    - Go to Azure portal -> PIM -> Groups -> Activate `PIM_Azure_mg-dsl-informationskiosk-owner`
    - Run `az logout` and `make az-login` to refresh credentials
    - Create or select workspace (if already created)
-    ```bash
-    make terraform-workspace-prod
-    ```
+        ```bash
+        make terraform-workspace-prod
+        ```
    - <a id="terraform-plan-prod"></a> Create a plan. Plans are output and stored as `scripts/terraform/azure/prod.plan`.
         ```bash
         make terraform-plan-prod
@@ -259,29 +262,37 @@ The reason for this three-level separation is to have some common resources shar
         make terraform-output-prod
         ```
    - <a id="write-output-to-env-prod"></a> Update the `.env.prod` file (prod)
-    ```bash
-    make write-output-to-env-prod
-    ```
+        ```bash
+        make write-output-to-env-prod
+        ```
    - In `.env.prod`, populate only the non-Azure entries (LangSmith keys, frontend URLs, feature toggles, etc.)
    - <a id="write-secrets-to-container-prod"></a> Save secrets on Storage container account [Optional] (prod)
-    ```bash
-    make write-secrets-to-container-prod
-    ```
+        ```bash
+        make write-secrets-to-container-prod
+        ```
    - Follow the Deployment process as described in [Helm](#helm)
-    ### First Time Only Deployment Prod
-    If you are deploying for the first time with Helm, the Helm chart creates the API service as LoadBalancer and Azure assigns an `EXTERNAL_IP` to the service `kioskbot-backend-{ENV}-api`. This LoadBalancer `EXTERNAL_IP` is then used by the API Management resource to create the backend API. To finish the setting up of the API Management resource, the following steps need to be completed.
-   - Update the APIM backend URL
+    ### First Time Only Deployment Dev
+    If you are deploying for the first time with Helm, the Helm chart creates the API service as LoadBalancer. Azure then assigns an `EXTERNAL_IP` to the service `kioskbot-backend-{ENV}-api`. This LoadBalancer `EXTERNAL_IP` is extracted with `make get-aks-external-ip` to be used by the API Management resource to generate the `APIM_URL`. The `APIM_URL` is then saved as the `BACKEND_URL`. To finish the setting up of the API Management resource, the following steps need to be completed.
+   - Update the APIM backend URL: 
+    **NOTE** The name of the `apim_name` defined in `{ENV}.tfvars` **must** be unique in Azure, otherwise the deployment will fail.
         ```bash
         @$(MAKE) update-apim-backend-url ENV=prod
         ```
-        **NOTE** The name of the `apim_name` defined in `{ENV}.tfvars` **must** be unique in Azure, otherwise the deployment will fail.
-   - Run the commands for [plan](#terraform-plan-prod), [apply](#terraform-apply-prod) and [output](#terraform-output-prod) respectively and wait for the deployment to finish.
-   - Run the command for [writing the output to the env file](#write-output-to-env-prod).
+        
+   - Run the commands for [plan](#terraform-plan-prod), [apply](#terraform-apply-prod) and [output](#terraform-output-prod) respectively and wait for one minute for the deployment to finish.
+   - Run the command for [writing the output to the env file](#write-output-to-env-prod). This will copy the `APIM_URL` into the `BACKEND_URL` in the `.env.{ENV}` file. The updated  `BACKEND_URL` can then be used inside the app and for any `e2e` tests. 
    - Run the command for [writing the secrets to the container](#write-secrets-to-container-prod).
-   - Destroy resources
-    ```bash
-    make terraform-destroy-prod
-    ```
+   - Destroy resources: Some resources such as OpenAI and APIM are soft deleted due to UniBE Policies. As part of the destroy processess, we purge these resources. We can either specify the `PURGE_LOCATION` for which the default value is `SwitzerlandNorth`
+        ```bash
+        make terraform-destroy-prod PURGE_LOCATION=SwitzerlandNorth
+        ```
+        or without the `PURGE_LOCATION`
+        
+        ```bash
+        make terraform-destroy-prod
+        ```
+
+
 </details>
 
 <details>
@@ -295,7 +306,6 @@ The reason for this three-level separation is to have some common resources shar
     ```bash
     make terraform-output-var VAR=AZURE_OPENAI_ENDPOINT
     ```
-</details>
 </details>
 
 ## Kubernetes Dashboard
@@ -430,46 +440,45 @@ Template Files + Values Files → Helm Renders → Final YAML → Kubernetes API
 ### First Time Setup
 
 1. **Generate kubeconfig** from Terraform:
-```bash
-# Dev environment
-make kubeconfig-dev
+    ```bash
+    # Dev environment
+    make kubeconfig-dev
 
-# Prod environment
-make kubeconfig-prod
-```
-This creates `scripts/terraform/azure/outputs/{ENV}.kubeconfig`
+    # Prod environment
+    make kubeconfig-prod
+    ```
+    This creates `scripts/terraform/azure/outputs/{ENV}.kubeconfig`
 
-1. **Create Kubernetes namespaces and secrets**
+2. **Create Kubernetes namespaces and secrets**
 
-Before deploying, create Kubernetes namespaces and secrets from the environment file:
+    Before deploying, create Kubernetes namespaces and secrets from the environment file:
 
-```bash
-# Dev environment
-make k8s-create-namespace-dev
-make k8s-create-secrets-dev
+    ```bash
+    # Dev environment
+    make k8s-create-namespace-dev
+    make k8s-create-secrets-dev
 
-# Prod environment
-make k8s-create-namespace-prod
-make k8s-create-secrets-prod
-```
+    # Prod environment
+    make k8s-create-namespace-prod
+    make k8s-create-secrets-prod
+    ```
 
+3. **Deploy with Helm**
 
-2. **Deploy with Helm**
+    Deploy the app on the cluster:
+    ```bash
+    # Dev environment
+    make helm-install-dev
 
-Deploy the app on the cluster:
-```bash
-# Dev environment
-make helm-install-dev
+    # Prod environment
+    make helm-install-prod
+    ```
 
-# Prod environment
-make helm-install-prod
-```
+    > **Note:** After deployment, Kafka may take 2-3 minutes to fully initialize. During this time, API and consumer pods may show `CrashLoopBackOff` or `Error` status while waiting for Kafka to become available. This is expected behavior and the pods will automatically recover once Kafka is ready.
 
-> **Note:** After deployment, Kafka may take 2-3 minutes to fully initialize. During this time, API and consumer pods may show `CrashLoopBackOff` or `Error` status while waiting for Kafka to become available. This is expected behavior and the pods will automatically recover once Kafka is ready.
+4. **Create API Management Resource**
 
-3. **Create API Management Resource**
-
-After deployment, go to the section [ First Time Only Deployment Dev ](#first_time_only_deployment_dev) or  [ First Time Only Deployment Prod ](#first_time_only_deployment_prod) respectively, to finish provisioning the API Management Resource. 
+    After deployment, go to the section [ First Time Only Deployment Dev ](#first_time_only_deployment_dev) or  [ First Time Only Deployment Prod ](#first_time_only_deployment_prod) respectively, to finish provisioning the API Management Resource. 
 
 ### Updating the Deployment with a new version of the app
 

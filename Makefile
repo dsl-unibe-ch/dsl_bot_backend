@@ -188,7 +188,7 @@ e2e-local2local: setup-be-local setup-fe-local build-image-dev compose-down-dev 
 	@echo ""
 	@echo "Stopping any existing frontend servers..."
 	@$(MAKE) stop-fe-local
-	@echo "Starting frontend server in background..."
+	@echo "STEP 1/2: Starting frontend server in background..."
 	@(cd $(FE_DIR) && pnpm dev -- --port $(FE_PORT) --strictPort > $(shell pwd)/.fe-server.log 2>&1 & echo $$! > $(shell pwd)/.fe-server.pid)
 	@echo "Waiting for frontend server to be ready..."
 	@timeout=60; \
@@ -204,7 +204,7 @@ e2e-local2local: setup-be-local setup-fe-local build-image-dev compose-down-dev 
 		sleep 1; \
 	done
 	@echo "Frontend server is ready!"
-	@echo "Running E2E tests..."
+	@echo "STEP 2/2: Running E2E tests against local FE and local BE..."
 	@KAFKA_LOGGING_ENABLED=false ENV=dev PYTHONPATH=$(shell pwd) pytest -v tests/e2e/ || \
 		(echo "Tests failed, cleaning up..."; $(MAKE) stop-fe-local; exit 1)
 	@echo "Tests completed successfully!"
@@ -284,11 +284,8 @@ e2e-local2remote:
 	@echo "Local FE to Remote BE E2E Test Workflow ($(ENV))"
 	@echo "========================================"
 	@echo ""
-	@echo "Step 1/2: Deploying backend to AKS..."
-	@$(MAKE) terraform-deploy-$(ENV)
-	@echo "[audit] BACKEND_URL after deploy:  $$(rg -m 1 '^BACKEND_URL=' .env.$(ENV) | cut -d'=' -f2- | tr -d '"')"
-	@echo ""
-	@echo "Step 2/2: Running E2E tests..."
+	@echo "NOTE: Make sure that the backend URL is correctly set to the APIM URL in the .env.$(ENV) file."
+	@echo "Step 1/1: Running E2E tests against local FE and remote BE...."
 	@$(MAKE) setup-fe-remote ENV=$(ENV)
 	@echo "[audit] BACKEND_URL after setup-fe-remote: $$(rg -m 1 '^BACKEND_URL=' .env.$(ENV) | cut -d'=' -f2- | tr -d '"')"
 	@echo "Stopping any existing frontend servers..."
@@ -328,22 +325,12 @@ e2e-remote2remote:
 	@echo "Remote FE to Remote BE E2E Test Workflow ($(ENV))"
 	@echo "========================================"
 	@echo ""
-	@echo "Step 1/3: Setting up AKS to allow frontend IP..."
+	@echo "NOTE: Make sure that the backend URL is correctly set to the APIM URL in the .env.$(ENV) file."
+	@echo "Step 1/2: Set frontend IP to the remote frontend URL in the .env.$(ENV) file."
 	if [ -z "$(FRONTEND_URL)" ]; then \
 		echo "ERROR: FRONTEND_URL is required. Usage: make e2e-remote2remote ENV=dev FRONTEND_URL=<url>"; \
 		exit 1; \
 	fi; \
-	TFVARS_FILE=scripts/terraform/azure/environments/$(ENV).tfvars; \
-	if [ ! -f "$$TFVARS_FILE" ]; then \
-		echo "ERROR: $$TFVARS_FILE not found"; \
-		exit 1; \
-	fi; \
-	@echo ""
-	@echo "Step 2/3: Deploying backend to AKS..."
-	@$(MAKE) terraform-deploy-$(ENV)
-	@echo ""
-	@echo "Step 3/3: Running E2E tests..."
-	@echo "Configuring test environment..."
 	BACKEND_URL=$$(grep -E '^BACKEND_URL=' .env.$(ENV) | cut -d'=' -f2- | tr -d '"' | sed 's:/*$$::'); \
 	if [ -z "$$BACKEND_URL" ]; then \
 		echo "ERROR: BACKEND_URL is required in .env.$(ENV)"; \
@@ -357,7 +344,7 @@ e2e-remote2remote:
 	echo "BACKEND_URL=$$BACKEND_URL" >> .env.$(ENV).tmp2; \
 	mv .env.$(ENV).tmp2 .env.$(ENV); \
 	rm -f .env.$(ENV).tmp
-	@echo "Running E2E tests against remote FE and remote BE..."
+	@echo "Step 2/2: Running E2E tests against remote FE and remote BE..."
 	@KAFKA_LOGGING_ENABLED=false ENV=$(ENV) PYTHONPATH=$(shell pwd) pytest -v tests/e2e/ || \
 		(echo "Tests failed!"; exit 1)
 	@echo ""
@@ -379,6 +366,7 @@ TF_DIR  ?= scripts/terraform/azure
 ENV     ?= dev
 TFVARS  ?= environments/$(ENV).tfvars
 AZ_SUBSCRIPTION_ID ?= $(shell az account show --query id -o tsv 2>/dev/null)
+PURGE_LOCATION ?= SwitzerlandNorth
 ifdef USERPROFILE # if the system is Windows
 KUBE_HOME := $(subst \,/,$(USERPROFILE))
 KUBECONFIG ?= $(KUBE_HOME)/.kube/config
@@ -399,6 +387,7 @@ help:
 	@echo "  make plan ENV=dev          # plan with environments/dev.tfvars"
 	@echo "  make apply ENV=dev         # apply with environments/dev.tfvars"
 	@echo "  make destroy ENV=dev       # destroy with environments/dev.tfvars"
+	@echo "  make terraform-destroy-purge ENV=dev   # destroy + purge soft-deletes"
 	@echo "  make output                # show outputs"
 	@echo "  make kubeconfig ENV=dev    # write kubeconfig file from TF output"
 	@echo "  make k8s-create-namespace-dev   # create K8s namespace (dev)"
@@ -509,40 +498,50 @@ terraform-apply-prod:
 terraform-apply-global:
 	@$(MAKE) terraform-apply ENV=global
 
-apim-delete-echo:
+terraform-destroy: terraform-require-tfvars terraform-workspace
+	$(TF) -chdir=$(TF_DIR) destroy -auto-approve -var-file=$(TFVARS)
 	@TFVARS_FILE=$(TF_DIR)/$(TFVARS); \
 	if [ ! -f "$$TFVARS_FILE" ]; then \
 		echo "ERROR: $$TFVARS_FILE not found." >&2; \
 		exit 1; \
 	fi; \
-	RG_NAME=$$(awk -F'=' '/^resource_group_name/{gsub(/"/,"",$2); gsub(/[[:space:]]+/,"",$2); print $$2}' "$$TFVARS_FILE"); \
-	APIM_NAME=$$(awk -F'=' '/^apim_name/{gsub(/"/,"",$2); gsub(/[[:space:]]+/,"",$2); print $$2}' "$$TFVARS_FILE"); \
-	if [ -z "$$RG_NAME" ] || [ -z "$$APIM_NAME" ]; then \
-		echo "ERROR: resource_group_name or apim_name missing in $$TFVARS_FILE" >&2; \
+	if [ -z "$(AZ_SUBSCRIPTION_ID)" ]; then \
+		echo "ERROR: AZ_SUBSCRIPTION_ID is not set and az account show failed." >&2; \
 		exit 1; \
 	fi; \
-	APIM_WAIT_SECONDS=$${APIM_WAIT_SECONDS:-600}; \
-	echo "Waiting $$APIM_WAIT_SECONDS seconds before deleting echo-api..."; \
-	sleep $$APIM_WAIT_SECONDS; \
-	for i in 1 2 3 4 5 6 7 8 9 10; do \
-		if az apim api delete -g "$$RG_NAME" --service-name "$$APIM_NAME" --api-id "echo-api" --yes; then \
-			echo "echo-api deleted."; \
-			exit 0; \
+	APIM_NAME=$$(awk -F'=' '/^apim_name/{gsub(/"/,"",$$2); gsub(/[[:space:]]+/,"",$$2); print $$2}' "$$TFVARS_FILE"); \
+	OPENAI_NAME=$$(awk -F'=' '/^cognitive_model_account_name/{gsub(/"/,"",$$2); gsub(/[[:space:]]+/,"",$$2); print $$2}' "$$TFVARS_FILE"); \
+	LOCATION="$(PURGE_LOCATION)"; \
+	if [ -z "$$APIM_NAME" ] && [ -z "$$OPENAI_NAME" ]; then \
+		echo "No apim_name or cognitive_model_account_name found in $$TFVARS_FILE; skipping purge."; \
+		exit 0; \
+	fi; \
+	if [ -n "$$APIM_NAME" ]; then \
+		echo "Checking deleted APIM services for $$APIM_NAME..."; \
+		APIM_DELETED=$$(az rest --method get --url "https://management.azure.com/subscriptions/$(AZ_SUBSCRIPTION_ID)/providers/Microsoft.ApiManagement/deletedservices?api-version=2022-08-01" --query "value[?name=='$$APIM_NAME'].name" -o tsv 2>/dev/null); \
+		if [ -n "$$APIM_DELETED" ]; then \
+			echo "Purging APIM $$APIM_NAME..."; \
+			az rest --method post --url "https://management.azure.com/subscriptions/$(AZ_SUBSCRIPTION_ID)/providers/Microsoft.ApiManagement/deletedservices/$$APIM_NAME/purge?api-version=2022-08-01"; \
+		else \
+			echo "No soft-deleted APIM named $$APIM_NAME found."; \
 		fi; \
-		echo "echo-api delete failed; retrying in 30s ($$i/10)..."; \
-		sleep 30; \
-	done; \
-	echo "ERROR: Unable to delete echo-api after retries." >&2; \
-	exit 1
-
-terraform-destroy: terraform-require-tfvars terraform-workspace
-	$(TF) -chdir=$(TF_DIR) destroy -auto-approve -var-file=$(TFVARS)
+	fi; \
+	if [ -n "$$OPENAI_NAME" ]; then \
+		echo "Checking deleted OpenAI accounts for $$OPENAI_NAME in $$LOCATION..."; \
+		OPENAI_DELETED=$$(az rest --method get --url "https://management.azure.com/subscriptions/$(AZ_SUBSCRIPTION_ID)/providers/Microsoft.CognitiveServices/locations/$$LOCATION/deletedAccounts?api-version=2023-05-01" --query "value[?name=='$$OPENAI_NAME'].name" -o tsv 2>/dev/null); \
+		if [ -n "$$OPENAI_DELETED" ]; then \
+			echo "Purging OpenAI account $$OPENAI_NAME..."; \
+			az rest --method post --url "https://management.azure.com/subscriptions/$(AZ_SUBSCRIPTION_ID)/providers/Microsoft.CognitiveServices/locations/$$LOCATION/deletedAccounts/$$OPENAI_NAME/purge?api-version=2023-05-01"; \
+		else \
+			echo "No soft-deleted OpenAI account named $$OPENAI_NAME found."; \
+		fi; \
+	fi
 
 terraform-destroy-dev:
-	@$(MAKE) terraform-destroy ENV=dev
+	@$(MAKE) terraform-destroy ENV=dev PURGE_LOCATION=SwitzerlandNorth
 
 terraform-destroy-prod:
-	@$(MAKE) terraform-destroy ENV=prod
+	@$(MAKE) terraform-destroy ENV=prod PURGE_LOCATION=SwitzerlandNorth
 
 # Explicitly no 'destroy-global' target; protect global workspace
 terraform-destroy-global:
@@ -610,51 +609,6 @@ write-secrets-to-container-prod:
 write-secrets-to-container-global:
 	@$(MAKE) write-secrets-to-container-file FILES="scripts/terraform/azure/outputs/global.output" 
 
-## One-shot deploy: plan, apply, then write kubeconfig
-terraform-deploy-dev:
-	@$(MAKE) terraform-workspace-dev
-	@$(MAKE) terraform-plan-dev
-	@$(MAKE) terraform-apply-dev
-	@$(MAKE) terraform-output-dev
-	@sleep 10
-	@$(MAKE) write-output-to-env-dev
-	@echo "Continuing with deployment..."
-	@$(MAKE) build-image-dev
-	@$(MAKE) push-image-dev
-	@$(MAKE) kubeconfig-dev
-	@$(MAKE) helm-upgrade-dev
-	@$(MAKE) update-apim-backend-url ENV=dev
-	@$(MAKE) terraform-plan-dev
-	@$(MAKE) terraform-apply-dev
-	@$(MAKE) terraform-output-dev
-	@sleep 10
-	@$(MAKE) write-output-to-env-dev
-	@$(MAKE) write-secrets-to-container-dev
-	@echo "Backend deployment complete!"
-
-
-terraform-deploy-prod:
-	@$(MAKE) terraform-workspace-prod
-	@$(MAKE) terraform-plan-prod
-	@$(MAKE) terraform-apply-prod
-	@$(MAKE) terraform-output-prod
-	@sleep 10
-	@$(MAKE) write-output-to-env-prod
-	@echo "Continuing with deployment..."
-	@$(MAKE) build-image-prod
-	@$(MAKE) push-image-prod
-	@$(MAKE) kubeconfig-prod
-	@$(MAKE) helm-upgrade-prod
-	@$(MAKE) update-apim-backend-url ENV=prod
-	@$(MAKE) terraform-plan-prod
-	@$(MAKE) terraform-apply-prod
-	@$(MAKE) terraform-output-prod
-	@sleep 10
-	@$(MAKE) write-output-to-env-prod
-	@echo "Continuing with deployment..."
-	@$(MAKE) write-secrets-to-container-prod
-	@echo "Backend deployment complete!"
-	
 # ---- Helm deployment targets ----
 .PHONY: helm-install
 helm-install:

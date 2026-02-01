@@ -1,6 +1,6 @@
 #---- Owner--------
 environment = "global"
-owner = "support.dsl@unibe.ch"
+owner = "kb-support.dsl@unibe.ch"
 
 #------- Global --------
 subscription_id         = "your-azure-subscription_id"

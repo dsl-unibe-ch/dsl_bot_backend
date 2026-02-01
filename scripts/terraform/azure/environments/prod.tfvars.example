@@ -82,13 +82,15 @@ aks_network_security_group_name = "nsg-aks-kb-prod-001"
 # aks_api_destination_port = "*" # optional parameter to open port(s)
 
 # ----- API Management (APIM) -----
-apim_name                 = "apim-kb-prod-001" # Must be globally unique in the subscription
+# apim name must be globally unique in Azure
+apim_name                 = "informationskiosk"
 apim_sku_name            = "Developer_1"
 apim_publisher_name       = "University of Bern"
 apim_publisher_email      = "kb-support.dsl@unibe.ch"
-apim_backend_url          = "http://127.0.0.1:8000""
+apim_backend_url          = "http://127.0.0.1:8000"
 
 # API Configuration
+# apim api name needs to be unique within a single APIM service instance.
 apim_api_name             = "kioskbot-api"
 apim_api_display_name     = "Kioskbot API"
 apim_api_path             = "api"
