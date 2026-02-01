@@ -224,7 +224,7 @@ The reason for this three-level separation is to have some common resources shar
       - Update the APIM backend URL: 
       **NOTE** The name of the `apim_name` defined in `{ENV}.tfvars` **must** be unique in Azure, otherwise the deployment will fail.
           ```bash
-          @$(MAKE) update-apim-backend-url ENV=dev
+          make update-apim-backend-url ENV=dev
           ```
           
       - Run the commands for [plan](#terraform-plan-dev), [apply](#terraform-apply-dev) and [output](#terraform-output-dev) respectively and wait for one minute for the deployment to finish.
@@ -237,6 +237,8 @@ The reason for this three-level separation is to have some common resources shar
         ```
       **Note** that the execution of the destroy command might take approximately 1 hour, as the Azure API Management process requires some time to be destroyed.
 </details>
+
+
 <details>
 <summary>Provisioning the `prod` environment</summary>
 
@@ -247,52 +249,48 @@ The reason for this three-level separation is to have some common resources shar
         ```bash
         make terraform-workspace-prod
         ```
-   - <a id="terraform-plan-prod"></a> Create a plan. Plans are output and stored as `scripts/terraform/azure/prod.plan`.
+   - <a id="terraform-plan-prod"></a> **Create a plan.** Plans are output and stored as `scripts/terraform/azure/prod.plan`.
         ```bash
         make terraform-plan-prod
         ```
-   - <a id="terraform-apply-prod"></a> Apply the plan created above (prod)
+   - <a id="terraform-apply-prod"></a> **Apply the plan** created above (prod)
         ```bash
         make terraform-apply-prod
         ```
-   - Configure Kubernetes Dashboard by following [Kubernetes Dashboard](#kubernetes-dashboard)
-   - <a id="terraform-output-prod"></a> Extract Output (prod)
+        **Note** that the execution of the apply command might take approximately 1 hour, as the Azure API Management process requires some time to be created.
+   - **Configure Kubernetes Dashboard** by following [Kubernetes Dashboard](#kubernetes-dashboard)
+   - <a id="terraform-output-prod"></a> **Extract Output (prod)**
     The output is used to populate the `.env.prod` file.
         ```bash
         make terraform-output-prod
         ```
-   - <a id="write-output-to-env-prod"></a> Update the `.env.prod` file (prod)
+   - <a id="write-output-to-env-prod"></a> **Update the `.env.prod` file (prod)**
         ```bash
         make write-output-to-env-prod
         ```
    - In `.env.prod`, populate only the non-Azure entries (LangSmith keys, frontend URLs, feature toggles, etc.)
-   - <a id="write-secrets-to-container-prod"></a> Save secrets on Storage container account [Optional] (prod)
+   - <a id="write-secrets-to-container-prod"></a> **Save secrets** on Storage container account [Optional] (prod)
         ```bash
         make write-secrets-to-container-prod
         ```
    - Follow the Deployment process as described in [Helm](#helm)
-    ### First Time Only Deployment Dev
-    If you are deploying for the first time with Helm, the Helm chart creates the API service as LoadBalancer. Azure then assigns an `EXTERNAL_IP` to the service `kioskbot-backend-{ENV}-api`. This LoadBalancer `EXTERNAL_IP` is extracted with `make get-aks-external-ip` to be used by the API Management resource to generate the `APIM_URL`. The `APIM_URL` is then saved as the `BACKEND_URL`. To finish the setting up of the API Management resource, the following steps need to be completed.
-   - Update the APIM backend URL: 
-    **NOTE** The name of the `apim_name` defined in `{ENV}.tfvars` **must** be unique in Azure, otherwise the deployment will fail.
-        ```bash
-        @$(MAKE) update-apim-backend-url ENV=prod
-        ```
-        
-   - Run the commands for [plan](#terraform-plan-prod), [apply](#terraform-apply-prod) and [output](#terraform-output-prod) respectively and wait for one minute for the deployment to finish.
-   - Run the command for [writing the output to the env file](#write-output-to-env-prod). This will copy the `APIM_URL` into the `BACKEND_URL` in the `.env.{ENV}` file. The updated  `BACKEND_URL` can then be used inside the app and for any `e2e` tests. 
-   - Run the command for [writing the secrets to the container](#write-secrets-to-container-prod).
-   - Destroy resources: Some resources such as OpenAI and APIM are soft deleted due to UniBE Policies. As part of the destroy processess, we purge these resources. We can either specify the `PURGE_LOCATION` for which the default value is `SwitzerlandNorth`
-        ```bash
-        make terraform-destroy-prod PURGE_LOCATION=SwitzerlandNorth
-        ```
-        or without the `PURGE_LOCATION`
+      ### First Time Only Deployment Dev
+      If you are deploying for the first time with Helm, the Helm chart creates the API service as LoadBalancer. Azure then assigns an `EXTERNAL_IP` to the service `kioskbot-backend-{ENV}-api`. This LoadBalancer `EXTERNAL_IP` is extracted with `make get-aks-external-ip` to be used by the API Management resource to generate the `APIM_URL`. The `APIM_URL` is then saved as the `BACKEND_URL`. To finish the setting up of the API Management resource, the following steps need to be completed.
+      - Update the APIM backend URL: 
+      **NOTE** The name of the `apim_name` defined in `{ENV}.tfvars` **must** be unique in Azure, otherwise the deployment will fail.
+          ```bash
+          make update-apim-backend-url ENV=prod
+          ```
+          
+      - Run the commands for [plan](#terraform-plan-prod), [apply](#terraform-apply-prod) and [output](#terraform-output-prod) respectively and wait for one minute for the deployment to finish.
+      - Run the command for [writing the output to the env file](#write-output-to-env-prod). This will copy the `APIM_URL` into the `BACKEND_URL` in the `.env.{ENV}` file. The updated  `BACKEND_URL` can then be used inside the app and for any `e2e` tests. 
+      - Run the command for [writing the secrets to the container](#write-secrets-to-container-prod).
+   - **Destroy resources**: Some resources such as OpenAI and APIM are soft deleted due to UniBE Policies. As part of the destroy processess, we purge these resources. The destroy command uses the `PURGE_LOCATION=SwitzerlandNorth` by default. If the resources are in a different location, the `PURGE_LOCATION` needs to be set explicitly.
         
         ```bash
         make terraform-destroy-prod
         ```
-
-
+      **Note** that the execution of the destroy command might take approximately 1 hour, as the Azure API Management process requires some time to be destroyed.
 </details>
 
 <details>
@@ -825,7 +823,7 @@ E2E tests can be done on three levels with combinations of Frontend (FE) and Bac
 
 > <details>
 > <summary><b>FE Local and BE Remote</b></summary>
->
+> **NOTE** Make sure that Kafla container is up and running locally otherwise the test fails as Kafka Broker is not available.
 > - **One Command Setup & Test**: Run everything with a single command:
 >   ```bash
 >   # For dev environment
