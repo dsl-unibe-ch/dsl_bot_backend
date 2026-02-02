@@ -83,7 +83,7 @@ aks_network_security_group_name = "nsg-aks-kb-dev-001"
 
 # ----- API Management (APIM) -----
 # apim name must be globally unique in Azure
-apim_name                 = "apim-kb-prod-001"
+apim_name                 = "apim-kb-dev-001"
 apim_sku_name            = "Developer_1"
 apim_publisher_name       = "Data Science Lab, University of Bern"
 apim_publisher_email      = "kb-support.dsl@unibe.ch"

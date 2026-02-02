@@ -141,6 +141,7 @@ The reason for this three-level separation is to have some common resources shar
   ```bash
   make az-set-subscription
   ```
+- Create `.env.dev` and/or `.env.prod` files with the environment variables (see section [Configure the environment variables](#configure-the-environment-variables))
 - Replace `"your-azure-subscription_id"` in `{ENV}.tfvars` with the actual subscription ID you are using—this should match the subscription that the command `make az-set-subscription` returned. This ensures Terraform uses the correct Azure subscription for resource creation.
 - API access is routed through APIM; only requests coming from APIM's public outbound IP addresses are allowed to reach the AKS, and requests coming from other IPs get blocked by the NSG. You can optionally use `aks_api_destination_port` to restrict which port(s) are open: `"*"` opens all ports (default), a specific port like `"8000"`, or a port range like `"30000-32767"`.
 - Initialise terraform
@@ -225,11 +226,11 @@ The reason for this three-level separation is to have some common resources shar
       **NOTE** The name of the `apim_name` defined in `{ENV}.tfvars` **must** be unique in Azure, otherwise the deployment will fail.
           ```bash
           make update-apim-backend-url ENV=dev
-          ```
-          
+          ```          
       - Run the commands for [plan](#terraform-plan-dev), [apply](#terraform-apply-dev) and [output](#terraform-output-dev) respectively and wait for one minute for the deployment to finish.
       - Run the command for [writing the output to the env file](#write-output-to-env-dev). This will copy the `APIM_URL` into the `BACKEND_URL` in the `.env.{ENV}` file. The updated  `BACKEND_URL` can then be used inside the app and for any `e2e` tests. 
       - Run the command for [writing the secrets to the container](#write-secrets-to-container-dev).
+      - The search index needs to be populated and to do so follow the instructions explained in [ETL](#etl-pipeline-for-azure-search).
    - **Destroy resources**: Some resources such as OpenAI and APIM are soft deleted due to UniBE Policies. As part of the destroy processess, we purge these resources. The destroy command uses the `PURGE_LOCATION=SwitzerlandNorth` by default. If the resources are in a different location, the `PURGE_LOCATION` needs to be set explicitly.
         
         ```bash
@@ -285,6 +286,7 @@ The reason for this three-level separation is to have some common resources shar
       - Run the commands for [plan](#terraform-plan-prod), [apply](#terraform-apply-prod) and [output](#terraform-output-prod) respectively and wait for one minute for the deployment to finish.
       - Run the command for [writing the output to the env file](#write-output-to-env-prod). This will copy the `APIM_URL` into the `BACKEND_URL` in the `.env.{ENV}` file. The updated  `BACKEND_URL` can then be used inside the app and for any `e2e` tests. 
       - Run the command for [writing the secrets to the container](#write-secrets-to-container-prod).
+      - The search index needs to be populated and to do so follow the instructions explained in [ETL](#etl-pipeline-for-azure-search).
    - **Destroy resources**: Some resources such as OpenAI and APIM are soft deleted due to UniBE Policies. As part of the destroy processess, we purge these resources. The destroy command uses the `PURGE_LOCATION=SwitzerlandNorth` by default. If the resources are in a different location, the `PURGE_LOCATION` needs to be set explicitly.
         
         ```bash
@@ -433,7 +435,6 @@ Template Files + Values Files → Helm Renders → Final YAML → Kubernetes API
         brew install helm@4.0.1
         ```
 - Docker images built and pushed to Azure Container Registry (see section [Docker](#docker))
-- `.env.dev` and/or `.env.prod` files with the environment variables (see section [Configure the environment variables](#configure-the-environment-variables))
 
 ### First Time Setup
 
@@ -781,6 +782,7 @@ Log in to [LangSmith](https://smith.langchain.com/), navigate to `Datasets & Exp
 
 <details>
 <summary>Click to expand End2End tests</summary>
+Before starting the tests, make sure that the `FRONTEND_URL` and the `BACKEND_URL` are correctly set in the `env.{ENV}` files. 
 
 E2E tests can be done on three levels with combinations of Frontend (FE) and Backend(BE) as shown below:
 
@@ -823,7 +825,9 @@ E2E tests can be done on three levels with combinations of Frontend (FE) and Bac
 
 > <details>
 > <summary><b>FE Local and BE Remote</b></summary>
-> **NOTE** Make sure that Kafla container is up and running locally otherwise the test fails as Kafka Broker is not available.
+>
+> <strong>NOTE:</strong> Make sure that KafKa container is up and running locally otherwise the test fails as Kafka Broker is not available. 
+>
 > - **One Command Setup & Test**: Run everything with a single command:
 >   ```bash
 >   # For dev environment
@@ -919,7 +923,7 @@ E2E tests can be done on three levels with combinations of Frontend (FE) and Bac
 >     ```bash
 >     ENV=dev PYTHONPATH=$(pwd) pytest -v tests/e2e/
 >     ```
->     Note: Ensure `FRONTEND_URL` and `BACKEND_URL` are set in `.env.dev`
+>     
 >
 > </details>
 
