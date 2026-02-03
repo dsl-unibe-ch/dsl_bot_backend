@@ -5,13 +5,24 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from app.agent.utils import customer_full_name_dict, customer_name_contact_dict
 
 
+def _normalize_customer_name(customer_name: str) -> str:
+    normalized = customer_name.strip()
+    if len(normalized) >= 2 and normalized[0] == normalized[-1] and normalized[0] in (
+        '"',
+        "'",
+    ):
+        normalized = normalized[1:-1].strip()
+    return normalized
+
+
 def _build_system_prompt(customer_name: str) -> str:
+    normalized_customer_name = _normalize_customer_name(customer_name)
     try:
-        customer_full_name = customer_full_name_dict[customer_name]
-        contact_email = customer_name_contact_dict[customer_name]
+        customer_full_name = customer_full_name_dict[normalized_customer_name]
+        contact_email = customer_name_contact_dict[normalized_customer_name]
     except KeyError as exc:
         raise ValueError(
-            f"Unsupported customer_name '{customer_name}'."
+            f"Unsupported customer_name '{normalized_customer_name}'."
         ) from exc
 
     return f"""You are a helpful and fact-based assistant designed for answering user questions in the {customer_full_name} at the University of Bern.

@@ -1014,6 +1014,11 @@ make compose-up-dev
 curl -s http://127.0.0.1:8000/initialize-agent | jq .
 ```
 
+- Start a session with origin. Here the example shown an innovation office URL as
+```bash
+curl -s "http://127.0.0.1:8000/initialize-agent?origin=https://www.unibe.ch/universitaet/organisation/leitung_und_zentralbereich/vizerektorat_forschung_und_innovation/innovation_office/index_ger.html" | jq .
+```
+
 - Alternatively, start the session and save its session id in a shell variable:
 ```bash
 session=$(curl -s http://127.0.0.1:8000/initialize-agent | jq -r .session_id)
