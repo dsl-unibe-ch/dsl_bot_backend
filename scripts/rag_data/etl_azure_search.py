@@ -285,7 +285,7 @@ def run_etl(  # noqa: PLR0915
                     "Translation failed (%s). Using empty translation.",
                     type(exc).__name__,
                 )
-                translated_text = ""
+                translated_text = "No translation generated"
 
             document = {
                 "chunk_id": f"doc_{chunk_id}",

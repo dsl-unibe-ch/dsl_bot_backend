@@ -6,6 +6,7 @@ from app.agent.utils import customer_full_name_dict, customer_name_contact_dict
 
 
 def _normalize_customer_name(customer_name: str) -> str:
+    """Normalize the customer name to remove any leading or trailing whitespace or quotes."""
     normalized = customer_name.strip()
     if len(normalized) >= 2 and normalized[0] == normalized[-1] and normalized[0] in (
         '"',
@@ -16,6 +17,7 @@ def _normalize_customer_name(customer_name: str) -> str:
 
 
 def _build_system_prompt(customer_name: str) -> str:
+    """Build the system prompt for the chatbot."""
     normalized_customer_name = _normalize_customer_name(customer_name)
     try:
         customer_full_name = customer_full_name_dict[normalized_customer_name]
@@ -46,6 +48,7 @@ def _build_system_prompt(customer_name: str) -> str:
 
 
 def get_qa_prompt(customer_name: str) -> ChatPromptTemplate:
+    """Get the QA prompt for the chatbot."""
     system_prompt = _build_system_prompt(customer_name)
     return ChatPromptTemplate.from_messages(
         [
