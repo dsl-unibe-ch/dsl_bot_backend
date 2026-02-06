@@ -309,4 +309,7 @@ class ChatBot:
         """Create a new chatbot session and return the session ID."""
         session_id = uuid.uuid4()
         sessions[session_id] = self
-        return StartSessionResponse(session_id=session_id)
+        return StartSessionResponse(
+            session_id=session_id,
+            customer_name=self.customer_name,
+        )

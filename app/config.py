@@ -60,6 +60,16 @@ class Settings(BaseSettings):
             value = getattr(self, attr)
             if value in ["", "None"]:
                 setattr(self, attr, None)
+        default_customer = self.DEFAULT_CUSTOMER
+        if isinstance(default_customer, str):
+            default_customer = default_customer.strip()
+            if (
+                len(default_customer) >= 2
+                and default_customer[0] == default_customer[-1]
+                and default_customer[0] in ("'", '"')
+            ):
+                default_customer = default_customer[1:-1].strip()
+            self.DEFAULT_CUSTOMER = default_customer
         return self
 
     model_config = ConfigDict(env_file=f".env.{env}")

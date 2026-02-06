@@ -9,6 +9,7 @@ class StartSessionResponse(BaseModel):
     """Response model for the start session endpoint."""
 
     session_id: UUID
+    customer_name: str
 
 
 class FeedbackResponse(BaseModel):
