@@ -1079,9 +1079,10 @@ For instance, `make scrape customer_name=quality`. This command does the followi
     3. **Load Tests**: Perform tests for the backend on Kubernetes as mentioned in the subsection **Load tests** under [Run the tests](#run-the-tests) 
 6. **Handle test results**:
     1. If tests fail: Fix issues locally, then repeat steps 3–6.
-    2. If tests pass: Destroy the dev environment using Terraform instructions.
+    2. If tests pass: Go ahead with the prod release. 
 7. Follow the steps 4 and 5 for the **prod** environment.
 8. **Create the Github Release**: Create a new release on GitHub with the same version as in `pyproject.toml`. Note that the `Generate Release Notes` workflow will generate the release notes after the new release is created.
+9. **Destroy the dev environment using Terraform instructions.**
 9. **Unfreeze the main branch**: Inform the team that the main branch is unfrozen and merges can resume.
 
 
