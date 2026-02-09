@@ -280,7 +280,7 @@ The reason for this three-level separation is to have some common resources shar
         make write-secrets-to-container-prod
         ```
    - Follow the Deployment process as described in [Helm](#helm)
-      ### First Time Only Deployment Dev
+      ### First Time Only Deployment Prod
       If you are deploying for the first time with Helm, the Helm chart creates the API service as LoadBalancer. Azure then assigns an `EXTERNAL_IP` to the service `kioskbot-backend-{ENV}-api`. This LoadBalancer `EXTERNAL_IP` is extracted with `make get-aks-external-ip` to be used by the API Management resource to generate the `APIM_URL`. The `APIM_URL` is then saved as the `BACKEND_URL`. To finish the setting up of the API Management resource, the following steps need to be completed.
       - Update the APIM backend URL: 
       **NOTE** The name of the `apim_name` defined in `{ENV}.tfvars` **must** be unique in Azure, otherwise the deployment will fail.
