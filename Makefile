@@ -63,6 +63,7 @@ post-process-content:
 
 scrape:
 	@echo $@
+	@rm -rf scripts/crawler/jobs/$(customer_name)
 	@make collect-urls customer_name=$(customer_name)
 	@make extract-content customer_name=$(customer_name)
 

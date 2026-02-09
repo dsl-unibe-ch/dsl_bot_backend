@@ -2,8 +2,10 @@ seed_urls:
   - https://www.unibe.ch/innovation/index_ger.html
   - https://www.unibe.ch/innovation/fuer_studierende/ideenlabor/index_ger.html
   - https://lead.unibe.ch/forschung/lehre_im_ideenlabor/index_ger.html
+  - https://www.unibe.ch/universitaet/organisation/leitung_und_zentralbereich/verwaltungsdirektion/technologietransfer_unitectra/index_ger.html
 allowed_domains: [www.unibe.ch, lead.unibe.ch]
 allow:
+  - /innovation/
   - /innovationunibe/
   - /engaged_unibe/
   - /auf_einen_blick/
@@ -13,6 +15,8 @@ allow:
   - /fuer_studierende/
   - /inspirationen_lehre/
   - /open_door_mornings/
+  - /forschung/lehre_im_ideenlabor/
+  - /universitaet/organisation/leitung_und_zentralbereich/verwaltungsdirektion/technologietransfer_unitectra/
 deny_domains:
   - edit.cms.unibe.ch
   - edu.unibe.ch
