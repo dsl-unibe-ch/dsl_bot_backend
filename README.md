@@ -1065,15 +1065,16 @@ For instance, `make scrape customer_name=quality`. This command does the followi
 <summary>Create a new release</summary>
 
 1. **Freeze the main branch**: Notify the team that the main branch is frozen. No merges are allowed until the release is complete.
-2. **Local Tests**:
-    1. **Unit Tests**: Perform tests as mentioned in the subsection **Unit tests** under [Run the tests](#run-the-tests)  
-    2. **FE Local and BE Local E2E Tests**: Perform tests as mentioned in the subsection **End2End tests/ FE Local and BE Local tests** under [Run the tests](#run-the-tests)  
-    3. **Load Tests**: Perform tests for local backend as mentioned in the subsection **Load tests** under [Run the tests](#run-the-tests) 
-3. **Update version**: Update the version number in pyproject.toml. We use major.minor.patch versioning.
-4. **Provision the Infrastructure for Dev Environment**: 
+2. **Update version**: Update the version number in pyproject.toml. We use major.minor.patch versioning.
+3. **Provision the Infrastructure for Dev Environment**: 
     1. If the infrastructure is not already present, follow the steps mentioned in [Terraform](#terraform) and in [Helm](#helm)
     2. Crawl the data using the  steps mentioned in [Crawler](#crawler)
     3. Create the index using the steps mentioned in [ETL Pipeline for Azure Search](#etl-pipeline-for-azure-search)
+    4. **Unit Tests**: Perform tests as mentioned in the subsection **Unit tests** under [Run the tests](#run-the-tests).
+4. **Local Tests**:
+    1. **Unit Tests**: Perform tests as mentioned in the subsection **Unit tests** under [Run the tests](#run-the-tests). 
+    2. **FE Local and BE Local E2E Tests**: Perform tests as mentioned in the subsection **End2End tests/ FE Local and BE Local tests** under [Run the tests].(#run-the-tests)
+    3. **Load Tests**: Perform tests for local backend as mentioned in the subsection **Load tests** under [Run the tests](#run-the-tests) 
 5. **Remote Tests**:
     1. **FE Local and BE Local E2E Tests**: Perform tests as mentioned in the subsection **End2End tests/ FE Local and BE Local tests** under [Run the tests](#run-the-tests)  
     3. **Load Tests**: Perform tests for the backend on Kubernetes as mentioned in the subsection **Load tests** under [Run the tests](#run-the-tests) 
@@ -1083,7 +1084,7 @@ For instance, `make scrape customer_name=quality`. This command does the followi
 7. Follow the steps 4 and 5 for the **prod** environment.
 8. **Create the Github Release**: Create a new release on GitHub with the same version as in `pyproject.toml`. Note that the `Generate Release Notes` workflow will generate the release notes after the new release is created.
 9. **Destroy the dev environment using Terraform instructions.**
-9. **Unfreeze the main branch**: Inform the team that the main branch is unfrozen and merges can resume.
+10. **Unfreeze the main branch**: Inform the team that the main branch is unfrozen and merges can resume.
 
 
 </details>
