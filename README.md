@@ -1070,13 +1070,12 @@ For instance, `make scrape customer_name=quality`. This command does the followi
     1. If the infrastructure is not already present, follow the steps mentioned in [Terraform](#terraform) and in [Helm](#helm)
     2. Crawl the data using the  steps mentioned in [Crawler](#crawler)
     3. Create the index using the steps mentioned in [ETL Pipeline for Azure Search](#etl-pipeline-for-azure-search)
-    4. **Unit Tests**: Perform tests as mentioned in the subsection **Unit tests** under [Run the tests](#run-the-tests).
 4. **Local Tests**:
     1. **Unit Tests**: Perform tests as mentioned in the subsection **Unit tests** under [Run the tests](#run-the-tests). 
-    2. **FE Local and BE Local E2E Tests**: Perform tests as mentioned in the subsection **End2End tests/ FE Local and BE Local tests** under [Run the tests].(#run-the-tests)
+    2. **FE Local and BE Local E2E Tests**: Perform tests as mentioned in the subsection **End2End tests/ FE Local and BE Local tests** under [Run the tests](#run-the-tests)
     3. **Load Tests**: Perform tests for local backend as mentioned in the subsection **Load tests** under [Run the tests](#run-the-tests) 
 5. **Remote Tests**:
-    1. **FE Local and BE Local E2E Tests**: Perform tests as mentioned in the subsection **End2End tests/ FE Local and BE Local tests** under [Run the tests](#run-the-tests)  
+    1. **FE Local and BE Remote E2E Tests**: Perform tests as mentioned in the subsection **End2End tests/ FE Local and BE Remote tests** under [Run the tests](#run-the-tests)  
     3. **Load Tests**: Perform tests for the backend on Kubernetes as mentioned in the subsection **Load tests** under [Run the tests](#run-the-tests) 
 6. **Handle test results**:
     1. If tests fail: Fix issues locally, then repeat steps 3–6.
