@@ -58,29 +58,13 @@ pre-commit install
 <details>
 <summary>Click to expand</summary>
 
-This script automates the process of reading raw input data, processing it, and uploading it to a newly created index in Azure Search.
+- The ETL pipeline which takes care of crawling and indexing has been moved to a new repository called the [kioskbot_etl](https://github.com/dsl-unibe-ch/kioskbot_etl).
 
-Key Steps in the ETL Pipeline:
-- Data Loading: In this step, based on the `CUSTOMER_NAME` argument, the excel_sheet with the formatted information is picked by the script. Each row on this sheet refers to text content and meta data for a given URL/ PDF. 
-- Chunking and Embedding: Uses SemanticChunker (with Azure OpenAI embeddings) to split documents into semantically meaningful chunks. Each chunk is embedded using Azure OpenAI's embedding model.
-- Title Generation: For each chunk, a concise and informative title is generated using Azure OpenAI's chat model.
-- Index Configuration: Configures the Azure Search index with custom vectorizer, vector search algorithm (HNSW), semantic search configuration, and a detailed set of fields (including metadata, chunk content, translations, keywords, example questions, and vector embeddings).
-- Index Initialization: Creates the index in Azure Search with the above configuration.
-- Data Processing and Upload: Reads the raw Excel data, processes each row, generates chunks and embeddings, and uploads the processed documents to the Azure Search index.
-- Local Export: Stores a local JSON export of all processed documents for debugging and auditing purposes.
-
-
-To run the ETL pipeline for Azure Search, use the following command 
-
-```bash
-make etl-pipeline-azure-search-{ENV} customer_name={CUSTOMER_NAME}
-```
-For example, `make etl-pipeline-azure-search-dev customer_name=quality`
-
+- To ensure that the index is correctly created, the logs must be checked according to the process described in [create-update-crawl-jobs](https://github.com/dsl-unibe-ch/kioskbot_etl/blob/main/README.MD#create-update-crawl-jobs) section of the [kioskbot_etl](https://github.com/dsl-unibe-ch/kioskbot_etl) repository.
 
 - Naming Convention of the Indexes: An index is named after the customer such as `kb-{CUSTOMER_NAME}`. For example, `kb-quality`or `kb-innovation`. 
 
-The list of customers can be found in `app\agent\utils.py` under the `customer_name_root_url_mapping` dict.
+The list of customers can be found in `app/agent/utils.py` under the `customer_name_root_url_mapping` dict.
 
 </details>
 
@@ -137,7 +121,7 @@ The reason for this three-level separation is to have some common resources shar
   ```bash
   ssh-keygen -t rsa -b 2048 -f ~/.ssh/id_rsa_aks -C "Your_Email_Address"
   ```
-- Copy the public ssh key with `cat ~/.ssh/id_rsa_aks.pub` and assign it to `aks_admin_ssh_public_keys` in `scripts\terraform\azure\environments\dev.tfvars` and `scripts\terraform\azure\environments\prod.tfvars`.
+- Copy the public ssh key with `cat ~/.ssh/id_rsa_aks.pub` and assign it to `aks_admin_ssh_public_keys` in `scripts/terraform/azure/environments/dev.tfvars` and `scripts/terraform/azure/environments/prod.tfvars`.
 - Login: Select the subscription id.
   ```bash
   make az-login
@@ -235,9 +219,8 @@ The reason for this three-level separation is to have some common resources shar
       - Run the commands for [plan](#terraform-plan-dev), [apply](#terraform-apply-dev) and [output](#terraform-output-dev) respectively and wait for one minute for the deployment to finish.
       - Run the command for [writing the output to the env file](#write-output-to-env-dev). This will copy the `APIM_URL` into the `BACKEND_URL` in the `.env.{ENV}` file. The updated  `BACKEND_URL` can then be used inside the app and for any `e2e` tests. 
       - Run the command for [writing the secrets to the container](#write-secrets-to-container-dev).
-      - The search index needs to be populated and to do so follow the instructions explained in [ETL](#etl-pipeline-for-azure-search).
+      - Ensure that the index is correctly populated by using the steps mentioned in [ETL](#etl-pipeline-for-azure-search). 
    - **Destroy resources**: Some resources such as OpenAI and APIM are soft deleted due to UniBE Policies. As part of the destroy processess, we purge these resources. The destroy command uses the `PURGE_LOCATION=SwitzerlandNorth` by default. If the resources are in a different location, the `PURGE_LOCATION` needs to be set explicitly.
-        
         ```bash
         make terraform-destroy-dev
         ```
@@ -961,7 +944,7 @@ A chart is created after the tests are run as the following.
 
 Here the chart shows that for every minute, the requests continue to rise as per the predetermined test settings. Since the APIM limits are refreshed every minute, the cycle repeats every minute where initially the failure/s are low for a time period until the APIM limits are reached which causes the failure/s to rise. This is by design, as we intentionally limit the number of requests per minute to the invoke-agent endpoint to mitigate potential attacks. 
 
-The current limits of the APIM are defined in the `scripts\terraform\azure\environments\{ENV}.tfvars.example` files with the help of the variables `apim_initialize_rate_limit_calls` and `apim_initialize_quota_calls`.
+The current limits of the APIM are defined in the `scripts/terraform/azure/environments/{ENV}.tfvars.example` files with the help of the variables `apim_initialize_rate_limit_calls` and `apim_initialize_quota_calls`.
 
 After the load test is over, you can check the events on kubernetes:
 ```bash
@@ -1041,24 +1024,6 @@ curl -s -X POST "http://127.0.0.1:8000/send-feedback" -H "Content-Type: applicat
 
 </details>
 
-## Crawler
-<details>
-
-- Scrape Customer website
-```bash
-make scrape customer_name={CUSTOMER_NAME}
-```
-
-For instance, `make scrape customer_name=quality`. This command does the following steps
-1. At first a list of URLs is created to scrape from following the rules of the crawler set in `scripts\crawler\configs\quality.yml` and stored in `url_list.jsonl`
-2. Then the list of URLs is parsed to either extract HTML or PDF content and stored in a `quality_content.jsonl` file.
-3. Finally in the post processing step, keywords and example questions are appended and a basic clean up is performed. An excel file is created which is then meant to be used for the index creation.
-
-**Note** 
-1. The current pipeline does not take care of scanned pdfs without a layout structure. 
-2. Everytime the command is run the files are overwritten.
-
-</details>
 
 ## Release process
 <details>
@@ -1068,8 +1033,7 @@ For instance, `make scrape customer_name=quality`. This command does the followi
 2. **Update version**: Update the version number in pyproject.toml. We use major.minor.patch versioning.
 3. **Provision the Infrastructure for Dev Environment**: 
     1. If the infrastructure is not already present, follow the steps mentioned in [Terraform](#terraform) and in [Helm](#helm)
-    2. Crawl the data using the  steps mentioned in [Crawler](#crawler)
-    3. Create the index using the steps mentioned in [ETL Pipeline for Azure Search](#etl-pipeline-for-azure-search)
+    2. Ensure that the index is correctly populated by using the steps mentioned in [ETL](#etl-pipeline-for-azure-search) Pipeline for Azure Search
 4. **Local Tests**:
     1. **Unit Tests**: Perform tests as mentioned in the subsection **Unit tests** under [Run the tests](#run-the-tests). 
     2. **FE Local and BE Local E2E Tests**: Perform tests as mentioned in the subsection **End2End tests/ FE Local and BE Local tests** under [Run the tests](#run-the-tests)
