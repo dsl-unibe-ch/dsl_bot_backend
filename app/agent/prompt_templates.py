@@ -2,7 +2,7 @@
 
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 
-from app.agent.utils import customer_full_name_dict, customer_name_contact_dict
+from app.agent.utils import customer_full_name_dict, customer_name_contact_dict, customer_prompt_mapping
 
 
 def _normalize_customer_name(customer_name: str) -> str:
@@ -22,6 +22,7 @@ def _build_system_prompt(customer_name: str) -> str:
     try:
         customer_full_name = customer_full_name_dict[normalized_customer_name]
         contact_email = customer_name_contact_dict[normalized_customer_name]
+        customer_prompt = customer_prompt_mapping[normalized_customer_name]
     except KeyError as exc:
         raise ValueError(
             f"Unsupported customer_name '{normalized_customer_name}'."
@@ -37,10 +38,9 @@ def _build_system_prompt(customer_name: str) -> str:
     - If the question is vague, ask the user for more specific information.
     - If the question is not related to {customer_full_name} (e.g., IT, HR, holidays), apologize and offer to help with something else.
     - For any {customer_full_name} inquiries requiring further assistance, refer the user to: {contact_email}.
-
+    - {customer_prompt}
     Constraints:
     - Use the context provided when available.
-    - Keep responses to a maximum of 5 sentences.
     - Be concise and factual.
 
     Context:

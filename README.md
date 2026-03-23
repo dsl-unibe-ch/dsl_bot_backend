@@ -994,7 +994,7 @@ make run-demo
 ```
 - Run the demo for a specific customer:
 ```bash
-ENV=dev PYTHONPATH=$(pwd) python demo/demo.py --customer_name quality
+make run-demo customer_name=quality
 ```
 
 </details>

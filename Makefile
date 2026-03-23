@@ -22,9 +22,11 @@ generate-assessment-dataset:
 	@echo $@
 	@ENV=dev PYTHONPATH=$(shell pwd) python scripts/assessment_data/generate_assessment_dataset.py
 
+CUSTOMER_NAME_ARG := $(if $(strip $(customer_name)),--customer_name $(customer_name),)
+
 run-demo: build-image-dev compose-down-dev compose-up-dev
 	@echo $@
-	@ENV=dev PYTHONPATH=$(shell pwd) python demo/demo.py
+	@ENV=dev PYTHONPATH=$(shell pwd) python demo/demo.py $(CUSTOMER_NAME_ARG)
 
 collect-urls:
 	@echo $@

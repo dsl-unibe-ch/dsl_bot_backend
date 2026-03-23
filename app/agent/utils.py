@@ -28,6 +28,11 @@ customer_full_name_dict={
     "innovation": "Innovation Office",
 }
 
+customer_prompt_mapping={
+    "quality": """If the query is specifically related to evaluation of teaching or courses, refer the user to lehrevaluation@unibe.ch""",
+    "innovation": """If the query is specifically related to the IdeenLabor, refer the user to ideenlabor@unibe.ch""",
+}
+
 def get_customer_name_from_url(url: str) -> str | None:
     """Get the customer name from the URL."""
     for customer_name, url_list in customer_name_root_url_mapping.items():
