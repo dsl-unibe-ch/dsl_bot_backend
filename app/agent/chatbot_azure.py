@@ -105,7 +105,7 @@ class ChatBot:
         )
         return resp.data[0].embedding
 
-    def get_top_k_vector_results(self: "ChatBot", query_text: str, k: int = 4) -> list:
+    def get_top_k_vector_results(self: "ChatBot", query_text: str, k: int = 10) -> list:
         """Retrieves the top k vector results from the Azure AI Search index.
 
         Args:

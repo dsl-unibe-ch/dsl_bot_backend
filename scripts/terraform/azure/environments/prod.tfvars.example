@@ -14,9 +14,9 @@ cognitive_model_account_name        = "ao-kb-prod-001"
 cognitive_model_account_sku_name    = "S0"
 cognitive_model_deployment_sku_name = "GlobalStandard"
 cognitive_model_deployment_capacity = 500 #500,000 tokens per minute 
-cognitive_model_deployment_name     = "gpt-4.1"
-cognitive_model_name                = "gpt-4.1"
-cognitive_model_version             = "2025-04-14"
+cognitive_model_deployment_name     = "gpt-5.2"
+cognitive_model_name                = "gpt-5.2"
+cognitive_model_version             = "2025-12-11"
 cognitive_model_account_kind        = "OpenAI"
 # embedding deployment
 cognitive_model_embedding_deployment_capacity = 1000 #1,000,000 tokens per minute 

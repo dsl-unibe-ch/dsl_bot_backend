@@ -786,7 +786,7 @@ E2E tests can be done on three levels with combinations of Frontend (FE) and Bac
 >   make e2e-local2local
 >   ```
 >   This command will:
->   - Clone the frontend repository from `send-url` branch (first time only) or pull latest changes (if exists)
+>   - Clone the frontend repository from `main` branch (first time only) or pull latest changes (if exists)
 >   - Install/update frontend dependencies
 >   - Install Chromium for Playwright
 >   - Configure environment variables for both FE and BE
@@ -800,7 +800,7 @@ E2E tests can be done on three levels with combinations of Frontend (FE) and Bac
 >     ```bash
 >     make setup-fe-local
 >     ```
->     This clones the [Frontend Repository](https://github.com/dsl-unibe-ch/kioskbot_frontend) from `send-url` branch (first time only), pulls latest changes (if repo exists), installs dependencies, and configures `PUBLIC_API` to match `BACKEND_URL` from `.env.dev`.
+>     This clones the [Frontend Repository](https://github.com/dsl-unibe-ch/kioskbot_frontend) from `main` branch (first time only), pulls latest changes (if repo exists), installs dependencies, and configures `PUBLIC_API` to match `BACKEND_URL` from `.env.dev`.
 >   
 >   - Setup BE only:
 >     ```bash
