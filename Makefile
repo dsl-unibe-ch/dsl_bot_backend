@@ -93,16 +93,16 @@ unit-tests: build-image-dev compose-down-dev compose-up-dev
 # ---- E2E Testing with Local FE and BE ----
 .PHONY: setup-fe-local setup-be-local e2e-local2local stop-fe-local
 
-# currently we are using the send-url branch of the frontend repository
+# currently we are using the main branch of the frontend repository
 setup-fe-local:
 	@echo "Setting up Frontend for local E2E testing..."
 	@if [ ! -d "$(FE_DIR)" ]; then \
-		echo "Cloning frontend repository (send-url branch)..."; \
-		git clone -b send-url $(FE_REPO) $(FE_DIR); \
+		echo "Cloning frontend repository (main branch)..."; \
+		git clone -b main $(FE_REPO) $(FE_DIR); \
 	else \
 		echo "Frontend repository already exists at $(FE_DIR)"; \
-		echo "Pulling latest changes from send-url branch..."; \
-		cd $(FE_DIR) && git fetch origin && git checkout send-url && git pull origin send-url || echo "Warning: Could not pull latest changes from send-url branch"; \
+		echo "Pulling latest changes from main branch..."; \
+		cd $(FE_DIR) && git fetch origin && git checkout main && git pull origin main || echo "Warning: Could not pull latest changes from main branch"; \
 	fi
 	@echo "Installing frontend dependencies..."
 	@cd $(FE_DIR) && pnpm install
@@ -216,12 +216,12 @@ update-apim-backend-url:
 setup-fe-remote:
 	@echo "Setting up Frontend for remote backend testing ($(ENV))..."
 	@if [ ! -d "$(FE_DIR)" ]; then \
-		echo "Cloning frontend repository (send-url branch)..."; \
-		git clone -b send-url $(FE_REPO) $(FE_DIR); \
+		echo "Cloning frontend repository (main branch)..."; \
+		git clone -b main $(FE_REPO) $(FE_DIR); \
 	else \
 		echo "Frontend repository already exists at $(FE_DIR)"; \
-		echo "Pulling latest changes from send-url branch..."; \
-		cd $(FE_DIR) && git fetch origin && git checkout send-url && git pull origin send-url || echo "Warning: Could not pull latest changes from send-url branch"; \
+		echo "Pulling latest changes from main branch..."; \
+		cd $(FE_DIR) && git fetch origin && git checkout main && git pull origin main || echo "Warning: Could not pull latest changes from main branch"; \
 	fi
 	@echo "Installing frontend dependencies..."
 	@cd $(FE_DIR) && pnpm install
@@ -618,10 +618,12 @@ k8s-create-secrets:
 	test -f ./.env.$${ENV} || { echo "ERROR: missing .env.$${ENV} at repo root"; exit 1; }; \
 	KUBECONFIG_FILE=$(TF_DIR)/outputs/$${ENV}.kubeconfig; \
 	test -f "$${KUBECONFIG_FILE}" || { echo "ERROR: kubeconfig not found at $${KUBECONFIG_FILE}. Run 'make kubeconfig-$${ENV}' first."; exit 1; }; \
-	echo "Creating secrets for environment: $${ENV}"; \
+	echo "Applying secrets for environment: $${ENV}"; \
 	KUBECONFIG="$${KUBECONFIG_FILE}" kubectl create secret generic kioskbot-backend-$${ENV}-secrets \
 		--from-env-file=.env.$${ENV} \
-		--namespace=kioskbot-$${ENV}
+		--namespace=kioskbot-$${ENV} \
+		--dry-run=client -o yaml | \
+	KUBECONFIG="$${KUBECONFIG_FILE}" kubectl apply -f -
 
 .PHONY: k8s-create-secrets-dev
 k8s-create-secrets-dev:
@@ -656,6 +658,12 @@ helm-upgrade:
 	echo "Upgrading Helm release for environment: $${ENV}"; \
 	echo "Using image: $${IMAGE_REPO}:$${IMAGE_TAG}"; \
 	echo "Allowing APIM IP: $${APIM_IP}/32"; \
+	echo "Syncing Kubernetes secret from .env.$${ENV} ..."; \
+	KUBECONFIG="$${KUBECONFIG_FILE}" kubectl create secret generic kioskbot-backend-$${ENV}-secrets \
+		--from-env-file=.env.$${ENV} \
+		--namespace kioskbot-$${ENV} \
+		--dry-run=client -o yaml | \
+	KUBECONFIG="$${KUBECONFIG_FILE}" kubectl apply -f -; \
 	KUBECONFIG="$${KUBECONFIG_FILE}" helm upgrade kioskbot-backend-$${ENV} ./scripts/helm \
 		--values ./scripts/helm/values-$${ENV}.yaml \
 		--set api.image.repository="$${IMAGE_REPO}" \
