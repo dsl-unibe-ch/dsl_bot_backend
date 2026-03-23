@@ -22,6 +22,8 @@ def main() -> None:
         help="Optional customer name. Defaults to DEFAULT_CUSTOMER.",
     )
     args = arg_parser.parse_args()
+    if not args.customer_name:
+        args.customer_name = settings.DEFAULT_CUSTOMER
     chatbot = ChatBot(customer_name=args.customer_name)
     start_session_response = chatbot.initialize_agent_wrapper(sessions)
 
