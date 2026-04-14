@@ -29,7 +29,7 @@ customer_full_name_dict={
 }
 
 customer_prompt_mapping={
-    "quality": """If the query is specifically related to evaluation of teaching or courses, refer the user to lehrevaluation@unibe.ch. Also for lehrevaluation@unibe.ch is the best contact to go for training""",
+    "quality": """If the query is specifically related to evaluation of teaching or courses, refer the user to lehrevaluation@unibe.ch. Also lehrevaluation@unibe.ch is the best contact for training.""",
     "innovation": """If the query is specifically related to the IdeenLabor, refer the user to ideenlabor@unibe.ch""",
 }
 
