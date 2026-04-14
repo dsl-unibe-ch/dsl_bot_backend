@@ -24,12 +24,12 @@ customer_name_contact_dict={
 }
 
 customer_full_name_dict={
-    "quality": "Department of Quality Assurance",
+    "quality": "Department of Quality Assurance and Development",
     "innovation": "Innovation Office",
 }
 
 customer_prompt_mapping={
-    "quality": """If the query is specifically related to evaluation of teaching or courses, refer the user to lehrevaluation@unibe.ch""",
+    "quality": """If the query is specifically related to evaluation of teaching or courses, refer the user to lehrevaluation@unibe.ch. Also lehrevaluation@unibe.ch is the best contact for training.""",
     "innovation": """If the query is specifically related to the IdeenLabor, refer the user to ideenlabor@unibe.ch""",
 }
 
