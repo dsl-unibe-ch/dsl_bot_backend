@@ -24,6 +24,16 @@ if getattr(settings, "LANGSMITH_ENDPOINT", None):
     os.environ.setdefault("LANGSMITH_ENDPOINT", settings.LANGSMITH_ENDPOINT)
 
 
+def pytest_addoption(parser: pytest.Parser) -> None:
+    """Register custom pytest CLI options."""
+    parser.addoption(
+        "--origin",
+        action="store",
+        default="",
+        help="Optional origin URL appended to initialize-agent during E2E tests.",
+    )
+
+
 def load_questions_groundtruth_answers() -> dict:
     """Load questions and groundtruth answers from a JSON file."""
     with Path.open(

@@ -3,6 +3,7 @@ VERSION=$(shell grep '^version' pyproject.toml | head -1 | cut -d '"' -f2)
 FE_DIR := ../kioskbot_frontend
 FE_REPO := https://github.com/dsl-unibe-ch/kioskbot_frontend.git
 FE_PORT := 5173
+INITIALIZE_AGENT_ORIGIN_URL ?=
 
 lint:
 	@echo $@
@@ -168,7 +169,7 @@ e2e-local2local: setup-be-local setup-fe-local build-image-dev compose-down-dev 
 	done
 	@echo "Frontend server is ready!"
 	@echo "STEP 2/2: Running E2E tests against local FE and local BE..."
-	@KAFKA_LOGGING_ENABLED=false ENV=dev PYTHONPATH=$(shell pwd) pytest -v tests/e2e/ || \
+	@KAFKA_LOGGING_ENABLED=false ENV=dev PYTHONPATH=$(shell pwd) pytest -v tests/e2e/ $(if $(strip $(INITIALIZE_AGENT_ORIGIN_URL)),--origin "$(INITIALIZE_AGENT_ORIGIN_URL)",) || \
 		(echo "Tests failed, cleaning up..."; $(MAKE) stop-fe-local; exit 1)
 	@echo "Tests completed successfully!"
 	@$(MAKE) stop-fe-local
@@ -368,7 +369,7 @@ help:
 	@echo "  make fmt validate          # housekeeping"
 	@echo "  make clean                 # remove local tf state/cache"
 	@echo "\nE2E Testing (Local FE + Local BE):"
-	@echo "  make e2e-local2local       # Run complete E2E test (setup + run + cleanup)"
+	@echo "  make e2e-local2local [INITIALIZE_AGENT_ORIGIN_URL=<url>]  # Run complete E2E test"
 	@echo "  make setup-fe-local        # Setup frontend for E2E testing"
 	@echo "  make setup-be-local        # Setup backend for E2E testing"
 	@echo "  make stop-fe-local         # Stop frontend development server"
