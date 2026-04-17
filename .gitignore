@@ -235,3 +235,5 @@ scripts/crawler/jobs/
 
 .fe-server.log
 .fe-server.pid
+
+uv.lock

@@ -13,11 +13,12 @@ import uuid
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
-from urllib.parse import urlsplit
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 import pytest
 from playwright.sync_api import Page, Request, Response, expect
 
+from app.agent.utils import get_customer_name_from_url
 from app.config import settings
 
 BAD_REQUEST_CODE = 400
@@ -60,10 +61,26 @@ def accept_disclaimer(page: Page) -> Callable[[], None]:
 
 
 @pytest.fixture
-def app_page(page: Page, accept_disclaimer: Callable[[], None]) -> Page:
+def initialize_agent_origin_url(request: pytest.FixtureRequest) -> str:
+    """Return the optional --origin CLI argument."""
+    return str(request.config.getoption("origin") or "").strip()
+
+
+@pytest.fixture
+def app_page(
+    page: Page,
+    accept_disclaimer: Callable[[], None],
+    initialize_agent_origin_url: str,
+) -> Page:
     """Navigates to the frontend, handles the disclaimer, and returns the page."""
     if not settings.FRONTEND_URL:
         pytest.skip("FRONTEND_URL not set")
+    resolved_customer = (
+        get_customer_name_from_url(initialize_agent_origin_url)
+        if initialize_agent_origin_url
+        else None
+    )
+    _install_initialize_agent_origin_override(page, initialize_agent_origin_url)
     with (
         page.expect_request(
             lambda r: _is_outgoing_request_valid_get(r, INITIALIZE_AGENT_ENDPOINT_MATCH),
@@ -83,7 +100,12 @@ def app_page(page: Page, accept_disclaimer: Callable[[], None]) -> Page:
             request_root, response_root, body_json, body_text, prefix="root_get"
         )
         detail = _extract_fastapi_detail(body_json, body_text)
-        pytest.fail(f"GET / returned {status}: {detail}")
+        pytest.fail(
+            f"GET / returned {status}: {detail}. "
+            f"Supplied origin URL from test: {initialize_agent_origin_url or '<none>'}. "
+            f"Resolved customer via get_customer_name_from_url: "
+            f"{resolved_customer or '<none>'}."
+        )
     page.wait_for_load_state("networkidle")
 
     accept_disclaimer()
@@ -93,6 +115,27 @@ def app_page(page: Page, accept_disclaimer: Callable[[], None]) -> Page:
 def _path(url: str) -> str:
     """Return only the path part (no scheme/host/query)."""
     return urlsplit(url).path or "/"
+
+
+def _override_query_origin(url: str, origin: str) -> str:
+    """Return URL with an explicit origin query parameter."""
+    parts = urlsplit(url)
+    query_params = [(k, v) for k, v in parse_qsl(parts.query, keep_blank_values=True) if k != "origin"]
+    query_params.append(("origin", origin))
+    return urlunsplit(
+        (parts.scheme, parts.netloc, parts.path, urlencode(query_params, doseq=True), parts.fragment)
+    )
+
+
+def _install_initialize_agent_origin_override(page: Page, origin_url: str) -> None:
+    """Ensure initialize-agent requests include the provided origin URL."""
+    if not origin_url:
+        return
+
+    def _rewrite(route, request) -> None:
+        route.continue_(url=_override_query_origin(request.url, origin_url))
+
+    page.route("**/initialize-agent*", _rewrite)
 
 
 def _is_outgoing_request_valid_post(

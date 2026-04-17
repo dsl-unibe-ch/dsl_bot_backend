@@ -785,6 +785,11 @@ E2E tests can be done on three levels with combinations of Frontend (FE) and Bac
 >   ```bash
 >   make e2e-local2local
 >   ```
+>   Optional To run e2e tests per customer use the initialize-agent endpoint with an origin override. For instance, for innovation office use:
+>   ```bash
+>   make e2e-local2local INITIALIZE_AGENT_ORIGIN_URL="https://www.unibe.ch/universitaet/organisation/leitung_und_zentralbereich/vizerektorat_forschung_und_innovation/innovation_office/index_ger.html"
+>   ```
+> **Note**: Without any origin, the tests are run for the default customer.
 >   This command will:
 >   - Clone the frontend repository from `main` branch (first time only) or pull latest changes (if exists)
 >   - Install/update frontend dependencies
@@ -794,6 +799,7 @@ E2E tests can be done on three levels with combinations of Frontend (FE) and Bac
 >   - Start the frontend development server
 >   - Run the E2E tests
 >   - Clean up and stop the frontend server
+>   - If `INITIALIZE_AGENT_ORIGIN_URL` is set, E2E appends it as `origin` to `/initialize-agent`
 >
 > - **Individual Commands** (for manual control):
 >   - Setup FE only:
@@ -1001,6 +1007,8 @@ curl -s http://127.0.0.1:8000/initialize-agent | jq .
 ```bash
 curl -s "http://127.0.0.1:8000/initialize-agent?origin=https://www.unibe.ch/universitaet/organisation/leitung_und_zentralbereich/vizerektorat_forschung_und_innovation/innovation_office/index_ger.html" | jq .
 ```
+
+**Note**: Start a session with URL-encoded origin (recommended for scripts) as shown above.
 
 - Alternatively, start the session and save its session id in a shell variable:
 ```bash
