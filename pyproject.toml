@@ -1,18 +1,18 @@
 [project]
 name = "kioskbot"
-version = "0.1.24"
+version = "0.1.25"
 description = "Kioskbot project"
 readme = "README.md"
 requires-python = "==3.12.11"
 
 dependencies = [
-    "langchain==0.3.27",
+    "langchain==1.2.15",
     "azure-search-documents==11.6.0",
     "azure-identity==1.24.0",
-    "openai==1.104.2",
+    "openai==2.31.0",
     "langchain_core==1.2.22",
     "dotenv==0.9.9",
-    "langchain_openai==0.3.32",
+    "langchain_openai==1.1.12",
     "ftfy==6.3.1",
     "fastapi==0.116.1",
     "azure-data-tables==12.7.0",
@@ -20,7 +20,8 @@ dependencies = [
     "pydantic_settings==2.10.1",
     "pandas==2.3.2",
     "kafka-python==2.2.15",
-    "azure-storage-blob==12.26.0"
+    "azure-storage-blob==12.26.0",
+    "langchain-classic==1.0.3",
 ]
 
 [project.optional-dependencies]
@@ -35,8 +36,8 @@ dev = [
     "pytest-playwright==0.7.1",
     "playwright==1.55.0",
     "openpyxl==3.1.5",
-    "langchain-experimental==0.3.4",
-    "locust==2.42.6",
+    "langchain-experimental==0.4.1",
+    "locust==2.43.0",
     "pdfplumber==0.11.9"
 ]
 
