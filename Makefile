@@ -108,7 +108,7 @@ setup-fe-local:
 	@echo "Installing frontend dependencies..."
 	@cd $(FE_DIR) && pnpm install
 	@echo "Configuring PUBLIC_API environment variable..."
-	@BACKEND_URL=$$(grep -E '^BACKEND_URL=' .env.dev | cut -d'=' -f2- | tr -d '"' | sed 's:/*$$::'); \
+	@BACKEND_URL=$$(grep -E '^BACKEND_URL=' .env.$(ENV) | cut -d'=' -f2- | tr -d '"' | sed 's:/*$$::'); \
 	echo "Detected BACKEND_URL: $$BACKEND_URL"; \
 	if [ -f "$(FE_DIR)/.env" ]; then \
 		grep -v '^PUBLIC_API=' "$(FE_DIR)/.env" > "$(FE_DIR)/.env.tmp" || true; \
@@ -121,13 +121,13 @@ setup-be-local:
 	@echo "Setting up Backend for local E2E testing..."
 	@echo "Installing Chromium for Playwright..."
 	@$(PYTHON) -m playwright install chromium
-	@echo "Configuring .env.dev for local testing..."
-	@grep -v '^FRONTEND_URL=' .env.dev > .env.dev.tmp || true
-	@grep -v '^BACKEND_URL=' .env.dev.tmp > .env.dev.tmp2 || true
-	@echo "FRONTEND_URL=http://localhost:$(FE_PORT)" >> .env.dev.tmp2
-	@echo "BACKEND_URL=http://localhost:8000" >> .env.dev.tmp2
-	@mv .env.dev.tmp2 .env.dev
-	@rm -f .env.dev.tmp
+	@echo "Configuring .env.$(ENV) for local testing..."
+	@grep -v '^FRONTEND_URL=' .env.$(ENV) > .env.$(ENV).tmp || true
+	@grep -v '^BACKEND_URL=' .env.$(ENV).tmp > .env.$(ENV).tmp2 || true
+	@echo "FRONTEND_URL=http://localhost:$(FE_PORT)" >> .env.$(ENV).tmp2
+	@echo "BACKEND_URL=http://localhost:8000" >> .env.$(ENV).tmp2
+	@mv .env.$(ENV).tmp2 .env.$(ENV)
+	@rm -f .env.$(ENV).tmp
 	@echo "Backend E2E setup complete!"
 
 stop-fe-local:
@@ -145,7 +145,7 @@ stop-fe-local:
 	@pkill -f "vite.*:$(FE_PORT)" 2>/dev/null || true
 	@echo "Frontend server stopped."
 
-e2e-local2local: setup-be-local setup-fe-local build-image-dev compose-down-dev compose-up-dev
+e2e-local2local: setup-be-local setup-fe-local build-image-$(ENV) compose-down-$(ENV) compose-up-$(ENV)
 	@echo "========================================"
 	@echo "Local FE to Local BE E2E Test Workflow"
 	@echo "========================================"
@@ -169,7 +169,7 @@ e2e-local2local: setup-be-local setup-fe-local build-image-dev compose-down-dev 
 	done
 	@echo "Frontend server is ready!"
 	@echo "STEP 2/2: Running E2E tests against local FE and local BE..."
-	@KAFKA_LOGGING_ENABLED=false ENV=dev PYTHONPATH=$(shell pwd) pytest -v tests/e2e/ $(if $(strip $(INITIALIZE_AGENT_ORIGIN_URL)),--origin "$(INITIALIZE_AGENT_ORIGIN_URL)",) || \
+	@KAFKA_LOGGING_ENABLED=false ENV=$(ENV) PYTHONPATH=$(shell pwd) pytest -v tests/e2e/ $(if $(strip $(INITIALIZE_AGENT_ORIGIN_URL)),--origin "$(INITIALIZE_AGENT_ORIGIN_URL)",) || \
 		(echo "Tests failed, cleaning up..."; $(MAKE) stop-fe-local; exit 1)
 	@echo "Tests completed successfully!"
 	@$(MAKE) stop-fe-local
@@ -369,7 +369,7 @@ help:
 	@echo "  make fmt validate          # housekeeping"
 	@echo "  make clean                 # remove local tf state/cache"
 	@echo "\nE2E Testing (Local FE + Local BE):"
-	@echo "  make e2e-local2local [INITIALIZE_AGENT_ORIGIN_URL=<url>]  # Run complete E2E test"
+	@echo "  make e2e-local2local [ENV=dev|prod] [INITIALIZE_AGENT_ORIGIN_URL=<url>]  # Run complete E2E test"
 	@echo "  make setup-fe-local        # Setup frontend for E2E testing"
 	@echo "  make setup-be-local        # Setup backend for E2E testing"
 	@echo "  make stop-fe-local         # Stop frontend development server"
