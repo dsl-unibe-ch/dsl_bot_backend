@@ -2,7 +2,7 @@
 
 from argparse import ArgumentParser
 
-from app.agent.chatbot_rag import ChatBot, sessions
+from app.agent.chatbot_agent import ChatBot, sessions
 from app.agent.feedback import Feedback
 from app.agent.query import QueryInput
 from app.config import settings
@@ -20,13 +20,6 @@ def main() -> None:
         required=False,
         default=settings.DEFAULT_CUSTOMER,
         help="Optional customer name. Defaults to DEFAULT_CUSTOMER.",
-    )
-    arg_parser.add_argument(
-        "--enable_agentic_search",
-        type=bool,
-        required=False,
-        default=False,
-        help="Enable agentic search. Defaults to False.",
     )
     args = arg_parser.parse_args()
     if not args.customer_name:

@@ -53,6 +53,11 @@ class Settings(BaseSettings):
 
     DEFAULT_CUSTOMER: str
 
+    AGENTIC_MAX_NUM_RETRIEVALS : int
+    AGENTIC_MAX_LATENCY : int 
+    AGENTIC_MAX_TOKEN_BUDGET: int 
+    ENABLE_AGENTIC_SEARCH : bool 
+
     @model_validator(mode="after")
     def normalize_urls(self) -> "Settings":
         """Normalize URL fields to be None if they are empty or 'None'."""

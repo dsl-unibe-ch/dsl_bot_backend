@@ -12,7 +12,7 @@ from langchain_openai import AzureChatOpenAI
 from openevals import create_llm_as_judge
 from openevals.types import SimpleEvaluator
 
-from app.agent.chatbot_rag import ChatBot
+from app.agent.chatbot_agent import ChatBot
 from app.agent.query import QueryInput
 from app.config import settings
 

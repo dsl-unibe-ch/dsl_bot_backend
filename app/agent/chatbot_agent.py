@@ -1,4 +1,3 @@
-"""Kioskbot class definition and methods."""
 
 import inspect
 import json
@@ -15,15 +14,22 @@ from azure.core.credentials import AzureKeyCredential
 from azure.search.documents import SearchClient
 from azure.search.documents.models import VectorizedQuery
 from fastapi import HTTPException
+from langchain.agents import create_agent
 from langchain_classic.chains.combine_documents import create_stuff_documents_chain
 from langchain_core.documents import Document
 from langchain_core.messages import AIMessage, HumanMessage
+from langchain.tools import tool
 from langchain_openai import AzureChatOpenAI
 from openai import AzureOpenAI
 
-from app.agent.prompt_templates import get_qa_prompt, translation_prompt
+from app.agent.prompt_templates import (
+    _build_system_prompt,
+    get_qa_prompt,
+    translation_prompt,
+)
 from app.agent.query import QueryInput, QueryOutput, Source
 from app.agent.schemas import StartSessionResponse
+
 from app.config import settings
 from app.logging_config import kioskbot_logger as logger
 
@@ -35,11 +41,9 @@ with Path.open("pyproject.toml", "rb") as f:
     version = tomllib.load(f).get("project", {}).get("version", "unknown")
 environment = os.environ.get("ENV", "unknown")
 
-
 class ChatBot:
-    """ChatBot class to interact with Azure OpenAI and Azure AI Search."""
-
-    def __init__(self, customer_name: str) -> None:
+    """Agentic chatbot class to interact with Azure OpenAI and Azure AI Search."""
+    def __init__(self, customer_name:str) -> None:
         """Initialize the ChatBot with Azure clients and prompt chains."""
         if not customer_name:
             raise ValueError("customer_name is required and must be non-empty.")
@@ -51,7 +55,6 @@ class ChatBot:
         search_credential = AzureKeyCredential(
             settings.AZURE_SEARCH_SERVICE_PRIMARY_ADMIN_KEY
         )
-
         self.search_client = SearchClient(
             endpoint=settings.AZURE_SEARCH_ENDPOINT,
             index_name=self.index_name,
@@ -77,8 +80,33 @@ class ChatBot:
         self.translation_chain = translation_prompt | self.chat_client
         self.chat_history = []
         self.interaction_count = 0
-        
-
+        self.enable_agentic_search = settings.ENABLE_AGENTIC_SEARCH
+        self._latest_retrieved_sources: list[Source] = []
+        self._latest_retrieved_docs_for_chain: list[Document] = []
+        self.tools = [
+            tool(
+                "rewrite_query",
+                self._rewrite_query_text,
+                description="Rewrite a user query into a concise search query.",
+            ),
+            tool(
+                "check_stop_or_continue",
+                self.check_stop_or_continue,
+                description="Return True if agent loop should continue searching.",
+            ),
+            tool(
+                "search_knowledge_base",
+                self.search_knowledge_base,
+                description="Search the vector index and return relevant snippets.",
+            ),
+        ]
+        self.agent = create_agent(
+            model=self.chat_client,
+            tools=self.tools,
+            system_prompt=_build_system_prompt(self.customer_name),
+            name="kioskbot_agent",
+        )
+    
     def truncate_query(self: "ChatBot", query_text: str) -> str:
         """Truncates the query text to a maximum of 100 terms."""
         logger.debug("%s", inspect.currentframe().f_code.co_name)
@@ -87,6 +115,75 @@ class ChatBot:
         if len(query_terms) > max_terms:
             query_text = " ".join(query_terms[:max_terms])
         return query_text
+
+
+    def _rewrite_query_text(self: "ChatBot", query_text: str) -> str:
+        """Normalizes and translates a query into a retrieval-friendly form."""
+        translated_query = self.translation_chain.invoke({"input": query_text})
+        if hasattr(translated_query, "content"):
+            translated_query = translated_query.content
+        return self.truncate_query(translated_query)
+
+    def _render_documents_for_tool(self: "ChatBot", docs: list[Document]) -> str:
+        """Converts retrieved documents into compact text for tool output."""
+        if not docs:
+            return "No matching documents found."
+        rendered_docs = []
+        for idx, doc in enumerate(docs, start=1):
+            metadata = doc.metadata
+            rendered_docs.append(
+                (
+                    f"[{idx}] Title: {metadata.get('Title', 'Not Specified')}\n"
+                    f"URL: {metadata.get('Link', 'Not Specified')}\n"
+                    f"Category: {metadata.get('Category', 'Not Specified')}\n"
+                    f"Score: {metadata.get('score', 'Not Specified')}\n"
+                    f"Content: {doc.page_content}"
+                )
+            )
+        return "\n\n".join(rendered_docs)
+
+    def _retrieve_documents(
+        self: "ChatBot", query_text: str
+    ) -> tuple[list[Document], list[Source]]:
+        """Shared retrieval path for RAG and agentic tool calls."""
+        rewritten_query = self._rewrite_query_text(query_text)
+        retrieved_docs = self.get_top_k_vector_results(rewritten_query)
+        return (
+            self.format_results_for_chain(retrieved_docs),
+            self.format_results_for_frontend(retrieved_docs),
+        )
+
+    def search_knowledge_base(self: "ChatBot", query: str) -> str:
+        """Tool entry point for document retrieval."""
+        docs_for_chain, docs_for_frontend = self._retrieve_documents(query)
+        self._latest_retrieved_docs_for_chain = docs_for_chain
+        self._latest_retrieved_sources = docs_for_frontend
+        return self._render_documents_for_tool(docs_for_chain)
+
+    def _extract_latest_agent_response(self: "ChatBot", agent_output: dict) -> str:
+        """Extract the last assistant message from a create_agent response."""
+        messages = agent_output.get("messages", [])
+        for message in reversed(messages):
+            if isinstance(message, AIMessage) and message.content:
+                return ftfy.fix_text(str(message.content))
+        return "I could not generate an answer for this request."
+
+    def _get_response_from_agent(self: "ChatBot", query_text: str) -> dict:
+        """Execute the LangChain v1 agent loop and return output plus sources."""
+        self._latest_retrieved_sources = []
+        self._latest_retrieved_docs_for_chain = []
+        agent_output = self.agent.invoke(
+            {"messages": [*self.chat_history, HumanMessage(content=query_text)]}
+        )
+        output_text = self._extract_latest_agent_response(agent_output)
+        self.add_to_chat_history(
+            query_text, output_text, self._latest_retrieved_docs_for_chain
+        )
+        return {
+            "output": output_text,
+            "sources": self._latest_retrieved_sources,
+        }
+
 
     def embed_query(self: "ChatBot", query_text: str) -> list[float]:
         """Embeds the query text into a vector using the Azure OpenAI embedding model.
@@ -103,6 +200,7 @@ class ChatBot:
             model=settings.AZURE_OPENAI_SEARCH_EMBEDDING_DEPLOYMENT,
         )
         return resp.data[0].embedding
+
 
     def get_top_k_vector_results(self: "ChatBot", query_text: str, k: int = 10) -> list:
         """Retrieves the top k vector results from the Azure AI Search index.
@@ -164,6 +262,7 @@ class ChatBot:
             docs.append(Document(page_content=page_content, metadata=metadata))
         return docs
 
+
     def format_results_for_frontend(
         self: "ChatBot", results: list[Document]
     ) -> list[Source]:
@@ -221,13 +320,7 @@ class ChatBot:
         """
         logger.debug("%s", inspect.currentframe().f_code.co_name)
         try:
-            translated_query = self.translation_chain.invoke({"input": query_text})
-            if hasattr(translated_query, "content"):
-                translated_query = translated_query.content
-            query_text_cleaned = self.truncate_query(translated_query)
-            retrieved_docs = self.get_top_k_vector_results(query_text_cleaned)
-            docs_for_chain = self.format_results_for_chain(retrieved_docs)
-            docs_for_frontend = self.format_results_for_frontend(retrieved_docs)
+            docs_for_chain, docs_for_frontend = self._retrieve_documents(query_text)
             response = self.qa_chain.invoke(
                 {
                     "context": docs_for_chain,
@@ -272,7 +365,10 @@ class ChatBot:
             raise HTTPException(status_code=400, detail="Session ID is required")
 
         try:
-            query_response = self.get_response_from_vectordb(query.text)
+            if self.enable_agentic_search:
+                query_response = self._get_response_from_agent(query.text)
+            else:
+                query_response = self.get_response_from_vectordb(query.text)
             query_response["session_id"] = query.session_id
             now = datetime.now(ZoneInfo("Europe/Berlin"))
             timestamp = now.isoformat()
@@ -303,6 +399,18 @@ class ChatBot:
 
         else:
             return query_response
+
+    def rewrite_query(self, query: QueryInput) -> QueryInput:
+        """Rewrite the query to a more specific question."""
+        return QueryInput(
+            text=self._rewrite_query_text(query.text),
+            session_id=query.session_id,
+            origin=query.origin,
+        )
+
+    def check_stop_or_continue(self) -> bool:
+        """Check if the query should be stopped or continued."""
+        return self.interaction_count < settings.AGENTIC_MAX_NUM_RETRIEVALS
 
     def initialize_agent_wrapper(self, sessions: dict) -> StartSessionResponse:
         """Create a new chatbot session and return the session ID."""
