@@ -27,9 +27,9 @@ class KafkaLoggingHandler(logging.Handler):
         log_entry = {
             "timestamp": record.created,  # time the log record was created
             "level": record.levelname,  # severity level of the log message (e.g., "INFO", "ERROR", "DEBUG") # noqa: E501
-            "message": record.getMessage(),  # contains the log_content JSON from chatbot_azure.py # noqa: E501
+            "message": record.getMessage(),  # contains the log_content JSON from chatbot_rag.py # noqa: E501
             "logger": record.name,  # name of the logger that created the log record, e.g., "Kioskbot" # noqa: E501
-            "module": record.module,  # name of the Python file where the log call was made, e.g., "chatbot_azure.py" # noqa: E501
+            "module": record.module,  # name of the Python file where the log call was made, e.g., "chatbot_rag.py" # noqa: E501
             "funcName": record.funcName,  # the name of the function from which the log call originated, e.g., invoke_agent_wrapper # noqa: E501
             "lineNo": record.lineno,  #  line number in the source code where the log call was made # noqa: E501
         }
