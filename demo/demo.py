@@ -8,7 +8,6 @@ from app.agent.query import QueryInput
 from app.config import settings
 from app.logging_config import close_kafka
 from app.logging_config import kioskbot_logger as logger
-from scripts.assessment_data.generate_assessment_dataset import german2english
 
 
 def main() -> None:
@@ -39,8 +38,7 @@ def main() -> None:
 
         query_response = chatbot.invoke_agent_wrapper(query_input)
         print(f"Output: {query_response['output']}")  # noqa: T201
-        translated_text = german2english(query_response["output"])
-        print(f"Translated output: {translated_text}")  # noqa: T201
+        
 
     my_feedback = Feedback(
         rating=5,
