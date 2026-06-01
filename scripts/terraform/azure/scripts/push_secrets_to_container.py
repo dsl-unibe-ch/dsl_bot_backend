@@ -18,7 +18,7 @@ handler.setLevel(logging.INFO)
 handler.setFormatter(logging.Formatter("%(levelname)s: %(message)s"))
 logger.addHandler(handler)
 
-VARIABLES_TO_ANONYMIZE = ["LANGSMITH_API_KEY"]
+VARIABLES_TO_ANONYMIZE = ["LANGFUSE_API_KEY", "LANGFUSE_PUBLIC_KEY"]
 
 
 def parse_args() -> argparse.Namespace:
