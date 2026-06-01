@@ -29,6 +29,7 @@ from app.agent.prompt_templates import (
 )
 from app.agent.query import QueryInput, QueryOutput, Source
 from app.agent.schemas import StartSessionResponse
+from app.agent.tracing import AgenticTrace
 
 from app.config import settings
 from app.logging_config import kioskbot_logger as logger
@@ -81,12 +82,16 @@ class ChatBot:
         self.chat_history = []
         self.interaction_count = 0
         self.enable_agentic_search = settings.ENABLE_AGENTIC_SEARCH
+        self.current_retrieval_count = 0
+        self.current_agent_action_count = 0
+        self._agentic_trace: list[AgenticTrace] = []
+        self._agentic_step_number = 0
         self._latest_retrieved_sources: list[Source] = []
         self._latest_retrieved_docs_for_chain: list[Document] = []
         self.tools = [
             tool(
                 "rewrite_query",
-                self._rewrite_query_text,
+                self.rewrite_query_tool,
                 description="Rewrite a user query into a concise search query.",
             ),
             tool(
@@ -106,7 +111,49 @@ class ChatBot:
             system_prompt=_build_system_prompt(self.customer_name),
             name="kioskbot_agent",
         )
-    
+        self.enable_agentic_search = settings.ENABLE_AGENTIC_SEARCH
+        self.max_num_retrievals = settings.AGENTIC_MAX_NUM_RETRIEVALS
+        self.max_agent_actions = settings.AGENTIC_MAX_NUM_ACTIONS
+        self.max_latency = settings.AGENTIC_MAX_LATENCY
+        self.max_token_budget = settings.AGENTIC_MAX_TOKEN_BUDGET
+
+    def _reset_agentic_trace(self: "ChatBot", query_text: str) -> None:
+        """Reset and start a new per-request trace timeline."""
+        self._agentic_trace = []
+        self._agentic_step_number = 0
+        self._append_agentic_trace(
+            tool_name="agent_loop_start",
+            tool_input_summary=query_text[:200],
+            result_count=0,
+            top_score=None,
+            decision_reason="Started agentic loop for incoming query.",
+        )
+
+    def _append_agentic_trace(
+        self: "ChatBot",
+        tool_name: str,
+        tool_input_summary: str,
+        result_count: int,
+        decision_reason: str,
+        top_score: float | None = None,
+    ) -> None:
+        """Append one trace step with monotonic step numbering."""
+        self._agentic_step_number += 1
+        self._agentic_trace.append(
+            AgenticTrace(
+                step_number=self._agentic_step_number,
+                tool_name=tool_name,
+                tool_input_summary=tool_input_summary,
+                result_count=result_count,
+                top_score=top_score,
+                decision_reason=decision_reason,
+            )
+        )
+
+    def _latest_trace_payload(self: "ChatBot") -> list[dict]:
+        """Return trace entries as JSON-serializable dictionaries."""
+        return [entry.model_dump() for entry in self._agentic_trace]
+
     def truncate_query(self: "ChatBot", query_text: str) -> str:
         """Truncates the query text to a maximum of 100 terms."""
         logger.debug("%s", inspect.currentframe().f_code.co_name)
@@ -117,12 +164,25 @@ class ChatBot:
         return query_text
 
 
-    def _rewrite_query_text(self: "ChatBot", query_text: str) -> str:
+    def _translate_and_truncate_query_text(self: "ChatBot", query_text: str) -> str:
         """Normalizes and translates a query into a retrieval-friendly form."""
         translated_query = self.translation_chain.invoke({"input": query_text})
         if hasattr(translated_query, "content"):
             translated_query = translated_query.content
         return self.truncate_query(translated_query)
+
+    def rewrite_query_tool(self: "ChatBot", query_text: str) -> str:
+        """Tool wrapper for query rewrite that tracks agent actions."""
+        self.current_agent_action_count += 1
+        rewritten = self._translate_and_truncate_query_text(query_text)
+        self._append_agentic_trace(
+            tool_name="rewrite_query",
+            tool_input_summary=query_text[:200],
+            result_count=1,
+            top_score=None,
+            decision_reason="Produced retrieval-friendly rewrite.",
+        )
+        return rewritten
 
     def _render_documents_for_tool(self: "ChatBot", docs: list[Document]) -> str:
         """Converts retrieved documents into compact text for tool output."""
@@ -146,18 +206,74 @@ class ChatBot:
         self: "ChatBot", query_text: str
     ) -> tuple[list[Document], list[Source]]:
         """Shared retrieval path for RAG and agentic tool calls."""
-        rewritten_query = self._rewrite_query_text(query_text)
+        rewritten_query = self._translate_and_truncate_query_text(query_text)
         retrieved_docs = self.get_top_k_vector_results(rewritten_query)
-        return (
-            self.format_results_for_chain(retrieved_docs),
-            self.format_results_for_frontend(retrieved_docs),
-        )
+        docs_for_chain = []
+        docs_for_frontend = []
+        for document in retrieved_docs:
+            page_content = ftfy.fix_text(document.get("chunk"))
+            if not page_content:
+                page_content = "Not Specified"
+            score = float(document.get("@search.score"))
+            document_id = document.get("DocumentID")
+            link = document.get("Link") or "Not Specified"
+            category = document.get("Category") or "Not Specified"
+            title = document.get("Title") or "Not Specified"
+            date_last_mod = document.get("Date_Last_Modified") or "Not Specified"
+            data_gathered_on = document.get("Data_Gathered_On") or "Not Specified"
+
+            docs_for_chain.append(
+                Document(
+                    page_content=page_content,
+                    metadata={
+                        "score": score,
+                        "DocumentID": document_id,
+                        "Link": link,
+                        "Category": category,
+                        "Title": title,
+                        "Date_Last_Modified": date_last_mod,
+                        "Data_Gathered_On": data_gathered_on,
+                    },
+                )
+            )
+            docs_for_frontend.append(
+                Source(
+                    document_location=document_id,
+                    page_content=page_content,
+                    document_url=link,
+                    category=category,
+                    title=title,
+                    gathered_on=data_gathered_on,
+                    modified=date_last_mod,
+                    score=score,
+                )
+            )
+        return docs_for_chain, docs_for_frontend
 
     def search_knowledge_base(self: "ChatBot", query: str) -> str:
         """Tool entry point for document retrieval."""
+        self.current_agent_action_count += 1
+        self.current_retrieval_count += 1
         docs_for_chain, docs_for_frontend = self._retrieve_documents(query)
         self._latest_retrieved_docs_for_chain = docs_for_chain
         self._latest_retrieved_sources = docs_for_frontend
+        top_score = None
+        if docs_for_chain:
+            scored_values = [
+                float(doc.metadata.get("score", 0.0))
+                for doc in docs_for_chain
+                if doc.metadata is not None
+            ]
+            top_score = max(scored_values) if scored_values else None
+        self._append_agentic_trace(
+            tool_name="search_knowledge_base",
+            tool_input_summary=query[:200],
+            result_count=len(docs_for_chain),
+            top_score=top_score,
+            decision_reason=(
+                f"Retrieval attempt {self.current_retrieval_count} completed."
+            ),
+        )
         return self._render_documents_for_tool(docs_for_chain)
 
     def _extract_latest_agent_response(self: "ChatBot", agent_output: dict) -> str:
@@ -170,12 +286,32 @@ class ChatBot:
 
     def _get_response_from_agent(self: "ChatBot", query_text: str) -> dict:
         """Execute the LangChain v1 agent loop and return output plus sources."""
+        self.current_retrieval_count = 0
+        self.current_agent_action_count = 0
+        self._reset_agentic_trace(query_text)
         self._latest_retrieved_sources = []
         self._latest_retrieved_docs_for_chain = []
         agent_output = self.agent.invoke(
             {"messages": [*self.chat_history, HumanMessage(content=query_text)]}
         )
         output_text = self._extract_latest_agent_response(agent_output)
+        self._append_agentic_trace(
+            tool_name="agent_loop_end",
+            tool_input_summary="finalize_response",
+            result_count=len(self._latest_retrieved_docs_for_chain),
+            top_score=(
+                max(
+                    (
+                        float(doc.metadata.get("score", 0.0))
+                        for doc in self._latest_retrieved_docs_for_chain
+                    ),
+                    default=None,
+                )
+                if self._latest_retrieved_docs_for_chain
+                else None
+            ),
+            decision_reason="Agent returned final response.",
+        )
         self.add_to_chat_history(
             query_text, output_text, self._latest_retrieved_docs_for_chain
         )
@@ -233,73 +369,6 @@ class ChatBot:
             ],
         )
         return list(results)
-
-    def format_results_for_chain(self: "ChatBot", results: list) -> list[Document]:
-        """Format results as LangChain Document objects for chain and chat history.
-
-        Args:
-            results (list): The results to format.
-
-        Returns:
-            list: The formatted results as a list of Document objects.
-        """
-        logger.debug("%s", inspect.currentframe().f_code.co_name)
-        docs = []
-        for document in results:
-            page_content = ftfy.fix_text(document.get("chunk"))
-            if not page_content:
-                page_content = "Not Specified"
-            metadata = {
-                "score": float(document.get("@search.score")),
-                "DocumentID": document.get("DocumentID"),
-                "Link": document.get("Link") or "Not Specified",
-                "Category": document.get("Category") or "Not Specified",
-                "Title": document.get("Title") or "Not Specified",
-                "Date_Last_Modified": document.get("Date_Last_Modified")
-                or "Not Specified",
-                "Data_Gathered_On": document.get("Data_Gathered_On") or "Not Specified",
-            }
-            docs.append(Document(page_content=page_content, metadata=metadata))
-        return docs
-
-
-    def format_results_for_frontend(
-        self: "ChatBot", results: list[Document]
-    ) -> list[Source]:
-        """Format results as Source objects for returning to the frontend.
-
-        Args:
-            results (list): The results to format.
-
-        Returns:
-            list: The formatted results as a list of Source objects.
-        """
-        logger.debug("%s", inspect.currentframe().f_code.co_name)
-        page_content_list = []
-        for document in results:
-            page_content = ftfy.fix_text(document.get("chunk"))
-            if not page_content:
-                page_content = "Not Specified"
-            document_score = float(document.get("@search.score"))
-            document_location = document.get("DocumentID")
-            document_url = document.get("Link") or "Not Specified"
-            document_category = document.get("Category") or "Not Specified"
-            document_title = document.get("Title") or "Not Specified"
-            date_last_mod = document.get("Date_Last_Modified") or "Not Specified"
-            data_gathered_on = document.get("Data_Gathered_On") or "Not Specified"
-            page_content_list.append(
-                Source(
-                    document_location=document_location,
-                    page_content=page_content,
-                    document_url=document_url,
-                    category=document_category,
-                    title=document_title,
-                    gathered_on=data_gathered_on,
-                    modified=date_last_mod,
-                    score=document_score,
-                )
-            )
-        return page_content_list
 
     def get_response_from_vectordb(self: "ChatBot", query_text: str) -> dict:
         """Retrieve respose from the vectordb and generate a response using the chain.
@@ -387,6 +456,10 @@ class ChatBot:
                 "origin": query.origin,
                 "index_name": self.index_name,
                 "customer_name": self.customer_name,
+                "agentic_search_enabled": self.enable_agentic_search,
+                "retrieval_count": self.current_retrieval_count,
+                "agent_action_count": self.current_agent_action_count,
+                "agentic_trace": self._latest_trace_payload(),
             }
             logger.info(
                 json.dumps(log_content)
@@ -400,17 +473,33 @@ class ChatBot:
         else:
             return query_response
 
-    def rewrite_query(self, query: QueryInput) -> QueryInput:
-        """Rewrite the query to a more specific question."""
-        return QueryInput(
-            text=self._rewrite_query_text(query.text),
-            session_id=query.session_id,
-            origin=query.origin,
-        )
 
     def check_stop_or_continue(self) -> bool:
         """Check if the query should be stopped or continued."""
-        return self.interaction_count < settings.AGENTIC_MAX_NUM_RETRIEVALS
+        self.current_agent_action_count += 1
+        should_continue = (
+            self.current_retrieval_count < self.max_num_retrievals
+            and self.current_agent_action_count < self.max_agent_actions
+        )
+        if should_continue:
+            decision_reason = "Within retrieval/action budgets. Continue."
+        elif self.current_retrieval_count >= self.max_num_retrievals:
+            decision_reason = (
+                f"Reached AGENTIC_MAX_NUM_RETRIEVALS={self.max_num_retrievals}."
+            )
+        else:
+            decision_reason = f"Reached AGENTIC_MAX_NUM_ACTIONS={self.max_agent_actions}."
+        self._append_agentic_trace(
+            tool_name="check_stop_or_continue",
+            tool_input_summary=(
+                f"retrieval_count={self.current_retrieval_count}, "
+                f"agent_action_count={self.current_agent_action_count}"
+            ),
+            result_count=1 if should_continue else 0,
+            top_score=None,
+            decision_reason=decision_reason,
+        )
+        return should_continue
 
     def initialize_agent_wrapper(self, sessions: dict) -> StartSessionResponse:
         """Create a new chatbot session and return the session ID."""
