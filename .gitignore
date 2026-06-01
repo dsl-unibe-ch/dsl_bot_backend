@@ -50,6 +50,10 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 cover/
+tests/data/downloaded_prod_logs
+tests/data/quality
+tests/data/innovation
+
 
 # E2E
 tests/e2e/contract-snapshots/

@@ -115,7 +115,7 @@ push-image-prod:
 
 unit-tests: build-image-dev compose-down-dev compose-up-dev
 	@echo $@
-	@ENV=dev PYTHONPATH=$(shell pwd) pytest -v tests/unit/
+	@ENV=dev CUSTOMER_NAME=$${CUSTOMER_NAME:-} PYTHONPATH=$(shell pwd) pytest -v -m langfuse tests/unit/
 
 
 # ---- E2E Testing with Local FE and BE ----
