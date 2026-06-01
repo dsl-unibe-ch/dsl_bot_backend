@@ -8,11 +8,11 @@ There are three main sources of data
 
 1. **Human evaluator annotations**
   These are high quality annotations by the customer SMEs where each case may contain a query, a set of relevant documents with each document containing evidence spans and URL, expected answer. This data is useful for testing
-  1. Retrieval quality:
-    - Did the search retrieve the expected document?
+    1. Retrieval quality:
+      - Did the search retrieve the expected document?
       - Did the expected document appear in top-k?
       - Did the retrieved chunks contain the evidence span?
-  2. Answer quality
+    2. Answer quality
     - Did the bot answer the question correctly?
       - Is the answer consistent with the expected answer?
       - Is the answer grounded in the retrieved evidence?
@@ -23,6 +23,7 @@ There are three main sources of data
   1. Answerable questions with answers: Questions whose answers are present in the documents.
     1. For each question, further generate, the set of relevant documents with each document containing evidence spans and URL, expected answer
   2. In-scope but unanswerable questions : Questions that belong to the domain, but whose answer is not present in the documents. Note that this different from out-of-scope. The question belongs to the domain, but the answer is not available in the current knowledge base.
+4. **Knowledge Base**
 
 ## Test Categories
 
@@ -31,7 +32,7 @@ There are three main sources of data
 #### Data Source:
 
 1. AI generated annotations from real user interactions and feedback
-2. AI-generated annotations from the knowledge base
+2. Knowledge base
 
 #### Dataset Schema
 

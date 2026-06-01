@@ -73,9 +73,9 @@ def update_env_vars(
     """Update the environment variables."""
     updated_env_vars = {}
     for key, value in env_vars_template.items():
-        if key == "LANGSMITH_API_KEY":
+        if key == "LANGFUSE_API_KEY" or key == "LANGFUSE_PUBLIC_KEY":
             logger.info(
-                "\n\nREMINDER!! Update LANGSMITH_API_KEY in .env.%s\n\n",
+                "\n\nREMINDER!! Update LANGFUSE Keys in .env.%s\n\n",
                 env,
             )
         if key == "BACKEND_URL":
