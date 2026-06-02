@@ -16,6 +16,26 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
+def _parse_log_content(log_entry: dict) -> dict | None:
+    """Parse chatbot JSON payload from Kafka log entry.
+
+    Returns None when the message is not a JSON payload produced by chatbot logging.
+    """
+    message = log_entry.get("message")
+    if not isinstance(message, str):
+        return None
+    try:
+        parsed = json.loads(message)
+    except json.JSONDecodeError:
+        return None
+    if not isinstance(parsed, dict):
+        return None
+    # Required fields for blob naming and output contract.
+    if "session_id" not in parsed or "interaction_count" not in parsed:
+        return None
+    return parsed
+
+
 def main() -> None:
     """Run the Kafka consumer to process messages and upsert to Azure Blob Storage."""
     try:
@@ -61,7 +81,14 @@ def main() -> None:
         for message in consumer:
             try:
                 log_entry = message.value
-                log_content = json.loads(log_entry["message"])
+                log_content = _parse_log_content(log_entry)
+                if log_content is None:
+                    logger.warning(
+                        "Skipping non-chatbot log entry from topic %s",
+                        settings.KAFKA_TOPIC,
+                    )
+                    consumer.commit()
+                    continue
 
                 session_id = log_content["session_id"]
                 unique_id = str(uuid.uuid4())
@@ -77,11 +104,22 @@ def main() -> None:
                 )
                 blob_client.upload_blob(json.dumps(log_content))
                 consumer.commit()  # adavance the offset only after successful processing. This is important to avoid data loss when the consumer restarts or Azure Blob is not available. # noqa: E501
+                agentic_trace = log_content.get("agentic_trace", [])
+                tool_names = [step.get("tool_name") for step in agentic_trace]
                 logger.info(
-                    "Upserted to Azure Blob Storage: %s", log_content.get("session_id")
+                    "Upserted to Azure Blob Storage: session_id=%s agentic_search_enabled=%s "
+                    "retrieval_count=%s agent_action_count=%s agentic_trace_steps=%s tools_called=%s",
+                    log_content.get("session_id"),
+                    log_content.get("agentic_search_enabled", "unknown"),
+                    log_content.get("retrieval_count", "unknown"),
+                    log_content.get("agent_action_count", "unknown"),
+                    len(agentic_trace),
+                    tool_names,
                 )
             except Exception:
                 logger.exception("Error processing message:")
+                # Commit to avoid poison-pill records blocking the partition.
+                consumer.commit()
 
     except Exception:
         logger.exception("Error in consumer:")

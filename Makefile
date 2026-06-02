@@ -13,13 +13,41 @@ lint:
 
 generate-assessment-dataset:
 	@echo $@
-	@ENV=dev PYTHONPATH=$(shell pwd) python scripts/assessment_data/generate_assessment_dataset.py
+	@CUSTOMER_NAME=$${CUSTOMER_NAME:?Set CUSTOMER_NAME (e.g. make $@ CUSTOMER_NAME=quality)} ; \
+	ENV=dev PYTHONPATH=$(shell pwd) python scripts/assessment_data/generate_assessment_dataset.py --customer-name $$CUSTOMER_NAME
 
 CUSTOMER_NAME_ARG := $(if $(strip $(customer_name)),--customer_name $(customer_name),)
 
 run-demo: build-image-dev compose-down-dev compose-up-dev
 	@echo $@
 	@ENV=dev PYTHONPATH=$(shell pwd) python demo/demo.py $(CUSTOMER_NAME_ARG)
+
+show-last-trace:
+	@echo $@
+	@ENV=$${ENV:-dev}; \
+	CONN_STR=$$(grep -E '^AZURE_STORAGE_ACCOUNT_PRIMARY_CONNECTION_STRING=' .env.$${ENV} | cut -d'=' -f2-); \
+	CONTAINER_NAME=$$(grep -E '^AZURE_CONTAINER_STORAGE_NAME=' .env.$${ENV} | cut -d'=' -f2-); \
+	BLOB_NAME=$$(az storage blob list \
+		--connection-string "$$CONN_STR" \
+		--container-name "$$CONTAINER_NAME" \
+		--prefix rag_logs/ \
+		--num-results 1 \
+		--query "sort_by(@,&properties.lastModified)[-1].name" \
+		-o tsv); \
+	if [ -z "$$BLOB_NAME" ]; then \
+		echo "No log blobs found under rag_logs/"; \
+		exit 0; \
+	fi; \
+	TMP_FILE=$$(mktemp); \
+	az storage blob download \
+		--connection-string "$$CONN_STR" \
+		--container-name "$$CONTAINER_NAME" \
+		--name "$$BLOB_NAME" \
+		--file "$$TMP_FILE" \
+		--overwrite >/dev/null; \
+	echo "Blob: $$BLOB_NAME"; \
+	$(PYTHON) -c "import json, pathlib; d=json.loads(pathlib.Path('$$TMP_FILE').read_text(encoding='utf-8')); print(json.dumps(d.get('agentic_trace', []), indent=2)); print('agentic_search_enabled=', d.get('agentic_search_enabled')); print('retrieval_count=', d.get('retrieval_count')); print('agent_action_count=', d.get('agent_action_count'))"; \
+	rm -f "$$TMP_FILE"
 
 
 build-image-dev:
@@ -88,7 +116,7 @@ push-image-prod:
 
 unit-tests: build-image-dev compose-down-dev compose-up-dev
 	@echo $@
-	@ENV=dev PYTHONPATH=$(shell pwd) pytest -v tests/unit/
+	@ENV=dev CUSTOMER_NAME=$${CUSTOMER_NAME:-} PYTHONPATH=$(shell pwd) pytest -v -m langfuse tests/unit/
 
 
 # ---- E2E Testing with Local FE and BE ----
@@ -762,3 +790,12 @@ get-aks-credentials:
 	AKS_NAME=$$($(MAKE) --no-print-directory terraform-output-var VAR=AKS_CLUSTER_NAME 2>/dev/null) ; \
 	echo "az aks get-credentials --resource-group $$RG_NAME --name $$AKS_NAME --overwrite-existing" ; \
 	az aks get-credentials --resource-group $$RG_NAME --name $$AKS_NAME --overwrite-existing
+
+
+download-user-logs:
+	@ENV=$${ENV:-prod} PYTHONPATH=$(shell pwd) python scripts/download_user_logs.py
+
+
+generate-chatbot-regression-cases:
+	@CUSTOMER_NAME=$${CUSTOMER_NAME:?Set CUSTOMER_NAME (e.g. innovation or quality)} ; \
+	ENV=$${ENV:-dev} PYTHONPATH=$(shell pwd) python scripts/assessment_data/generate_chatbot_regression_cases.py --customer-name $$CUSTOMER_NAME

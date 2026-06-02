@@ -24,7 +24,6 @@ from openai import AzureOpenAI
 from app.agent.prompt_templates import get_qa_prompt, translation_prompt
 from app.agent.query import QueryInput, QueryOutput, Source
 from app.agent.schemas import StartSessionResponse
-from app.agent.utils import customer_full_name_dict, customer_name_contact_dict
 from app.config import settings
 from app.logging_config import kioskbot_logger as logger
 

@@ -38,11 +38,6 @@ class Settings(BaseSettings):
     AZURE_OPENAI_CHAT_API_VERSION: str
     AZURE_OPENAI_VECTORIZER_ENDPOINT: str
 
-    LANGSMITH_TRACING: str
-    LANGSMITH_ENDPOINT: str
-    LANGSMITH_API_KEY: str
-    LANGSMITH_PROJECT: str
-
     AZURE_CONTAINER_REGISTRY_LOGIN_SERVER: str | None = None
 
     AZURE_CONTAINER_STORAGE_NAME: str | None = None
@@ -52,6 +47,18 @@ class Settings(BaseSettings):
     KAFKA_TOPIC: str
 
     DEFAULT_CUSTOMER: str
+
+    AGENTIC_MAX_NUM_RETRIEVALS : int
+    AGENTIC_MAX_NUM_ACTIONS: int = 12
+    AGENTIC_MAX_LATENCY : int 
+    AGENTIC_MAX_TOKEN_BUDGET: int 
+    AGENTIC_RECURSION_LIMIT: int = 25
+    ENABLE_AGENTIC_SEARCH : bool 
+
+    LANGFUSE_API_KEY: str | None = None
+    LANGFUSE_PROJECT: str | None = None
+    LANGFUSE_PUBLIC_KEY: str | None = None
+    LANGFUSE_HOST: str | None = None
 
     @model_validator(mode="after")
     def normalize_urls(self) -> "Settings":

@@ -8,7 +8,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from app.agent.chatbot_azure import ChatBot, sessions
+from app.agent.chatbot_agent import ChatBot, sessions
 from app.agent.feedback import Feedback
 from app.agent.query import QueryInput, QueryOutput
 from app.agent.schemas import (

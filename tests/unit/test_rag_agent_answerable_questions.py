@@ -1,26 +1,35 @@
-"""Test RAG agent."""
+"""Test RAG agent correctness on answerable questions via Langfuse experiment."""
 
 import os
 from collections.abc import Callable
+from datetime import datetime
 from typing import Any
 
 import pytest
-from langsmith import testing as t
-from openevals.types import SimpleEvaluator
+from langchain_openai import AzureChatOpenAI
+from langfuse import get_client as get_langfuse_client
+from langfuse.experiment import Evaluation
 
 from app.config import settings
-from scripts.assessment_data.generate_assessment_dataset import german2english
-from tests.conftest import invoke_agent, load_questions_groundtruth_answers
+from tests.conftest import invoke_agent
+from tests.dataset_config import langfuse_answerable_dataset_name
 
-os.environ["LANGSMITH_API_KEY"] = settings.LANGSMITH_API_KEY
-os.environ["LANGSMITH_ENDPOINT"] = settings.LANGSMITH_ENDPOINT
-os.environ["LANGSMITH_PROJECT"] = settings.LANGSMITH_PROJECT
+_CUSTOMER_GUIDELINES: dict[str, str] = {
+    "quality": (
+        "- If the question is not related to Quality Evaluation (e.g., IT, HR, holidays),"
+        " apologize and offer to help with something else.\n"
+        "    - For any Quality Evaluation inquiries requiring further assistance,"
+        " refer the user to: info.qualitaet@unibe.ch."
+    ),
+    "innovation": (
+        "- If the question is not related to Innovation Office services (e.g., IT, HR, holidays),"
+        " apologize and offer to help with something else.\n"
+        "    - For any Innovation Office inquiries requiring further assistance,"
+        " refer the user to: innovationoffice@unibe.ch."
+    ),
+}
 
-
-@pytest.fixture(scope="session")
-def prompt() -> str:
-    """Construct the prompt for the correctness evaluator."""
-    return """You are an expert data labeler evaluating model outputs for correctness. Your task is to assign a score based on the following rubric:
+_PROMPT_TEMPLATE = """You are an expert data labeler evaluating model outputs for correctness. Your task is to assign a score based on the following rubric:
 
     <Rubric>
     A correct answer:
@@ -40,8 +49,7 @@ def prompt() -> str:
 
     Note that the RAG agent has these additional behavioral guidelines:
     - If the question is vague, ask the user for more specific information.
-    - If the question is not related to Quality Evaluation (e.g., IT, HR, holidays), apologize and offer to help with something else.
-    - For any Quality Evaluation inquiries requiring further assistance, refer the user to: info.qualitaet@unibe.ch.
+    {customer_guidelines}
 
         Make sure to follow these guidelines when evaluating the agent's responses.
     </Rubric>
@@ -57,72 +65,108 @@ def prompt() -> str:
     </Reminder>
 
     <input>
-    {inputs}
+    {{inputs}}
     </input>
 
     <output>
-    {outputs}
+    {{outputs}}
     </output>
 
     Use the reference outputs below to help you evaluate the correctness of the response:
 
     <reference_outputs>
-    {reference_outputs}
+    {{reference_outputs}}
     </reference_outputs>
     """  # noqa: E501
 
 
-all_questions_groundtruth_answers = load_questions_groundtruth_answers()
-open_question_groundtruth_answer = (
-    "The document does not provide an answer to this question."
-)
-
-questions_with_answer = [
-    q
-    for q in all_questions_groundtruth_answers
-    if q["groundtruth_answer"] != open_question_groundtruth_answer
-]
-
-german_chunk_2_english_chunk = {}
+@pytest.fixture(scope="session")
+def prompt() -> str:
+    """Construct the customer-specific prompt for the correctness evaluator."""
+    customer = (
+        os.environ.get("CUSTOMER_NAME", "").strip() or settings.DEFAULT_CUSTOMER
+    )
+    guidelines = _CUSTOMER_GUIDELINES.get(customer, _CUSTOMER_GUIDELINES["quality"])
+    return _PROMPT_TEMPLATE.format(customer_guidelines=guidelines)
 
 
-@pytest.mark.langsmith
-@pytest.mark.parametrize("question_groundtruth_answer_pair", questions_with_answer)
-def test_correctness_of_questions_with_answers(
-    question_groundtruth_answer_pair: dict,
-    correctness_evaluator: SimpleEvaluator | Callable[..., Any],
-    prompt: str,  # noqa: ARG001,
-    documentid_to_text_translated: dict,
+@pytest.mark.langfuse
+def test_correctness_experiment(
+    correctness_evaluator: Callable[..., Any],
+    judge_model: AzureChatOpenAI,  # noqa: ARG001
+    prompt: str,  # noqa: ARG001
 ) -> None:
-    """Test the correctness of the RAG agent's answers on answerable questions."""
-    input_ = question_groundtruth_answer_pair["question"]
-    reference_output = question_groundtruth_answer_pair["groundtruth_answer"]
-    output = invoke_agent(input_)
+    """Run answerable-question correctness as a Langfuse experiment."""
+    customer = os.environ.get("CUSTOMER_NAME", "").strip() or settings.DEFAULT_CUSTOMER
+    dataset_name = langfuse_answerable_dataset_name(customer)
+    langfuse = get_langfuse_client()
 
-    result = correctness_evaluator(
-        inputs=input_, outputs=output["output"], reference_outputs=reference_output
+    try:
+        dataset = langfuse.get_dataset(dataset_name)
+    except Exception as exc:
+        pytest.skip(
+            f"Could not load Langfuse dataset '{dataset_name}': {exc}\n"
+            f"Run: make generate-assessment-dataset CUSTOMER_NAME={customer}"
+        )
+
+    if not dataset.items:
+        pytest.skip(
+            f"Langfuse dataset '{dataset_name}' is empty. "
+            f"Run: make generate-assessment-dataset CUSTOMER_NAME={customer}"
+        )
+
+    def task(*, item, **_kwargs) -> dict:  # type: ignore[misc]
+        question = item.input["question"]
+        output = invoke_agent(question, customer_name=customer)
+        return {
+            "agent_output": output["output"],
+            "sources": [
+                {
+                    "document_url": s.document_url,
+                    "document_location": s.document_location,
+                    "page_content": s.page_content,
+                    "score": s.score,
+                }
+                for s in (output.get("sources") or [])
+            ],
+        }
+
+    def evaluator_correctness(*, input, output, expected_output, **_kwargs) -> Evaluation:  # type: ignore[misc]
+        result = correctness_evaluator(
+            inputs=input["question"],
+            outputs=output["agent_output"],
+            reference_outputs=expected_output["groundtruth_answer"],
+        )
+        return Evaluation(
+            name="correctness",
+            value=float(result["score"]),
+            comment=result.get("comment"),
+        )
+
+    run_name = f"pytest-{datetime.now().strftime('%Y-%m-%dT%H-%M-%S')}"
+    result = langfuse.run_experiment(
+        name=dataset_name,
+        run_name=run_name,
+        data=dataset.items,
+        task=task,
+        evaluators=[evaluator_correctness],
     )
 
-    sources_list = [
-        {
-            "document_url": source.document_url,
-            "document_location": source.document_location,
-            "page_content": source.page_content,
-            "page_content_translated": german_chunk_2_english_chunk.setdefault(
-                source.page_content, german2english(source.page_content)
-            ),
-            "document_translated": documentid_to_text_translated[
-                source.document_location
-            ],
-            "gathered_on": source.gathered_on,
-            "modified": source.modified,
-            "score": source.score,
-        }
-        for source in output["sources"]
+    scores = [
+        float(e.value)  # type: ignore[arg-type]
+        for ir in result.item_results
+        for e in ir.evaluations
+        if e.name == "correctness"
     ]
 
-    t.log_outputs({"answer": output["output"]})
-    t.log_outputs({"sources": sources_list})
-    t.log_outputs({"correctness_explanation": result.get("comment")})
-    if not result["score"]:
-        pytest.fail("RAG agent failed to answer the question correctly", pytrace=False)
+    if result.dataset_run_url:
+        print(f"\nLangfuse experiment: {result.dataset_run_url}")
+
+    if scores:
+        accuracy = sum(scores) / len(scores)
+        if accuracy < 0.7:
+            pytest.fail(
+                f"Correctness accuracy {accuracy:.1%} < 70% threshold "
+                f"({int(sum(scores))}/{len(scores)} correct)",
+                pytrace=False,
+            )
