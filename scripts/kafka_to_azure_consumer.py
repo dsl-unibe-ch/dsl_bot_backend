@@ -104,10 +104,17 @@ def main() -> None:
                 )
                 blob_client.upload_blob(json.dumps(log_content))
                 consumer.commit()  # adavance the offset only after successful processing. This is important to avoid data loss when the consumer restarts or Azure Blob is not available. # noqa: E501
+                agentic_trace = log_content.get("agentic_trace", [])
+                tool_names = [step.get("tool_name") for step in agentic_trace]
                 logger.info(
-                    "Upserted to Azure Blob Storage: session_id=%s agentic_search_enabled=%s",
+                    "Upserted to Azure Blob Storage: session_id=%s agentic_search_enabled=%s "
+                    "retrieval_count=%s agent_action_count=%s agentic_trace_steps=%s tools_called=%s",
                     log_content.get("session_id"),
                     log_content.get("agentic_search_enabled", "unknown"),
+                    log_content.get("retrieval_count", "unknown"),
+                    log_content.get("agent_action_count", "unknown"),
+                    len(agentic_trace),
+                    tool_names,
                 )
             except Exception:
                 logger.exception("Error processing message:")

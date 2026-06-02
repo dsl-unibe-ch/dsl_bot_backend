@@ -25,10 +25,11 @@ run-demo: build-image-dev compose-down-dev compose-up-dev
 show-last-trace:
 	@echo $@
 	@ENV=$${ENV:-dev}; \
-	. ./.env.$${ENV}; \
+	CONN_STR=$$(grep -E '^AZURE_STORAGE_ACCOUNT_PRIMARY_CONNECTION_STRING=' .env.$${ENV} | cut -d'=' -f2-); \
+	CONTAINER_NAME=$$(grep -E '^AZURE_CONTAINER_STORAGE_NAME=' .env.$${ENV} | cut -d'=' -f2-); \
 	BLOB_NAME=$$(az storage blob list \
-		--connection-string "$${AZURE_STORAGE_ACCOUNT_PRIMARY_CONNECTION_STRING}" \
-		--container-name "$${AZURE_CONTAINER_STORAGE_NAME}" \
+		--connection-string "$$CONN_STR" \
+		--container-name "$$CONTAINER_NAME" \
 		--prefix rag_logs/ \
 		--num-results 1 \
 		--query "sort_by(@,&properties.lastModified)[-1].name" \
@@ -39,8 +40,8 @@ show-last-trace:
 	fi; \
 	TMP_FILE=$$(mktemp); \
 	az storage blob download \
-		--connection-string "$${AZURE_STORAGE_ACCOUNT_PRIMARY_CONNECTION_STRING}" \
-		--container-name "$${AZURE_CONTAINER_STORAGE_NAME}" \
+		--connection-string "$$CONN_STR" \
+		--container-name "$$CONTAINER_NAME" \
 		--name "$$BLOB_NAME" \
 		--file "$$TMP_FILE" \
 		--overwrite >/dev/null; \

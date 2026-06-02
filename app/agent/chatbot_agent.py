@@ -23,6 +23,7 @@ from langchain_openai import AzureChatOpenAI
 from openai import AzureOpenAI
 
 from app.agent.prompt_templates import (
+    _build_agentic_system_prompt,
     _build_system_prompt,
     get_qa_prompt,
     translation_prompt,
@@ -108,14 +109,14 @@ class ChatBot:
         self.agent = create_agent(
             model=self.chat_client,
             tools=self.tools,
-            system_prompt=_build_system_prompt(self.customer_name),
+            system_prompt=_build_agentic_system_prompt(self.customer_name),
             name="kioskbot_agent",
         )
-        self.enable_agentic_search = settings.ENABLE_AGENTIC_SEARCH
         self.max_num_retrievals = settings.AGENTIC_MAX_NUM_RETRIEVALS
         self.max_agent_actions = settings.AGENTIC_MAX_NUM_ACTIONS
         self.max_latency = settings.AGENTIC_MAX_LATENCY
         self.max_token_budget = settings.AGENTIC_MAX_TOKEN_BUDGET
+        self.recursion_limit = settings.AGENTIC_RECURSION_LIMIT
 
     def _reset_agentic_trace(self: "ChatBot", query_text: str) -> None:
         """Reset and start a new per-request trace timeline."""
@@ -252,6 +253,18 @@ class ChatBot:
 
     def search_knowledge_base(self: "ChatBot", query: str) -> str:
         """Tool entry point for document retrieval."""
+        if self.current_retrieval_count >= self.max_num_retrievals:
+            self._append_agentic_trace(
+                tool_name="search_knowledge_base",
+                tool_input_summary=query[:200],
+                result_count=0,
+                top_score=None,
+                decision_reason=f"Retrieval limit ({self.max_num_retrievals}) already reached. Blocked.",
+            )
+            return (
+                f"Retrieval limit of {self.max_num_retrievals} reached. "
+                "Compose your answer from the information already retrieved."
+            )
         self.current_agent_action_count += 1
         self.current_retrieval_count += 1
         docs_for_chain, docs_for_frontend = self._retrieve_documents(query)
@@ -292,7 +305,8 @@ class ChatBot:
         self._latest_retrieved_sources = []
         self._latest_retrieved_docs_for_chain = []
         agent_output = self.agent.invoke(
-            {"messages": [*self.chat_history, HumanMessage(content=query_text)]}
+            {"messages": [*self.chat_history, HumanMessage(content=query_text)]},
+            config={"recursion_limit": self.recursion_limit},
         )
         output_text = self._extract_latest_agent_response(agent_output)
         self._append_agentic_trace(
@@ -474,7 +488,7 @@ class ChatBot:
             return query_response
 
 
-    def check_stop_or_continue(self) -> bool:
+    def check_stop_or_continue(self, _: str = "") -> bool:
         """Check if the query should be stopped or continued."""
         self.current_agent_action_count += 1
         should_continue = (

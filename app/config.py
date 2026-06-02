@@ -52,6 +52,7 @@ class Settings(BaseSettings):
     AGENTIC_MAX_NUM_ACTIONS: int = 12
     AGENTIC_MAX_LATENCY : int 
     AGENTIC_MAX_TOKEN_BUDGET: int 
+    AGENTIC_RECURSION_LIMIT: int = 25
     ENABLE_AGENTIC_SEARCH : bool 
 
     LANGFUSE_API_KEY: str | None = None
