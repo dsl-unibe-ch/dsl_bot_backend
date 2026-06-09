@@ -30,6 +30,7 @@ from app.agent.prompt_templates import (
 )
 from app.agent.query import QueryInput, QueryOutput, Source
 from app.agent.schemas import StartSessionResponse
+from app.agent.session_store import save_session
 from app.agent.tracing import AgenticTrace
 
 from app.config import settings
@@ -37,7 +38,6 @@ from app.logging_config import kioskbot_logger as logger
 
 azure_container_storage_name = settings.AZURE_CONTAINER_STORAGE_NAME
 
-sessions = {}
 version = "unknown"
 with Path.open("pyproject.toml", "rb") as f:
     version = tomllib.load(f).get("project", {}).get("version", "unknown")
@@ -485,6 +485,13 @@ class ChatBot:
             raise HTTPException(status_code=500, detail=error_msg) from e
 
         else:
+            save_session(
+                query.session_id,
+                self.customer_name,
+                self.index_name,
+                self.chat_history,
+                self.interaction_count,
+            )
             return query_response
 
 
@@ -515,10 +522,10 @@ class ChatBot:
         )
         return should_continue
 
-    def initialize_agent_wrapper(self, sessions: dict) -> StartSessionResponse:
-        """Create a new chatbot session and return the session ID."""
+    def initialize_agent_wrapper(self) -> StartSessionResponse:
+        """Create a new chatbot session, persist initial state to Redis, return session ID."""
         session_id = uuid.uuid4()
-        sessions[session_id] = self
+        save_session(session_id, self.customer_name, self.index_name, [], 0)
         return StartSessionResponse(
             session_id=session_id,
             customer_name=self.customer_name,

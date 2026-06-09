@@ -78,6 +78,11 @@ def update_env_vars(
                 "\n\nREMINDER!! Update LANGFUSE Keys in .env.%s\n\n",
                 env,
             )
+        if key =="REDIS_PASSWORD":
+            logger.info(
+                "\n\nREMINDER!! Update REDIS_PASSWORD in .env.%s\n\n",
+                env,
+            )
         if key == "BACKEND_URL":
             if key in env_vars and env_vars[key] is not None and len(env_vars[key])>5:
                 updated_env_vars[key] = env_vars[key]

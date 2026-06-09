@@ -38,7 +38,7 @@ show-last-trace:
 		echo "No log blobs found under rag_logs/"; \
 		exit 0; \
 	fi; \
-	TMP_FILE=$$(mktemp); \
+	TMP_FILE=".tmp/show-last-trace.log"; \
 	az storage blob download \
 		--connection-string "$$CONN_STR" \
 		--container-name "$$CONTAINER_NAME" \
@@ -46,7 +46,7 @@ show-last-trace:
 		--file "$$TMP_FILE" \
 		--overwrite >/dev/null; \
 	echo "Blob: $$BLOB_NAME"; \
-	$(PYTHON) -c "import json, pathlib; d=json.loads(pathlib.Path('$$TMP_FILE').read_text(encoding='utf-8')); print(json.dumps(d.get('agentic_trace', []), indent=2)); print('agentic_search_enabled=', d.get('agentic_search_enabled')); print('retrieval_count=', d.get('retrieval_count')); print('agent_action_count=', d.get('agent_action_count'))"; \
+	$(PYTHON) -c "import json, pathlib; envelope=json.loads(pathlib.Path('$$TMP_FILE').read_text(encoding='utf-8')); d=json.loads(envelope['message']); print(json.dumps(d.get('agentic_trace', []), indent=2)); print('agentic_search_enabled=', d.get('agentic_search_enabled')); print('retrieval_count=', d.get('retrieval_count')); print('agent_action_count=', d.get('agent_action_count'))"; \
 	rm -f "$$TMP_FILE"
 
 
