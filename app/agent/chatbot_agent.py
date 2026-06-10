@@ -24,8 +24,8 @@ from openai import AzureOpenAI
 
 from app.agent.prompt_templates import (
     _build_agentic_system_prompt,
-    _build_system_prompt,
     get_qa_prompt,
+    rewrite_query_prompt,
     translation_prompt,
 )
 from app.agent.query import QueryInput, QueryOutput, Source
@@ -50,10 +50,7 @@ class ChatBot:
         if not customer_name:
             raise ValueError("customer_name is required and must be non-empty.")
         self.customer_name = customer_name
-        if customer_name == settings.DEFAULT_CUSTOMER:
-            self.index_name = settings.AZURE_DEFAULT_AI_SEARCH_INDEX_NAME
-        else:
-            self.index_name = f"kb-{customer_name}"
+        self.index_name = f"kb-{customer_name}"
         search_credential = AzureKeyCredential(
             settings.AZURE_SEARCH_SERVICE_PRIMARY_ADMIN_KEY
         )
@@ -80,6 +77,7 @@ class ChatBot:
             document_variable_name="context",
         )
         self.translation_chain = translation_prompt | self.chat_client
+        self.rewrite_query_chain = rewrite_query_prompt | self.chat_client
         self.chat_history = []
         self.interaction_count = 0
         self.enable_agentic_search = settings.ENABLE_AGENTIC_SEARCH
@@ -158,7 +156,7 @@ class ChatBot:
     def truncate_query(self: "ChatBot", query_text: str) -> str:
         """Truncates the query text to a maximum of 100 terms."""
         logger.debug("%s", inspect.currentframe().f_code.co_name)
-        max_terms = 100
+        max_terms = 300
         query_terms = re.findall(r"\w+", query_text)
         if len(query_terms) > max_terms:
             query_text = " ".join(query_terms[:max_terms])
@@ -172,10 +170,17 @@ class ChatBot:
             translated_query = translated_query.content
         return self.truncate_query(translated_query)
 
+    def _rewrite_query_text(self: "ChatBot", query_text: str) -> str:
+        """Rewrites the query into a concise, keyword-dense German retrieval query, then truncates."""
+        rewritten = self.rewrite_query_chain.invoke({"input": query_text})
+        if hasattr(rewritten, "content"):
+            rewritten = rewritten.content
+        return self.truncate_query(rewritten)
+
     def rewrite_query_tool(self: "ChatBot", query_text: str) -> str:
         """Tool wrapper for query rewrite that tracks agent actions."""
         self.current_agent_action_count += 1
-        rewritten = self._translate_and_truncate_query_text(query_text)
+        rewritten = self._rewrite_query_text(query_text)
         self._append_agentic_trace(
             tool_name="rewrite_query",
             tool_input_summary=query_text[:200],
@@ -268,8 +273,24 @@ class ChatBot:
         self.current_agent_action_count += 1
         self.current_retrieval_count += 1
         docs_for_chain, docs_for_frontend = self._retrieve_documents(query)
-        self._latest_retrieved_docs_for_chain = docs_for_chain
-        self._latest_retrieved_sources = docs_for_frontend
+
+        # Accumulate across all retrievals: deduplicate by DocumentID, keep highest score.
+        merged_docs: dict[str, Document] = {
+            doc.metadata["DocumentID"]: doc for doc in self._latest_retrieved_docs_for_chain
+        }
+        merged_sources: dict[str, Source] = {
+            s.document_location: s for s in self._latest_retrieved_sources
+        }
+        for doc, source in zip(docs_for_chain, docs_for_frontend):
+            doc_id = doc.metadata.get("DocumentID")
+            existing = merged_docs.get(doc_id)
+            if existing is None or doc.metadata.get("score", 0.0) > existing.metadata.get("score", 0.0):
+                merged_docs[doc_id] = doc
+                merged_sources[doc_id] = source
+        sorted_ids = sorted(merged_docs, key=lambda d: merged_docs[d].metadata.get("score", 0.0), reverse=True)
+        self._latest_retrieved_docs_for_chain = [merged_docs[d] for d in sorted_ids]
+        self._latest_retrieved_sources = [merged_sources[d] for d in sorted_ids]
+
         top_score = None
         if docs_for_chain:
             scored_values = [
@@ -475,6 +496,7 @@ class ChatBot:
                 "agent_action_count": self.current_agent_action_count,
                 "agentic_trace": self._latest_trace_payload(),
             }
+
             logger.info(
                 json.dumps(log_content)
             )  # logger.info/debug/error/etc/ triggers KafkaLoggingHandler.emit()

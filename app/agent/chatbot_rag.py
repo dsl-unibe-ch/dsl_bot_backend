@@ -80,9 +80,9 @@ class ChatBot:
         
 
     def truncate_query(self: "ChatBot", query_text: str) -> str:
-        """Truncates the query text to a maximum of 100 terms."""
+        """Truncates the query text to a maximum of 300 terms."""
         logger.debug("%s", inspect.currentframe().f_code.co_name)
-        max_terms = 100
+        max_terms = 300
         query_terms = re.findall(r"\w+", query_text)
         if len(query_terms) > max_terms:
             query_text = " ".join(query_terms[:max_terms])
