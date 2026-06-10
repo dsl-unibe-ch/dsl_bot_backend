@@ -2,7 +2,7 @@
 
 from argparse import ArgumentParser
 
-from app.agent.chatbot_agent import ChatBot, sessions
+from app.agent.chatbot_agent import ChatBot
 from app.agent.feedback import Feedback
 from app.agent.query import QueryInput
 from app.config import settings
@@ -24,7 +24,7 @@ def main() -> None:
     if not args.customer_name:
         args.customer_name = settings.DEFAULT_CUSTOMER
     chatbot = ChatBot(customer_name=args.customer_name)
-    start_session_response = chatbot.initialize_agent_wrapper(sessions)
+    start_session_response = chatbot.initialize_agent_wrapper()
 
     while True:
         query = input("\nYou: ")
