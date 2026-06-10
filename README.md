@@ -49,7 +49,31 @@ pre-commit install
 1. Copy `.env.dev.example` to `.env.dev` and `.env.prod.example` to `.env.prod`.
 2. Populate only the non-Azure entries (Langfuse keys, frontend URLs, feature toggles, etc.). Keep all `AZURE_*` values exactly as provided in the example files.
 3. Later, when you run through the Terraform steps, `make write-output-to-env-{ENV}` rewrites the `AZURE_*` placeholders with the outputs from Terraform, so there’s no need to touch them now.
-4. Each time you regenerate `.env.{ENV}` with that command, double-check your non-Azure secrets (e.g., Langfuse kets) because the script resets those fields to the defaults from `.env.{ENV}.example`; you remain responsible for reapplying the real values.
+4. Each time you regenerate `.env.{ENV}` with that command, double-check your non-Azure secrets (e.g., Langfuse keys) because the script resets those fields to the defaults from `.env.{ENV}.example`; you remain responsible for reapplying the real values.
+
+### Agentic search settings
+
+The chatbot supports two retrieval modes, switched by `ENABLE_AGENTIC_SEARCH`:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `ENABLE_AGENTIC_SEARCH` | `True` | `True` - multi-step agentic RAG (agent rewrites queries, retrieves iteratively, decides when to stop). `False` - single-pass RAG (one translate, embed, retrieve, answer cycle). |
+| `AGENTIC_MAX_NUM_RETRIEVALS` | `3` | Maximum Azure AI Search calls per query. |
+| `AGENTIC_MAX_NUM_ACTIONS` | `12` | Maximum total tool invocations per agent loop (retrieval + rewrite + stop checks). |
+| `AGENTIC_MAX_LATENCY` | `8` | Soft latency budget in seconds (informational). |
+| `AGENTIC_MAX_TOKEN_BUDGET` | `10000` | Token budget for the agent loop. |
+| `AGENTIC_RECURSION_LIMIT` | `25` | LangGraph recursion limit for the agent graph. |
+
+### Redis session settings
+
+Chat history is persisted in Redis so sessions survive across multiple API pods. Redis runs as an in-cluster service deployed by Helm - no separate Terraform provisioning is needed.
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `REDIS_HOST` | `redis` | Redis hostname - use `redis` for both Docker Compose and Kubernetes (matches the service name). |
+| `REDIS_PORT` | `6379` | Redis port. |
+| `REDIS_PASSWORD` | *(empty)* | Redis password. Leave empty for local dev; set for prod. |
+| `REDIS_SESSION_TTL_SECONDS` | `3600` | How long a session is kept after the last request (seconds). |
 
 </details>
 
@@ -466,7 +490,7 @@ Common tags are applied via a shared local map and passed to modules:
 <details>
 <summary>Click to expand</summary>
 
-This Helm chart deploys the KioskBot backend application to Kubernetes, including Kafka, the API service, and the Kafka consumer. Here's the flow:
+This Helm chart deploys the KioskBot backend application to Kubernetes, including Kafka, the API service, the Kafka consumer, and Redis (session store). Here's the flow:
 ```
 Template Files + Values Files → Helm Renders → Final YAML → Kubernetes API → Running Pods
 ```
@@ -778,6 +802,8 @@ helm template kioskbot-backend-{ENV} ./scripts/helm \
 
 <details>
 <summary>Click to expand</summary>
+
+- The Docker Compose stack starts four services: `kafka`, `kioskbot-backend-api`, `kafka-consumer`, and `redis`. Redis is required by the API for session storage — the API container will wait for Redis to be healthy before starting.
 
 - Before building the docker image: 
     - update the image version in `pyproject.toml` under the `[project]` section as `version = "x.y.z"`.  
@@ -1153,6 +1179,10 @@ curl -s -X POST "http://127.0.0.1:8000/send-feedback" -H "Content-Type: applicat
 <summary>Click to expand</summary>
 
 - Kafka is used to stream chatbot logs in JSON format, which are then persisted to Azure Blob Storage. The target container for these logs is specified by the `AZURE_CONTAINER_STORAGE_NAME` environment variable.
+
+- Each log entry produced by `/invoke-agent` includes two ISO-8601 timestamps:
+  - `request_received_at` — when the backend received the user's message (equivalent to when the user clicked send)
+  - `response_generated_at` — when the agent finished generating the answer
 
 - The Kafka broker and Kafka consumer are both defined as services in the Docker Compose file. To start these services, follow the instructions in the [Docker](#docker) section.
 
