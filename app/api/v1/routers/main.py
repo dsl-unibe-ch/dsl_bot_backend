@@ -8,13 +8,14 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from app.agent.chatbot_agent import ChatBot, sessions
+from app.agent.chatbot_agent import ChatBot
 from app.agent.feedback import Feedback
 from app.agent.query import QueryInput, QueryOutput
 from app.agent.schemas import (
     FeedbackResponse,
     StartSessionResponse,
 )
+from app.agent import session_store
 from app.agent.utils import get_customer_name_from_url
 from app.config import settings
 
@@ -81,7 +82,7 @@ def initialize_agent(origin: str | None = None) -> StartSessionResponse:
     else:
         customer_name = settings.DEFAULT_CUSTOMER
     chatbot = ChatBot(customer_name=customer_name)
-    return chatbot.initialize_agent_wrapper(sessions=sessions)
+    return chatbot.initialize_agent_wrapper()
 
 
 @app.post("/invoke-agent")
@@ -95,11 +96,14 @@ def invoke_agent(query: QueryInput) -> QueryOutput:
     Returns:
         QueryOutput: The chatbot's response, including sources and session ID.
     """
-    chatbot = sessions.get(query.session_id)
-    if chatbot is None:
+    state = session_store.load_session(query.session_id)
+    if state is None:
         raise HTTPException(
-            status_code=404, detail="Session not found. Call GET / to start a session."
+            status_code=404, detail="Session not found. Call GET /initialize-agent to start a session."
         )
+    chatbot = ChatBot(customer_name=state["customer_name"])
+    chatbot.chat_history = state["chat_history"]
+    chatbot.interaction_count = state["interaction_count"]
     return chatbot.invoke_agent_wrapper(query)
 
 
@@ -113,10 +117,12 @@ def send_feedback(feedback: Feedback) -> FeedbackResponse:
     Returns:
         FeedbackResponse: Confirmation message and session ID if feedback is stored successfully.
     """  # noqa: E501
-    chatbot = sessions.get(feedback.session_id)
-    interaction_count = chatbot.interaction_count
+    state = session_store.load_session(feedback.session_id)
+    if state is None:
+        raise HTTPException(status_code=404, detail="Session not found.")
+    interaction_count = state["interaction_count"]
+    index_name = state["index_name"]
     origin = feedback.origin
-    index_name = chatbot.index_name
     resolved_customer = get_customer_name_from_url(origin) if origin else None
     if not resolved_customer and index_name and index_name.startswith("kb-"):
         resolved_customer = index_name.removeprefix("kb-")

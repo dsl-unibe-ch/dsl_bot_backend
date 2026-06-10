@@ -37,6 +37,8 @@ services:
     depends_on:
       kafka:
         condition: service_healthy # Docker waits to start kioskbot-backend-api until the kafka service is marked as "healthy" (as determined by the kafka service's healthcheck).
+      redis:
+        condition: service_healthy
 
   kafka-consumer:
     image: ${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER}/kioskbot-backend-api:${VERSION}-${ENV}
@@ -51,3 +53,15 @@ services:
       kafka:
         condition: service_healthy # Docker waits to start kafka-consumer until the kafka service is marked as "healthy" (as determined by the kafka service's healthcheck).
     restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    command: redis-server --maxmemory 200mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s

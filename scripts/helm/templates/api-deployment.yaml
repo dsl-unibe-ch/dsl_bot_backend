@@ -59,6 +59,16 @@ spec: # deployment specification section
           value: {{ .Values.environment }}
         - name: KAFKA_BOOTSTRAP_SERVERS # sets Kafka bootstrap servers for the API to connect to Kafka
           value: {{ .Values.api.env.kafkaBootstrapServers }}
+        - name: REDIS_HOST
+          value: {{ .Values.redis.env.redisHost }}
+        - name: REDIS_PORT
+          value: {{ .Values.redis.env.redisPort | quote }}
+        - name: REDIS_SESSION_TTL_SECONDS
+          value: {{ .Values.redis.env.redisSessionTtlSeconds | quote }}
+        {{- if .Values.redis.env.redisPassword }}
+        - name: REDIS_PASSWORD
+          value: {{ .Values.redis.env.redisPassword | quote }}
+        {{- end }}
         envFrom:
         {{- toYaml .Values.api.envFrom | nindent 8 }}
         resources: # CPU and memory requests/limits for the container 

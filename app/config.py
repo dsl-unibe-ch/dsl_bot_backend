@@ -55,6 +55,11 @@ class Settings(BaseSettings):
     AGENTIC_RECURSION_LIMIT: int = 25
     ENABLE_AGENTIC_SEARCH : bool 
 
+    REDIS_HOST: str
+    REDIS_PORT: int
+    REDIS_PASSWORD: str | None = None
+    REDIS_SESSION_TTL_SECONDS: int
+
     LANGFUSE_API_KEY: str | None = None
     LANGFUSE_PROJECT: str | None = None
     LANGFUSE_PUBLIC_KEY: str | None = None

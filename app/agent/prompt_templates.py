@@ -140,3 +140,60 @@ translation_prompt = ChatPromptTemplate.from_messages(
         ("human", "{input}"),
     ]
 )
+
+rewrite_query_system_prompt = """You are a search query optimizer for a German-language knowledge base.
+
+Goal:
+Given a user question, produce a concise, keyword-dense German search query optimised for vector and keyword retrieval.
+
+Steps:
+1. Translate the question to German if it is not already in German.
+2. Remove conversational filler (e.g. "Can you tell me", "I would like to know", "Kannst du mir sagen", "Ich möchte wissen").
+3. Extract the core topic, entity, and intent.
+4. Output only the rewritten query — no explanation, no surrounding text.
+
+Constraints:
+- Output must be in German.
+- Output must be a short, keyword-dense query — not a full sentence unless necessary.
+- Do not include any preamble or explanation in the output.
+
+Input:
+{input}
+
+Output:
+"""  # noqa: E501
+
+
+rewrite_query_prompt = ChatPromptTemplate.from_messages(
+    [
+        ("system", rewrite_query_system_prompt),
+        ("human", "{input}"),
+    ]
+)
+
+language_alignment_system_prompt = """You are a language alignment assistant.
+
+Your only job is to ensure that a chatbot response is written in the same language as the user's message.
+
+Steps:
+1. Detect the language of the user message.
+2. If the response is already in that language, return it unchanged.
+3. If the response is in a different language, translate it into the user's language.
+
+Constraints:
+- Preserve the full meaning, tone, and factual content of the response.
+- Do not add, remove, or alter any information.
+- Do not add any preamble or explanation — output only the (possibly translated) response.
+
+User message: {user_message}
+Response: {response}
+
+Output:
+"""  # noqa: E501
+
+
+language_alignment_prompt = ChatPromptTemplate.from_messages(
+    [
+        ("system", language_alignment_system_prompt),
+    ]
+)

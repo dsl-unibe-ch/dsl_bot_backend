@@ -1,3 +1,7 @@
+# Local temp files
+.tmp/*
+!.tmp/.gitkeep
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
@@ -241,3 +245,5 @@ scripts/crawler/jobs/
 .fe-server.pid
 
 uv.lock
+.tmp/
+docs/
