@@ -25,6 +25,7 @@ from openai import AzureOpenAI
 from app.agent.prompt_templates import (
     _build_agentic_system_prompt,
     get_qa_prompt,
+    language_alignment_prompt,
     rewrite_query_prompt,
     translation_prompt,
 )
@@ -78,6 +79,7 @@ class ChatBot:
         )
         self.translation_chain = translation_prompt | self.chat_client
         self.rewrite_query_chain = rewrite_query_prompt | self.chat_client
+        self.language_alignment_chain = language_alignment_prompt | self.chat_client
         self.chat_history = []
         self.interaction_count = 0
         self.enable_agentic_search = settings.ENABLE_AGENTIC_SEARCH
@@ -176,6 +178,15 @@ class ChatBot:
         if hasattr(rewritten, "content"):
             rewritten = rewritten.content
         return self.truncate_query(rewritten)
+
+    def _align_response_language(self: "ChatBot", user_message: str, response: str) -> str:
+        """Ensures the response is in the same language as the user's message."""
+        aligned = self.language_alignment_chain.invoke(
+            {"user_message": user_message, "response": response}
+        )
+        if hasattr(aligned, "content"):
+            aligned = aligned.content
+        return ftfy.fix_text(str(aligned))
 
     def rewrite_query_tool(self: "ChatBot", query_text: str) -> str:
         """Tool wrapper for query rewrite that tracks agent actions."""
@@ -330,6 +341,7 @@ class ChatBot:
             config={"recursion_limit": self.recursion_limit},
         )
         output_text = self._extract_latest_agent_response(agent_output)
+        output_text = self._align_response_language(query_text, output_text)
         self._append_agentic_trace(
             tool_name="agent_loop_end",
             tool_input_summary="finalize_response",
@@ -434,8 +446,9 @@ class ChatBot:
             )
             if hasattr(response, "content"):
                 response = response.content
+            response = self._align_response_language(query_text, response)
             self.add_to_chat_history(query_text, response, docs_for_chain)
-            return {"output": ftfy.fix_text(response), "sources": docs_for_frontend}
+            return {"output": response, "sources": docs_for_frontend}
         except Exception:
             logger.exception("Error in get_response_from_vectordb:")
             raise
