@@ -482,19 +482,21 @@ class ChatBot:
             raise HTTPException(status_code=400, detail="Session ID is required")
 
         try:
+            request_received_at = datetime.now(ZoneInfo("Europe/Berlin")).isoformat()
             if self.enable_agentic_search:
                 query_response = self._get_response_from_agent(query.text)
             else:
                 query_response = self.get_response_from_vectordb(query.text)
             query_response["session_id"] = query.session_id
-            now = datetime.now(ZoneInfo("Europe/Berlin"))
-            timestamp = now.isoformat()
+            response_generated_at = datetime.now(ZoneInfo("Europe/Berlin")).isoformat()
             sources = query_response.get("sources", [])
             sources_json = json.dumps([str(s) for s in sources]) if sources else "[]"
 
             log_content = {
                 "session_id": str(query.session_id),
-                "timestamp": timestamp,
+                "timestamp": response_generated_at,
+                "request_received_at": request_received_at,
+                "response_generated_at": response_generated_at,
                 "user_message": query.text,
                 "agent_response": query_response.get("output"),
                 "interaction_count": self.interaction_count,
