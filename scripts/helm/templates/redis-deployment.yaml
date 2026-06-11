@@ -32,17 +32,49 @@ spec:
           name: redis
           protocol: TCP
         # Start Redis with LRU eviction so it never OOMs (evicts least-recently-used keys)
-        command: ["redis-server", "--maxmemory", "200mb", "--maxmemory-policy", "allkeys-lru"]
+        # If REDIS_PASSWORD is set in the secret, enforce authentication via --requirepass
+        env:
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.fullnameOverride }}-secrets
+              key: REDIS_PASSWORD
+              optional: true
+        command:
+        - /bin/sh
+        - -c
+        - |
+          if [ -n "$REDIS_PASSWORD" ]; then
+            exec redis-server --maxmemory 200mb --maxmemory-policy allkeys-lru --requirepass "$REDIS_PASSWORD"
+          else
+            exec redis-server --maxmemory 200mb --maxmemory-policy allkeys-lru
+          fi
         livenessProbe:
           exec:
-            command: ["redis-cli", "ping"]
+            command:
+            - /bin/sh
+            - -c
+            - |
+              if [ -n "$REDIS_PASSWORD" ]; then
+                redis-cli -a "$REDIS_PASSWORD" ping
+              else
+                redis-cli ping
+              fi
           initialDelaySeconds: 10
           periodSeconds: 30
           timeoutSeconds: 5
           failureThreshold: 3
         readinessProbe:
           exec:
-            command: ["redis-cli", "ping"]
+            command:
+            - /bin/sh
+            - -c
+            - |
+              if [ -n "$REDIS_PASSWORD" ]; then
+                redis-cli -a "$REDIS_PASSWORD" ping
+              else
+                redis-cli ping
+              fi
           initialDelaySeconds: 5
           periodSeconds: 5
           timeoutSeconds: 3
