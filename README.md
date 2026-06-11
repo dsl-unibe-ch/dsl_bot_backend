@@ -582,24 +582,42 @@ Template Files + Values Files → Helm Renders → Final YAML → Kubernetes API
    appVersion: "0.2.0"   # Application version - sync with pyproject.toml
    ```
 
-3. **Build and push the new Docker image:**
+3. **Update `.env.{ENV}`** with any new secrets or configuration changes (e.g., `REDIS_PASSWORD`, Langfuse keys).
+
+4. **Build and push the new Docker image:**
 
    ```bash
    make build-image-{ENV}
    make push-image-{ENV}
    ```
 
-4. **Upgrade the Helm release:**
+5. **Upgrade the Helm release:**
 
    ```bash
    make helm-upgrade-{ENV}
    ```
 
+   This also re-syncs the Kubernetes secret from `.env.{ENV}` automatically.
+
+6. **Update APIM backend URL (always required after helm upgrade):**
+
+   Every Helm upgrade may assign a new `EXTERNAL_IP` to the LoadBalancer service. APIM must be updated to point to the new IP, otherwise requests will fail.
+
+   ```bash
+   make update-apim-backend-url ENV={ENV}
+   make terraform-plan-{ENV}
+   make terraform-apply-{ENV}
+   ```
+
+   > **Note:** Skip step 6 only if you have verified that the LoadBalancer `EXTERNAL_IP` has not changed (e.g., a config-only upgrade with no service recreation).
+
 The Makefile automatically reads the version from `pyproject.toml` and sets the image tag to `{VERSION}-{ENV}` (e.g., `0.2.0-dev`).
 
 **What gets updated:**
 - Both `api` and `kafka-consumer` use the same image, so both get updated together
+- The Kubernetes secret is re-synced from `.env.{ENV}` on every `helm-upgrade`
 - Kafka uses the official Apache Kafka image and won't change unless you modify `values-{ENV}.yaml`
+- APIM backend URL must be re-pointed to the (potentially new) LoadBalancer IP via Terraform after every upgrade
 
 ### Updating Only Specific Components
 
