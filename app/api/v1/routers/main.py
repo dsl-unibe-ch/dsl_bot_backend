@@ -38,13 +38,10 @@ app = FastAPI(
 )
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        settings.FRONTEND_URL,
-        "*",
-    ],  # any website can send requests to the API. Improvement: only allow the frontend domain, i.e., FRONTEND_URL # noqa: E501
-    allow_credentials=settings.ALLOWED_CREDENTIALS,  # requests can include credentials (cookies, auth headers). Improvement: True only if you need cookies/auth, TBD # noqa: E501
-    allow_methods=settings.ALLOWED_METHODS,  #  HTTP methods GET, POST, PUT, DELETE are allowed. Improvement: only allow necessary HTTP methods, i.e., GET, POST. TBD # noqa: E501
-    allow_headers=settings.ALLOWED_HEADERS,  #  the API will accept requests with any HTTP headers. Improvement: only allow needed header, i.e., Authorization, Content-Type # noqa: E501
+    allow_origins=[settings.FRONTEND_URL] if settings.FRONTEND_URL else [],
+    allow_credentials=settings.ALLOWED_CREDENTIALS,
+    allow_methods=settings.ALLOWED_METHODS,
+    allow_headers=settings.ALLOWED_HEADERS,
 )
 
 
