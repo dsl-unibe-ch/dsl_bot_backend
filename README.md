@@ -897,11 +897,11 @@ E2E tests can be done on three levels with combinations of Frontend (FE) and Bac
 >
 > - **One Command Setup & Test**: 
 >   ```bash
->   make e2e-local2local
+>   make e2e-local2local ENV=dev
 >   ```
 >   Optional To run e2e tests per customer use the initialize-agent endpoint with an origin override. For instance, for innovation office use:
 >   ```bash
->   make e2e-local2local INITIALIZE_AGENT_ORIGIN_URL="https://www.unibe.ch/universitaet/organisation/leitung_und_zentralbereich/vizerektorat_forschung_und_innovation/innovation_office/index_ger.html"
+>   make e2e-local2local ENV=dev INITIALIZE_AGENT_ORIGIN_URL="https://www.unibe.ch/universitaet/organisation/leitung_und_zentralbereich/vizerektorat_forschung_und_innovation/innovation_office/index_ger.html"
 >   ```
 > **Note**: Without any origin, the tests are run for the default customer.
 >   This command will:
