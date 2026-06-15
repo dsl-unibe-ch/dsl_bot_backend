@@ -25,12 +25,12 @@ customer_name_contact_dict={
 
 customer_full_name_dict={
     "quality": "Department of Quality Assurance and Development",
-    "innovation": "Innovation Office",
+    "innovation": "Ideenlabor",
 }
 
 customer_prompt_mapping={
     "quality": """If the query is specifically related to evaluation of teaching or courses, refer the user to lehrevaluation@unibe.ch. Also lehrevaluation@unibe.ch is the best contact for training.""",
-    "innovation": """If the query is specifically related to the IdeenLabor, refer the user to ideenlabor@unibe.ch""",
+    "innovation": """If the query is specifically related to the IdeenLabor, refer the user to ideenlabor@unibe.ch. If the question is about financing, pitching an idea or the innovation process, refer the user to innovationoffice@unibe.ch""",
 }
 
 def get_customer_name_from_url(url: str) -> str | None:
