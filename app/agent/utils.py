@@ -28,7 +28,7 @@ customer_name_contact_dict={
 
 customer_full_name_dict={
     "quality": "Department of Quality Assurance and Development",
-    "innovation": "Ideenlabor",
+    "innovation": "Ideenlabor (Ideas Lab)",
 }
 
 customer_prompt_mapping={
