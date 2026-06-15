@@ -13,8 +13,11 @@ customer_name_root_url_mapping = {
             "https://www.unibe.ch/studies/tools_and_work_aids/for_lecturers/lehrveranstaltungsevaluation/",
             "https://lead.unibe.ch/dienstleistungen/zwischenfeedback/"],
     "innovation": ["https://www.unibe.ch/universitaet/organisation/leitung_und_zentralbereich/vizerektorat_forschung_und_innovation/innovation_office/",
-            "https://www.unibe.ch/university/organization/executive_board_and_central_administration/vice_rectorate_research_and_innovation/innovation_office/"
-            "https://www.unibe.ch/innovation/"
+            "https://www.unibe.ch/university/organization/executive_board_and_central_administration/vice_rectorate_research_and_innovation/innovation_office/",
+            "https://www.unibe.ch/universite/organisation/direction_de_luniversit_et_administration_centrale/vice_rectorat_de_la_recherche_et_de_linnovation/",
+            "https://www.unibe.ch/innovation/",
+            "https://lead.unibe.ch/forschung/lehre_im_ideenlabor/",
+            "https://lead.unibe.ch/research/lehre_im_ideenlabor/",
             ]
     }
 
