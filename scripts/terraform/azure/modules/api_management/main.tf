@@ -137,9 +137,9 @@ resource "azurerm_api_management_api_operation_policy" "initialize_policy" {
 <policies>
     <inbound>
         <base />
-        <cors allow-credentials="false">
+        <cors allow-credentials="true">
           <allowed-origins>
-            <origin>*</origin>
+            <origin>${var.frontend_url}</origin>
           </allowed-origins>
           <allowed-methods>
             <method>GET</method>
@@ -174,9 +174,9 @@ resource "azurerm_api_management_api_operation_policy" "invoke_policy" {
 <policies>
     <inbound>
         <base />
-        <cors allow-credentials="false">
+        <cors allow-credentials="true">
           <allowed-origins>
-            <origin>*</origin>
+            <origin>${var.frontend_url}</origin>
           </allowed-origins>
           <allowed-methods>
             <method>GET</method>
@@ -211,9 +211,9 @@ resource "azurerm_api_management_api_operation_policy" "feedback_policy" {
 <policies>
     <inbound>
         <base />
-        <cors allow-credentials="false">
+        <cors allow-credentials="true">
           <allowed-origins>
-            <origin>*</origin>
+            <origin>${var.frontend_url}</origin>
           </allowed-origins>
           <allowed-methods>
             <method>GET</method>

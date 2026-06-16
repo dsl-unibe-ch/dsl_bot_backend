@@ -192,6 +192,7 @@ module "api_management" {
   feedback_quota_calls        = var.apim_feedback_quota_calls
   
   subscription_required = var.apim_subscription_required
+  frontend_url          = var.apim_frontend_url
   
   tags = local.default_tags
 }
