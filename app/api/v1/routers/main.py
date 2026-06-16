@@ -3,8 +3,9 @@
 import logging
 import tomllib
 from pathlib import Path
+from uuid import UUID
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import Cookie, FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
@@ -63,14 +64,15 @@ def health_check() -> dict:
 
 
 @app.get("/initialize-agent")
-def initialize_agent(origin: str | None = None) -> StartSessionResponse:
-    """Create a new chatbot session and return its unique session ID.
+def initialize_agent(response: Response, origin: str | None = None) -> StartSessionResponse:
+    """Create a new chatbot session and set a session cookie.
 
-    This endpoint initializes a new ChatBot instance and stores it in the session dictionary.
-    Call this when starting a new conversation.
+    This endpoint initializes a new ChatBot instance, stores it in the session dictionary,
+    and sets a ``session_id`` cookie so the browser automatically identifies itself in
+    subsequent requests (/invoke-agent, /send-feedback).
 
     Returns:
-        StartSessionResponse: An object containing the generated session_id.
+        StartSessionResponse: An object containing the generated session_id and customer_name.
     """  # noqa: E501
     if origin:
         customer_name = get_customer_name_from_url(origin)
@@ -79,21 +81,36 @@ def initialize_agent(origin: str | None = None) -> StartSessionResponse:
     else:
         customer_name = settings.DEFAULT_CUSTOMER
     chatbot = ChatBot(customer_name=customer_name)
-    return chatbot.initialize_agent_wrapper()
+    result = chatbot.initialize_agent_wrapper()
+    response.set_cookie(
+        key="session_id",
+        value=str(result.session_id),
+        httponly=True,
+        samesite=settings.COOKIE_SAMESITE,
+        secure=settings.COOKIE_SECURE,
+        max_age=settings.REDIS_SESSION_TTL_SECONDS,
+    )
+    return result
 
 
 @app.post("/invoke-agent")
-def invoke_agent(query: QueryInput) -> QueryOutput:
-    """Query the chatbot for an answer using the provided session and user input.
+def invoke_agent(query: QueryInput, session_id: UUID | None = Cookie(default=None)) -> QueryOutput:
+    """Query the chatbot for an answer using the session cookie and user input.
+
+    The session is identified via the ``session_id`` cookie set by GET /initialize-agent.
 
     Args:
-        query (QueryInput): The user's question and session information.
-        session_id (UUID): The session ID to retrieve the ChatBot instance.
+        query (QueryInput): The user's question and optional origin.
+        session_id: Extracted automatically from the ``session_id`` cookie.
 
     Returns:
-        QueryOutput: The chatbot's response, including sources and session ID.
+        QueryOutput: The chatbot's response including sources.
     """
-    state = session_store.load_session(query.session_id)
+    if session_id is None:
+        raise HTTPException(
+            status_code=401, detail="No session cookie found. Call GET /initialize-agent first."
+        )
+    state = session_store.load_session(session_id)
     if state is None:
         raise HTTPException(
             status_code=404, detail="Session not found. Call GET /initialize-agent to start a session."
@@ -101,20 +118,27 @@ def invoke_agent(query: QueryInput) -> QueryOutput:
     chatbot = ChatBot(customer_name=state["customer_name"])
     chatbot.chat_history = state["chat_history"]
     chatbot.interaction_count = state["interaction_count"]
-    return chatbot.invoke_agent_wrapper(query)
+    return chatbot.invoke_agent_wrapper(query, session_id)
 
 
 @app.post("/send-feedback")
-def send_feedback(feedback: Feedback) -> FeedbackResponse:
+def send_feedback(feedback: Feedback, session_id: UUID | None = Cookie(default=None)) -> FeedbackResponse:
     """Submit user feedback for a chatbot session.
 
+    The session is identified via the ``session_id`` cookie set by GET /initialize-agent.
+
     Args:
-        feedback (Feedback): The feedback object containing session ID, rating, and comments.
+        feedback (Feedback): The feedback object containing rating and optional comments.
+        session_id: Extracted automatically from the ``session_id`` cookie.
 
     Returns:
-        FeedbackResponse: Confirmation message and session ID if feedback is stored successfully.
+        FeedbackResponse: Confirmation message if feedback is stored successfully.
     """  # noqa: E501
-    state = session_store.load_session(feedback.session_id)
+    if session_id is None:
+        raise HTTPException(
+            status_code=401, detail="No session cookie found. Call GET /initialize-agent first."
+        )
+    state = session_store.load_session(session_id)
     if state is None:
         raise HTTPException(status_code=404, detail="Session not found.")
     interaction_count = state["interaction_count"]
@@ -124,6 +148,7 @@ def send_feedback(feedback: Feedback) -> FeedbackResponse:
     if not resolved_customer and index_name and index_name.startswith("kb-"):
         resolved_customer = index_name.removeprefix("kb-")
     return feedback.send_feedback_wrapper(
+        session_id,
         interaction_count,
         origin=origin,
         index_name=index_name,

@@ -25,22 +25,22 @@ class Feedback(BaseModel):
 
     rating: int  # 1 for thumbs up, 0 for thumbs down
     comments: str = None  # Optional additional comments
-    session_id: UUID
     origin: str | None = None
 
     def send_feedback_wrapper(
         self: "Feedback",
+        session_id: UUID,
         interaction_count: int,
         origin: str | None = None,
         index_name: str | None = None,
         customer_name: str | None = None,
     ) -> FeedbackResponse:
         """Send feedback to Azure Table Storage."""
-        if self.session_id:
+        if session_id:
             now = datetime.datetime.now(ZoneInfo("Europe/Berlin"))
             timestamp = now.isoformat()
             log_content = {
-                "session_id": str(self.session_id),
+                "session_id": str(session_id),
                 "timestamp": timestamp,
                 "feedback": self.rating,
                 "comments": self.comments,
@@ -55,6 +55,5 @@ class Feedback(BaseModel):
 
             return FeedbackResponse(
                 message="Feedback received successfully",
-                session_id=self.session_id,
             )
         raise HTTPException(status_code=400, detail="Session ID is required")

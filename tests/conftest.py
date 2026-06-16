@@ -123,8 +123,8 @@ def invoke_agent(
         elif role == "assistant":
             chatbot.chat_history.append(AIMessage(content=message))
     session_id = uuid.uuid4()
-    query_input = QueryInput(text=input_, session_id=session_id)
-    query_response = chatbot.invoke_agent_wrapper(query_input)
+    query_input = QueryInput(text=input_)
+    query_response = chatbot.invoke_agent_wrapper(query_input, session_id)
     return {"output": query_response["output"], "sources": query_response["sources"]}
 
 

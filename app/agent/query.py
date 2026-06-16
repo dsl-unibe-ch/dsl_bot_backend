@@ -1,7 +1,5 @@
 """Schemas for the query integration."""
 
-from uuid import UUID
-
 from pydantic import BaseModel
 
 
@@ -10,12 +8,10 @@ class QueryInput(BaseModel):
 
     Args:
         text: The text of the query
-        session_id: The session ID
         origin: Optional origin for customer resolution
     """
 
     text: str
-    session_id: UUID
     origin: str | None = None
 
 
@@ -44,9 +40,7 @@ class QueryOutput(BaseModel):
     Args:
         output: The output of the query
         sources: List of query sources where each entry is an object of Source class
-        session_id: The session ID
     """
 
     output: str
     sources: list[Source]
-    session_id: UUID

@@ -59,6 +59,8 @@ class Settings(BaseSettings):
     REDIS_PORT: int
     REDIS_PASSWORD: str | None = None
     REDIS_SESSION_TTL_SECONDS: int
+    COOKIE_SECURE: bool
+    COOKIE_SAMESITE: str
 
     LANGFUSE_API_KEY: str | None = None
     LANGFUSE_PROJECT: str | None = None
