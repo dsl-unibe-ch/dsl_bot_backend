@@ -323,9 +323,6 @@ def _send_one_message_and_wait(
     response_rag = response_info.value
 
     sent = _parse_request_json(request_rag)
-    sid_val = sent.get("session_id")
-    if not _is_valid_uuid(sid_val):
-        pytest.fail(f"Invalid session_id in body: {sid_val!r}")
     txt_val = sent.get("text")
     if not isinstance(txt_val, str) or not txt_val.strip():
         pytest.fail("text missing or empty in request body")
@@ -390,9 +387,6 @@ def test_frontend_to_backend(app_page: Page) -> None:
     response_fb = response_info_fb.value
 
     sent_fb = _parse_request_json(request_fb)
-    sid_fb = sent_fb.get("session_id")
-    if not isinstance(sid_fb, str) or not sid_fb.strip() or not _is_valid_uuid(sid_fb):
-        pytest.fail(f"Invalid session_id in feedback body: {sid_fb!r}")
     comments_val = sent_fb.get("comments")
     if comments_val is not None and not isinstance(comments_val, str):
         pytest.fail(f"Invalid comments type: {type(comments_val).__name__}")

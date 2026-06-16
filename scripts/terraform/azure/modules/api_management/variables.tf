@@ -100,3 +100,8 @@ variable "tags" {
   type        = map(string)
   description = "Tags to apply to the APIM resource"
 }
+
+variable "frontend_url" {
+  type        = string
+  description = "Allowed frontend origin for CORS (e.g. https://myfrontendurl.com). Must be an explicit origin — not a wildcard — because cookies require credentials mode."
+}

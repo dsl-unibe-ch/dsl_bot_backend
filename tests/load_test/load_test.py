@@ -48,7 +48,6 @@ class KioskbotUser(HttpUser):
             logger.debug("[rag_agent] No session_id, skipping task.")
             return
         payload = {
-            "session_id": self.session_id,
             "text": "What is the email address of the QSE Department?",
         }
         response = self.client.post("/invoke-agent", json=payload)
@@ -71,7 +70,6 @@ class KioskbotUser(HttpUser):
             logger.debug("[send_feedback] No session_id, skipping task.")
             return
         payload = {
-            "session_id": self.session_id,
             "rating": 5,
             "comments": "Works well",
         }

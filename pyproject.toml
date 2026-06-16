@@ -1,6 +1,6 @@
 [project]
 name = "kioskbot"
-version = "0.2.9"
+version = "0.2.12"
 description = "Kioskbot project"
 readme = "README.md"
 requires-python = "==3.12.11"

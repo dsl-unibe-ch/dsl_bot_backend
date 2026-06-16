@@ -331,6 +331,11 @@ variable "apim_subscription_required" {
   default     = null
 }
 
+variable "apim_frontend_url" {
+  type        = string
+  description = "Allowed frontend origin for CORS (e.g. https://myfrontendurl.ch). Must be an explicit origin — not a wildcard — because cookies require credentials mode."
+}
+
 # Rate limiting for /initialize-agent
 variable "apim_initialize_rate_limit_calls" {
   type        = number

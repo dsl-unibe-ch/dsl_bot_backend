@@ -470,7 +470,7 @@ class ChatBot:
             del self.chat_history[1:3]
         return self.chat_history
 
-    def invoke_agent_wrapper(self, query: QueryInput) -> QueryOutput:
+    def invoke_agent_wrapper(self, query: QueryInput, session_id: uuid.UUID) -> QueryOutput:
         """Process a chatbot query and optionally store chat history."""
         if self is None:
             error_message = (
@@ -478,22 +478,18 @@ class ChatBot:
             )
             raise RuntimeError(error_message)
 
-        if not query.session_id:
-            raise HTTPException(status_code=400, detail="Session ID is required")
-
         try:
             request_received_at = datetime.now(ZoneInfo("Europe/Berlin")).isoformat()
             if self.enable_agentic_search:
                 query_response = self._get_response_from_agent(query.text)
             else:
                 query_response = self.get_response_from_vectordb(query.text)
-            query_response["session_id"] = query.session_id
             response_generated_at = datetime.now(ZoneInfo("Europe/Berlin")).isoformat()
             sources = query_response.get("sources", [])
             sources_json = json.dumps([str(s) for s in sources]) if sources else "[]"
 
             log_content = {
-                "session_id": str(query.session_id),
+                "session_id": str(session_id),
                 "timestamp": response_generated_at,
                 "request_received_at": request_received_at,
                 "response_generated_at": response_generated_at,
@@ -523,7 +519,7 @@ class ChatBot:
 
         else:
             save_session(
-                query.session_id,
+                session_id,
                 self.customer_name,
                 self.index_name,
                 self.chat_history,

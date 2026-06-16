@@ -68,12 +68,23 @@ The chatbot supports two retrieval modes, switched by `ENABLE_AGENTIC_SEARCH`:
 
 Chat history is persisted in Redis so sessions survive across multiple API pods. Redis runs as an in-cluster service deployed by Helm - no separate Terraform provisioning is needed.
 
+The session is identified by a **`session_id` HTTP cookie** set by `GET /initialize-agent`. The browser and Locust's `HttpUser` send the cookie automatically on every subsequent request, so no `session_id` field is needed in request bodies.
+
+Cookie behaviour is controlled by two explicit `.env.*` variables, not hardcoded per environment:
+
+| Variable | dev (local↔local) | dev (local FE → cloud BE) | prod |
+|---|---|---|---|
+| `COOKIE_SECURE` | `false` | `true` | `true` |
+| `COOKIE_SAMESITE` | `lax` | `none` | `none` |
+
+> `SameSite=None` requires `Secure=True` (browsers reject the cookie otherwise). Use `none`+`true` whenever the frontend and backend are on different origins.
+
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `REDIS_HOST` | `redis` | Redis hostname - use `redis` for both Docker Compose and Kubernetes (matches the service name). |
 | `REDIS_PORT` | `6379` | Redis port. |
 | `REDIS_PASSWORD` | *(empty)* | Redis password. Leave empty for local dev; set for prod. |
-| `REDIS_SESSION_TTL_SECONDS` | `3600` | How long a session is kept after the last request (seconds). |
+| `REDIS_SESSION_TTL_SECONDS` | `3600` | How long a session (and its cookie) is kept after the last request (seconds). |
 
 </details>
 
@@ -1125,41 +1136,37 @@ make run-demo customer_name=quality
 <details>
 <summary>Click to expand</summary>
 
+Session identity is managed entirely via a **`session_id` cookie** set by the backend.
+The browser (or `curl --cookie-jar`) stores and re-sends the cookie automatically, so
+no `session_id` field is needed in request bodies.
+
 - Start the docker containers: 
 ```bash
 make compose-up-dev
 ```
 
-- Start a session:
+- Start a session (the backend sets a `session_id` cookie in the response):
 ```bash
-curl -s http://127.0.0.1:8000/initialize-agent | jq .
+curl -s -c cookies.txt http://127.0.0.1:8000/initialize-agent | jq .
 ```
 
-- Start a session with origin. Here the example shown an innovation office URL as
+- Start a session with origin (e.g. innovation office):
 ```bash
-curl -s "http://127.0.0.1:8000/initialize-agent?origin=https://www.unibe.ch/universitaet/organisation/leitung_und_zentralbereich/vizerektorat_forschung_und_innovation/innovation_office/index_ger.html" | jq .
+curl -s -c cookies.txt "http://127.0.0.1:8000/initialize-agent?origin=https://www.unibe.ch/universitaet/organisation/leitung_und_zentralbereich/vizerektorat_forschung_und_innovation/innovation_office/index_ger.html" | jq .
 ```
 
-**Note**: Start a session with URL-encoded origin (recommended for scripts) as shown above.
-
-- Alternatively, start the session and save its session id in a shell variable:
+- Interact with the Agent (cookie is sent automatically via `-b cookies.txt`):
 ```bash
-session=$(curl -s http://127.0.0.1:8000/initialize-agent | jq -r .session_id)
-echo $session
-```
-
-- Interact with the Agent:
-```bash
-curl -s -X POST "http://127.0.0.1:8000/invoke-agent" -H "Content-Type: application/json" -d '{"session_id":"'"$session"'","text":"What is the email address of the QSE Department?"}' | jq .
+curl -s -b cookies.txt -X POST "http://127.0.0.1:8000/invoke-agent" -H "Content-Type: application/json" -d '{"text":"What is the email address of the QSE Department?"}' | jq .
 ```
 
 ```bash
-curl -s -X POST "http://127.0.0.1:8000/invoke-agent" -H "Content-Type: application/json" -d '{"session_id":"'"$session"'","text":"Where it is located?"}' | jq .
+curl -s -b cookies.txt -X POST "http://127.0.0.1:8000/invoke-agent" -H "Content-Type: application/json" -d '{"text":"Where it is located?"}' | jq .
 ```
 
 - Send feedback:
 ```bash
-curl -s -X POST "http://127.0.0.1:8000/send-feedback" -H "Content-Type: application/json" -d '{"session_id":"'"$session"'","rating":5,"comments":"Works well"}' | jq .
+curl -s -b cookies.txt -X POST "http://127.0.0.1:8000/send-feedback" -H "Content-Type: application/json" -d '{"rating":1,"comments":"Works well"}' | jq .
 ```
 
 </details>

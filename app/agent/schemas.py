@@ -16,4 +16,3 @@ class FeedbackResponse(BaseModel):
     """Response model for the send_feedback endpoint."""
 
     message: str
-    session_id: UUID
