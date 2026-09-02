@@ -19,7 +19,7 @@ dependencies = [
     "uvicorn==0.35.0",
     "pydantic_settings==2.10.1",
     "pandas==2.3.2",
-    "kafka-python==2.2.15",
+    "kafka-python==2.3.2",
     "azure-storage-blob==12.26.0",
     "langchain-classic==1.0.7",
     "redis==5.2.1",
