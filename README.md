@@ -4,7 +4,7 @@
 
 - Docker
 
-- Install Python 3.12.11
+- Install Python 3.14.7
 
 - To assess the performance of the RAG Agent, create an account on [Langfuse](https://cloud.langfuse.com/), create a project and generate a new key
 
@@ -17,12 +17,12 @@
 - Install `uv`: 
 
 ```bash
-pip install uv==0.8.14
+pip install uv==0.12.9
 ```
 
 - Create virtual environment: 
 ```bash
-uv venv .venv --python 3.12.11
+uv venv .venv --python 3.14.7
 ```
 
 - Activate with: 
