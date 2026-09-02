@@ -68,7 +68,9 @@ def download_and_split_logs(
         if str(payload.get("environment", "")).lower() != "prod":
             continue
 
-        customer = _safe_customer_name(str(payload.get("customer_name", "unknown_customer")))
+        customer = _safe_customer_name(
+            str(payload.get("customer_name", "unknown_customer"))
+        )
         customer_rows.setdefault(customer, []).append(payload)
         total_prod += 1
 

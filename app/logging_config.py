@@ -1,3 +1,4 @@
+# Copyright (c) 2026, University of Bern, Data Science Lab
 """Centralized logging configuration for Kioskbot."""
 
 import logging

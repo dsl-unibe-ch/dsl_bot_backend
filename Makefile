@@ -7,9 +7,9 @@ INITIALIZE_AGENT_ORIGIN_URL ?=
 
 lint:
 	@echo $@
-	$(PYTHON) -m ruff format app demo tests scripts
+	$(PYTHON) -m ruff format app demo 
 	@echo $@
-	$(PYTHON) -m ruff check --fix app demo tests scripts
+	$(PYTHON) -m ruff check --fix app demo 
 
 generate-assessment-dataset:
 	@echo $@

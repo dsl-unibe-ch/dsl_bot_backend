@@ -83,9 +83,7 @@ _PROMPT_TEMPLATE = """You are an expert data labeler evaluating model outputs fo
 @pytest.fixture(scope="session")
 def prompt() -> str:
     """Construct the customer-specific prompt for the correctness evaluator."""
-    customer = (
-        os.environ.get("CUSTOMER_NAME", "").strip() or settings.DEFAULT_CUSTOMER
-    )
+    customer = os.environ.get("CUSTOMER_NAME", "").strip() or settings.DEFAULT_CUSTOMER
     guidelines = _CUSTOMER_GUIDELINES.get(customer, _CUSTOMER_GUIDELINES["quality"])
     return _PROMPT_TEMPLATE.format(customer_guidelines=guidelines)
 
@@ -131,7 +129,9 @@ def test_correctness_experiment(
             ],
         }
 
-    def evaluator_correctness(*, input, output, expected_output, **_kwargs) -> Evaluation:  # type: ignore[misc]
+    def evaluator_correctness(
+        *, input, output, expected_output, **_kwargs
+    ) -> Evaluation:  # type: ignore[misc]
         result = correctness_evaluator(
             inputs=input["question"],
             outputs=output["agent_output"],

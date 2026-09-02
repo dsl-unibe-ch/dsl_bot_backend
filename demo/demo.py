@@ -1,3 +1,4 @@
+# Copyright (c) 2026, University of Bern, Data Science Lab
 """Demo script of kioskbot."""
 
 from argparse import ArgumentParser
@@ -38,7 +39,6 @@ def main() -> None:
 
         query_response = chatbot.invoke_agent_wrapper(query_input)
         print(f"Output: {query_response['output']}")  # noqa: T201
-        
 
     my_feedback = Feedback(
         rating=5,

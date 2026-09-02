@@ -1,25 +1,25 @@
+# Copyright (c) 2026, University of Bern, Data Science Lab
 """Endpoints for the Kioskbot."""
 
 import logging
 import tomllib
 from pathlib import Path
-from uuid import UUID
+from typing import TYPE_CHECKING, Annotated
+from uuid import UUID  # noqa: TC003
 
 from fastapi import Cookie, FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from app.agent.chatbot_agent import ChatBot
-from app.agent.feedback import Feedback
-from app.agent.query import QueryInput, QueryOutput
-from app.agent.schemas import (
-    FeedbackResponse,
-    StartSessionResponse,
-)
 from app.agent import session_store
+from app.agent.chatbot_agent import ChatBot
 from app.agent.utils import get_customer_name_from_url
 from app.config import settings
 
+if TYPE_CHECKING:
+    from app.agent.feedback import Feedback
+    from app.agent.query import QueryInput, QueryOutput
+    from app.agent.schemas import FeedbackResponse, StartSessionResponse
 logger = logging.getLogger("Kioskbot")
 
 
@@ -47,13 +47,16 @@ app.add_middleware(
 
 
 @app.exception_handler(Exception)
-def unhandled_exception_handler(
-    request: Request, exc: Exception
-) -> JSONResponse:
+def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
     """Log unexpected exceptions with stack traces."""
-    logger.exception("Unhandled exception at %s", request.url.path)
+    logger.error(
+        "Unhandled exception at %s",
+        request.url.path,
+        exc_info=exc,
+    )
     return JSONResponse(
-        status_code=500, content={"detail": "Internal server error"}
+        status_code=500,
+        content={"detail": "Internal server error"},
     )
 
 
@@ -64,7 +67,9 @@ def health_check() -> dict:
 
 
 @app.get("/initialize-agent")
-def initialize_agent(response: Response, origin: str | None = None) -> StartSessionResponse:
+def initialize_agent(
+    response: Response, origin: str | None = None
+) -> StartSessionResponse:
     """Create a new chatbot session and set a session cookie.
 
     This endpoint initializes a new ChatBot instance, stores it in the session dictionary,
@@ -94,10 +99,12 @@ def initialize_agent(response: Response, origin: str | None = None) -> StartSess
 
 
 @app.post("/invoke-agent")
-def invoke_agent(query: QueryInput, session_id: UUID | None = Cookie(default=None)) -> QueryOutput:
+def invoke_agent(
+    query: QueryInput, session_id: Annotated[UUID | None, Cookie()] = None
+) -> QueryOutput:
     """Query the chatbot for an answer using the session cookie and user input.
 
-    The session is identified via the ``session_id`` cookie set by GET /initialize-agent.
+    Session identified via the ``session_id`` cookie set by GET /initialize-agent.
 
     Args:
         query (QueryInput): The user's question and optional origin.
@@ -108,12 +115,14 @@ def invoke_agent(query: QueryInput, session_id: UUID | None = Cookie(default=Non
     """
     if session_id is None:
         raise HTTPException(
-            status_code=401, detail="No session cookie found. Call GET /initialize-agent first."
+            status_code=401,
+            detail="No session cookie found. Call GET /initialize-agent first.",
         )
     state = session_store.load_session(session_id)
     if state is None:
         raise HTTPException(
-            status_code=404, detail="Session not found. Call GET /initialize-agent to start a session."
+            status_code=404,
+            detail="Session not found. Call GET /initialize-agent to start a session.",
         )
     chatbot = ChatBot(customer_name=state["customer_name"])
     chatbot.chat_history = state["chat_history"]
@@ -122,7 +131,10 @@ def invoke_agent(query: QueryInput, session_id: UUID | None = Cookie(default=Non
 
 
 @app.post("/send-feedback")
-def send_feedback(feedback: Feedback, session_id: UUID | None = Cookie(default=None)) -> FeedbackResponse:
+def send_feedback(
+    feedback: Feedback,
+    session_id: Annotated[UUID | None, Cookie()] = None,
+) -> FeedbackResponse:
     """Submit user feedback for a chatbot session.
 
     The session is identified via the ``session_id`` cookie set by GET /initialize-agent.
@@ -136,7 +148,8 @@ def send_feedback(feedback: Feedback, session_id: UUID | None = Cookie(default=N
     """  # noqa: E501
     if session_id is None:
         raise HTTPException(
-            status_code=401, detail="No session cookie found. Call GET /initialize-agent first."
+            status_code=401,
+            detail="No session cookie found. Call GET /initialize-agent first.",
         )
     state = session_store.load_session(session_id)
     if state is None:

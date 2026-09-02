@@ -8,9 +8,8 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from langchain_openai import AzureChatOpenAI
-
 from langchain_core.messages import AIMessage, HumanMessage
+from langchain_openai import AzureChatOpenAI
 
 from app.agent.chatbot_agent import ChatBot
 from app.agent.query import QueryInput
@@ -88,7 +87,9 @@ def _make_judge_evaluator(
         try:
             return json.loads(content)
         except json.JSONDecodeError:
-            score = 1 if any(w in content.lower() for w in ("correct", "accurate")) else 0
+            score = (
+                1 if any(w in content.lower() for w in ("correct", "accurate")) else 0
+            )
             return {"score": score, "comment": content}
 
     return _evaluate
@@ -110,9 +111,7 @@ def invoke_agent(
 ) -> dict:
     """Invoke the RAG agent with the given input and return the output."""
     resolved_customer = (
-        customer_name
-        or os.environ.get("CUSTOMER_NAME")
-        or settings.DEFAULT_CUSTOMER
+        customer_name or os.environ.get("CUSTOMER_NAME") or settings.DEFAULT_CUSTOMER
     )
     chatbot = ChatBot(customer_name=resolved_customer)
     for turn in history or []:

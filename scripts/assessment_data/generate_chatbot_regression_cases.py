@@ -1,15 +1,13 @@
 #!/usr/bin/env python3
-"""Generate chatbot regression cases from Excel logs.
-"""
+"""Generate chatbot regression cases from Excel logs."""
 
 import argparse
 import json
 import logging
-import os
 import re
 import time
 from pathlib import Path
-from typing import Any, Literal
+from typing import Literal
 
 import pandas as pd
 from azure.core.credentials import AzureKeyCredential
@@ -42,9 +40,9 @@ AnswerabilityLabel = Literal["answerable_from_docs", "unanswerable_from_docs"]
 ExpectedActionLabel = Literal["answer", "clarify", "defer_or_decline"]
 
 fallback_email_address_list = {
-        "innovation": ["innovationoffice@unibe.ch", "ideenlabor@unibe.ch"],
-        "quality": ["info.qualitaet@unibe.ch", "lehrevaluation@unibe.ch"],
-    }
+    "innovation": ["innovationoffice@unibe.ch", "ideenlabor@unibe.ch"],
+    "quality": ["info.qualitaet@unibe.ch", "lehrevaluation@unibe.ch"],
+}
 
 domain_descriptions = {
     "innovation": """Innovation Office
@@ -75,7 +73,6 @@ domain_descriptions = {
                         - Establishment and founding of startups or innovation collaborations 
                         - Innovation impact: identify the impact areas (social, environmental, economic, or specific SDGs) of your innovation and how they can be measured and communicated
                         """,
-
     "quality": """ Office for Quality Assurance and Development (QAD Office):
                         The University of Bern pursues quality management as a participatory culture that permeates all areas of the university at the university-wide level.
                         It has a university commission, a department for quality assurance and development, the Accreditation Working Group (AKKRED) and faculty quality commissions. It is responsible for institutional accreditation, ensures the implementation of the quality strategy and networks and accompanies stakeholders in quality-related matters.
@@ -92,8 +89,8 @@ domain_descriptions = {
                         Institutional accreditation
                         Commission for Quality Assurance and Development
                         Accreditation Working Group (AKKRED)
-                        Advice and support for further evaluation projects. """
-                        }
+                        Advice and support for further evaluation projects. """,
+}
 
 
 class RegressionInput(BaseModel):
@@ -112,6 +109,7 @@ class RegressionInput(BaseModel):
 
 class RegressionExpected(BaseModel):
     """Expected chatbot behavior."""
+
     scope_label: ScopeLabel
     answerability: AnswerabilityLabel | None = None
     expected_action: ExpectedActionLabel | None = None
@@ -129,6 +127,7 @@ class RegressionCase(BaseModel):
 
 class RegressionCaseList(BaseModel):
     """LLM-generated list of regression cases."""
+
     cases: list[RegressionCase]
 
 
@@ -272,7 +271,9 @@ def make_search_client(*, config: Settings, customer_name: str) -> SearchClient:
     )
 
 
-def embed_query(*, client: AzureOpenAI, config: Settings, query_text: str) -> list[float]:
+def embed_query(
+    *, client: AzureOpenAI, config: Settings, query_text: str
+) -> list[float]:
     """Embed batch query text for vector retrieval."""
     response = client.embeddings.create(
         input=[query_text],
@@ -291,11 +292,17 @@ def fetch_kb_context_for_rows(
     max_chars: int = 24000,
 ) -> str:
     """Query Azure AI Search directly and return compact relevant excerpts."""
-    query_text = " ".join(str(row.get("user_message", "")).strip() for row in rows if row.get("user_message"))
+    query_text = " ".join(
+        str(row.get("user_message", "")).strip()
+        for row in rows
+        if row.get("user_message")
+    )
     if not query_text:
         return ""
 
-    query_embedding = embed_query(client=embedding_client, config=config, query_text=query_text)
+    query_embedding = embed_query(
+        client=embedding_client, config=config, query_text=query_text
+    )
     vectorized_query = VectorizedQuery(
         vector=query_embedding,
         kind="vector",
@@ -322,20 +329,22 @@ def fetch_kb_context_for_rows(
         if current_length + len(addition) > max_chars:
             remaining = max_chars - current_length
             if remaining > len(separator) + 200:
-                context_parts.append(f"{separator}{snippet[: remaining - len(separator)]}")
+                context_parts.append(
+                    f"{separator}{snippet[: remaining - len(separator)]}"
+                )
             break
         context_parts.append(addition)
         current_length += len(addition)
 
     return "".join(context_parts)
 
+
 def infer_answerability_from_kb(
     *,
     query: str,
     kb_corpus: str,
 ) -> AnswerabilityLabel:
-    """Infer answerability by token overlap against the full KB export.
-    """
+    """Infer answerability by token overlap against the full KB export."""
     answerability_prompt = f"""
     Given the query {query}, determine if a user question can be answered using the provided knowledge base content.
     If the query is in-scope but the KB does not contain the answer, label it as "unanswerable_from_docs". 
@@ -380,7 +389,6 @@ def read_excel_logs(file_path: Path, sheet_name: str | None = None) -> pd.DataFr
     return df
 
 
-
 def is_feedback_only_row(row: pd.Series) -> bool:
     """Detect feedback-only rows."""
     user_message = row.get("user_message")
@@ -392,22 +400,17 @@ def is_feedback_only_row(row: pd.Series) -> bool:
 
 def extract_candidate_rows(df: pd.DataFrame) -> list[dict]:
     """Extract candidate rows from chatbot logs."""
-
     df_cleaned = df.loc[
-        lambda frame: frame["user_message"]
-        .fillna("")
-        .astype(str)
-        .str.strip()
-        .ne("")
+        lambda frame: frame["user_message"].fillna("").astype(str).str.strip().ne("")
     ]
     if "timestamp" in df_cleaned.columns:
         df_cleaned = df_cleaned.sort_values(by=["timestamp"], na_position="last")  # type: ignore[call-overload]
     df_cleaned = df_cleaned.reset_index(drop=True)
     candidates = []
     for _, row in df_cleaned.iterrows():
-
         message = row.get("user_message")
-        candidates.append({
+        candidates.append(
+            {
                 "session_id": row.get("session_id"),
                 "interaction_count": None
                 if pd.isna(row.get("interaction_count"))
@@ -415,10 +418,13 @@ def extract_candidate_rows(df: pd.DataFrame) -> list[dict]:
                 "user_message": message,
                 "agent_response": row.get("agent_response"),
                 "comments": row.get("comments"),
-                "feedback": None if pd.isna(row.get("feedback")) else row.get("feedback"),
+                "feedback": None
+                if pd.isna(row.get("feedback"))
+                else row.get("feedback"),
                 "sources_present": bool(row.get("sources")),
                 "version": row.get("version"),
-            })
+            }
+        )
 
     return candidates
 
@@ -505,7 +511,6 @@ def deduplicate_cases(cases: list[RegressionCase]) -> list[RegressionCase]:
     return deduplicated
 
 
-
 def write_jsonl(cases: list[RegressionCase], output_path: Path) -> None:
     """Write cases as JSONL."""
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -527,16 +532,17 @@ def write_json(cases: list[RegressionCase], output_path: Path) -> None:
             indent=2,
         )
 
-def reassign_stable_ids(cases: list[RegressionCase], customer_name: str) -> list[RegressionCase]:
+
+def reassign_stable_ids(
+    cases: list[RegressionCase], customer_name: str
+) -> list[RegressionCase]:
     """Reassign stable IDs based on message content."""
-    
     for i, case in enumerate(cases):
-        case.id = f"{customer_name}_{i+1:04d}"
+        case.id = f"{customer_name}_{i + 1:04d}"
     return cases
 
-def _create_langfuse_dataset_if_not_exists(
-    langfuse_client, dataset_name: str
-) -> None:
+
+def _create_langfuse_dataset_if_not_exists(langfuse_client, dataset_name: str) -> None:
     """Create the Langfuse dataset if it does not already exist."""
     try:
         langfuse_client.create_dataset(
@@ -570,9 +576,7 @@ def upload_cases_to_langfuse(
         )
         logger.debug("Uploaded case %s to Langfuse dataset '%s'", case.id, dataset_name)
     langfuse_client.flush()
-    logger.info(
-        "Uploaded %d cases to Langfuse dataset '%s'", len(cases), dataset_name
-    )
+    logger.info("Uploaded %d cases to Langfuse dataset '%s'", len(cases), dataset_name)
 
 
 def main() -> None:
@@ -607,11 +611,11 @@ def main() -> None:
     output_jsonl_path = regression_cases_path(customer_name)
     index_name = _get_index_name(config, customer_name)
     logger.info("Using Azure AI Search index: %s", index_name)
-    
+
     batch_size = 5
     sleep_seconds = 2.0
     max_cases_per_batch = 25
-    
+
     logger.info("Reading Excel file: %s", input_path)
     df = read_excel_logs(input_path)
 
@@ -638,7 +642,7 @@ def main() -> None:
             rows=batch,
             customer_name=customer_name,
             domain_description=domain_descriptions[customer_name],
-            fallback_email_addresses = fallback_email_address_list[customer_name],
+            fallback_email_addresses=fallback_email_address_list[customer_name],
             case_id_prefix=customer_name,
             max_cases_per_batch=max_cases_per_batch,
         )
@@ -657,13 +661,15 @@ def main() -> None:
     write_jsonl(all_cases, output_jsonl_path)
 
     if args.upload_to_langfuse:
-        dataset_name = (
-            args.langfuse_dataset_name
-            or langfuse_regression_dataset_name(customer_name)
+        dataset_name = args.langfuse_dataset_name or langfuse_regression_dataset_name(
+            customer_name
         )
         logger.info("Uploading cases to Langfuse dataset '%s'", dataset_name)
         upload_cases_to_langfuse(
-            all_cases, customer_name=customer_name, dataset_name=dataset_name, config=config
+            all_cases,
+            customer_name=customer_name,
+            dataset_name=dataset_name,
+            config=config,
         )
 
     logger.info("Done")
