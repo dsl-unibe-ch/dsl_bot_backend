@@ -9,6 +9,10 @@ resource "azurerm_kubernetes_cluster" "this" {
     type = "SystemAssigned"
   }
 
+  node_provisioning_profile {
+    mode = "Manual"
+  }
+
   linux_profile {
     admin_username = var.admin_username
 

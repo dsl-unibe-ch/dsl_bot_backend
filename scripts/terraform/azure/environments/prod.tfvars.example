@@ -5,12 +5,12 @@ owner = "kb-support.dsl@unibe.ch"
 #------- Global --------
 
 subscription_id         = "your-azure-subscription_id"
-resource_group_name     = "rg-kb-prod-001"
+resource_group_name     = "rg-db-prod-001"
 resource_group_location = "Switzerland North"
 
 # ----- Cognitive Model --------
 # chat deployment
-cognitive_model_account_name        = "ao-kb-prod-001"
+cognitive_model_account_name        = "ao-db-prod-001"
 cognitive_model_account_sku_name    = "S0"
 cognitive_model_deployment_sku_name = "GlobalStandard"
 cognitive_model_deployment_capacity = 500 #500,000 tokens per minute 
@@ -26,26 +26,26 @@ cognitive_model_embedding_version             = "1"
 cognitive_model_embedding_deployment_sku_name = "GlobalStandard"
 
 # ----- Container Registry reference (global) --------
-container_registry_name = "crkbglobal001"
+container_registry_name = "crdbglobal001"
 # if ACR is in global RG different from prod RG, set override:
-container_registry_resource_group_name = "rg-kb-global-001"
-container_repository_name = "kioskbot-backend-api"
+container_registry_resource_group_name = "rg-db-global-001"
+container_repository_name = "dsl-bot-backend-api"
 
 # ----- Reference global Storage --------
-storage_account_name = "sakbglobal001"
-storage_account_resource_group_name = "rg-kb-global-001"
+storage_account_name = "sadbglobal001"
+storage_account_resource_group_name = "rg-db-global-001"
 
 # ----- Search Service --------
-search_service_name = "ss-kb-prod-001"
+search_service_name = "ss-db-prod-001"
 search_service_sku = "basic"
 search_service_replica_count = 1
 search_service_partition_count = 1
-search_index_name = "kb-quality"
+search_index_name = "db-bnf"
 
 
 # ----- AKS cluster -----
-aks_cluster_name     = "aks-kb-prod-001"
-aks_dns_prefix       = "kbprod"
+aks_cluster_name     = "aks-db-prod-001"
+aks_dns_prefix       = "dbprod"
 aks_admin_username   = "azureuser"
 aks_admin_ssh_public_keys = [
   "ssh-rsa-your-public-key"
@@ -55,7 +55,7 @@ aks_node_count       = 1
 aks_node_vm_size     = "Standard_A2_v2"
 aks_node_os_disk_size_gb = 128
 aks_node_os_sku      = "Ubuntu"
-aks_node_resource_group_name = "rg-kb-prod-001-node"
+aks_node_resource_group_name = "rg-db-prod-001-node"
 
 # ----- AKS user node pools -----
 aks_additional_node_pools = {
@@ -73,11 +73,11 @@ aks_additional_node_pools = {
 
 # ---- AKS Network (BYO to satisfy NSG UniBe policy) ----
 # BYO to comply with UniBe Cloud policy to allows inbound TCP from anywhere to any node in the AKS subnet on Kubernetes' default NodePort range (30000–32767)
-aks_vnet_name                 = "vnet-aks-kb-prod-001"
+aks_vnet_name                 = "vnet-aks-db-prod-001"
 aks_vnet_address_space        = ["10.41.0.0/16"]
-aks_subnet_name               = "snet-aks-kb-prod-001"
+aks_subnet_name               = "snet-aks-db-prod-001"
 aks_subnet_address_prefix     = "10.41.1.0/24"
-aks_network_security_group_name = "nsg-aks-kb-prod-001"
+aks_network_security_group_name = "nsg-aks-db-prod-001"
 
 # aks_api_destination_port = "*" # optional parameter to open port(s)
 
@@ -87,12 +87,12 @@ apim_name                 = "informationskiosk"
 apim_sku_name            = "Basic_1"
 apim_publisher_name       = "University of Bern"
 apim_publisher_email      = "kb-support.dsl@unibe.ch"
-apim_backend_url          = "http://127.0.0.1:8000"
+
 
 # API Configuration
 # apim api name needs to be unique within a single APIM service instance.
-apim_api_name             = "kioskbot-api"
-apim_api_display_name     = "Kioskbot API"
+apim_api_name             = "dsl-bot-api"
+apim_api_display_name     = "DSL Bot API"
 apim_api_path             = "api"
 apim_api_revision         = "1"
 apim_api_protocols        = ["https"]
@@ -111,3 +111,5 @@ apim_invoke_quota_calls      = 10000 # 10,000 AI queries per day (STRICT)
 apim_feedback_rate_limit_calls = 500    # 500 feedback submissions per minute
 apim_feedback_quota_calls      = 20000  # 20,000 feedback per day
 
+apim_frontend_url = "your_frontend_url"
+apim_backend_url  = "http://127.0.0.1:8000"

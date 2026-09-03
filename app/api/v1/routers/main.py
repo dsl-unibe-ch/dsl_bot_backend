@@ -1,5 +1,5 @@
 # Copyright (c) 2026, University of Bern, Data Science Lab
-"""Endpoints for the Kioskbot."""
+"""Endpoints for the Bot."""
 
 import logging
 import tomllib
@@ -20,7 +20,7 @@ if TYPE_CHECKING:
     from app.agent.feedback import Feedback
     from app.agent.query import QueryInput, QueryOutput
     from app.agent.schemas import FeedbackResponse, StartSessionResponse
-logger = logging.getLogger("Kioskbot")
+logger = logging.getLogger("Bot")
 
 
 def get_version() -> str:

@@ -5,9 +5,9 @@ output "AZURE_STORAGE_ACCOUNT_PRIMARY_CONNECTION_STRING" {
 }
 
 output "AZURE_CONTAINER_STORAGE_SECRETS_NAME" {
-  value = azurerm_storage_container.containers["kioskbot-secrets"].name
+  value = azurerm_storage_container.containers["dsl-bot-secrets"].name
 }
 
 output "AZURE_CONTAINER_STORAGE_NAME" {
-  value = azurerm_storage_container.containers["kioskbot-logs"].name
+  value = azurerm_storage_container.containers["dsl-bot-logs"].name
 }

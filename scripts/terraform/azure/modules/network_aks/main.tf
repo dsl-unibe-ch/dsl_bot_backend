@@ -14,7 +14,7 @@ resource "azurerm_network_security_group" "this" {
   dynamic "security_rule" {
     for_each = { for idx, ip in var.allowed_external_ips : idx => ip }
     content {
-      name                       = "AllowKioskbotApiInbound-${security_rule.key}"
+      name                       = "AllowBotApiInbound-${security_rule.key}"
       priority                   = 100 + security_rule.key
       direction                  = "Inbound"
       access                     = "Allow"

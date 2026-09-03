@@ -1,14 +1,14 @@
-# Default values for kioskbot-backend (PROD environment)
+# Default values for dsl-bot-backend (PROD environment)
 environment: prod
 
 # Release metadata
-releaseName: kioskbot-backend-prod
+releaseName: dsl-bot-backend-prod
 managedBy: Helm
 
 # Labels configuration
 labels:
-  appName: kioskbot-backend
-  instance: kioskbot-backend-prod
+  appName: dsl-bot-backend
+  instance: dsl-bot-backend-prod
 
 # Kafka configuration
 kafka:
@@ -45,18 +45,18 @@ api:
     targetMemoryUtilizationPercentage: 80
   
   image:
-    repository: "" # Set via --set api.image.repository="${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER}/kioskbot-backend-api"
+    repository: "" # Set via --set api.image.repository="${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER}/dsl-bot-backend-api"
     tag: "" # Set via --set api.image.tag="${VERSION}-${ENV}"
     pullPolicy: IfNotPresent
   
   env:
     # K8s-specific: Use service name for Kafka bootstrap servers
-    kafkaBootstrapServers: "kioskbot-backend-prod-kafka:9092"
+    kafkaBootstrapServers: "dsl-bot-backend-prod-kafka:9092"
   
   # Load all env vars from Kubernetes Secret (created from .env.prod)
   envFrom:
     - secretRef:
-        name: kioskbot-backend-prod-secrets
+        name: dsl-bot-backend-prod-secrets
   
   service:
     type: LoadBalancer
@@ -75,18 +75,18 @@ kafkaConsumer:
   replicaCount: 1
   
   image:
-    repository: "" # Set via --set kafkaConsumer.image.repository="${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER}/kioskbot-backend-api"
+    repository: "" # Set via --set kafkaConsumer.image.repository="${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER}/dsl-bot-backend-api"
     tag: "" # Set via --set kafkaConsumer.image.tag="${VERSION}-${ENV}"
     pullPolicy: IfNotPresent
   
   env:
     # K8s-specific: Use service name for Kafka bootstrap servers
-    kafkaBootstrapServers: "kioskbot-backend-prod-kafka:9092"
+    kafkaBootstrapServers: "dsl-bot-backend-prod-kafka:9092"
   
   # Load all env vars from Kubernetes Secret (created from .env.prod)
   envFrom:
     - secretRef:
-        name: kioskbot-backend-prod-secrets
+        name: dsl-bot-backend-prod-secrets
   
   resources:
     limits:
@@ -96,7 +96,7 @@ kafkaConsumer:
       cpu: 300m
       memory: 256Mi
 
-fullnameOverride: "kioskbot-backend-prod"
+fullnameOverride: "dsl-bot-backend-prod"
 
 # Redis session store
 redis:

@@ -245,7 +245,7 @@ variable "aks_network_security_group_name" {
 }
 
 variable "aks_api_destination_port" {
-  description = "Destination port for the kioskbot-api service (default: '*' for all ports, or specify e.g., '80' or '30000-32767')"
+  description = "Destination port for the dsl-bot-api service (default: '*' for all ports, or specify e.g., '80' or '30000-32767')"
   type        = string
   default     = "*"
 }
@@ -291,7 +291,7 @@ variable "apim_publisher_email" {
 
 variable "apim_backend_url" {
   type        = string
-  description = "Backend AKS service URL (e.g., http://kioskbot-api.default.svc.cluster.local:80)"
+  description = "Backend AKS service URL (e.g., http://dsl-bot-api.default.svc.cluster.local:80)"
   default     = null
 }
 
@@ -334,6 +334,12 @@ variable "apim_subscription_required" {
 variable "apim_frontend_url" {
   type        = string
   description = "Allowed frontend origin for CORS (e.g. https://myfrontendurl.ch). Must be an explicit origin — not a wildcard — because cookies require credentials mode."
+  default     = null
+
+  validation {
+    condition     = var.environment == "global" || var.apim_frontend_url != null
+    error_message = "apim_frontend_url must be set for non-global environments."
+  }
 }
 
 # Rate limiting for /initialize-agent

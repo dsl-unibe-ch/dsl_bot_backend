@@ -1,14 +1,14 @@
-# Default values for kioskbot-backend (DEV environment)
+# Default values for dsl-bot-backend (DEV environment)
 environment: dev
 
 # Release metadata
-releaseName: kioskbot-backend-dev
+releaseName: dsl-bot-backend-dev
 managedBy: Helm
 
 # Labels configuration
 labels:
-  appName: kioskbot-backend
-  instance: kioskbot-backend-dev
+  appName: dsl-bot-backend
+  instance: dsl-bot-backend-dev
 
 # Kafka configuration
 kafka:
@@ -45,18 +45,18 @@ api:
     targetMemoryUtilizationPercentage: 80
   
   image:
-    repository: "" # Set via --set api.image.repository="${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER}/kioskbot-backend-api"
+    repository: "" # Set via --set api.image.repository="${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER}/dsl-bot-backend-api"
     tag: "" # Set via --set api.image.tag="${VERSION}-${ENV}"
     pullPolicy: IfNotPresent
   
   env:
     # K8s-specific: Use service name for Kafka bootstrap servers
-    kafkaBootstrapServers: "kioskbot-backend-dev-kafka:9092" # Kafka connection using Kubernetes service DNS name
+    kafkaBootstrapServers: "dsl-bot-backend-dev-kafka:9092" # Kafka connection using Kubernetes service DNS name
   
   # Load all env vars from Kubernetes Secret (created from .env.dev)
   envFrom:
     - secretRef:
-        name: kioskbot-backend-dev-secrets
+        name: dsl-bot-backend-dev-secrets
   
   service:
     type: LoadBalancer # Creates a public IP address (Azure Load Balancer)
@@ -75,18 +75,18 @@ kafkaConsumer:
   replicaCount: 1
   
   image:
-    repository: "" # Set via --set kafkaConsumer.image.repository="${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER}/kioskbot-backend-api"
+    repository: "" # Set via --set kafkaConsumer.image.repository="${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER}/dsl-bot-backend-api"
     tag: "" # Set via --set kafkaConsumer.image.tag="${VERSION}-${ENV}"
     pullPolicy: IfNotPresent
   
   env:
     # K8s-specific: Use service name for Kafka bootstrap servers
-    kafkaBootstrapServers: "kioskbot-backend-dev-kafka:9092" # Kafka connection using Kubernetes service DNS name
+    kafkaBootstrapServers: "dsl-bot-backend-dev-kafka:9092" # Kafka connection using Kubernetes service DNS name
   
   # Load all env vars from Kubernetes Secret (created from .env.dev)
   envFrom:
     - secretRef:
-        name: kioskbot-backend-dev-secrets
+        name: dsl-bot-backend-dev-secrets
   
   resources:
     limits: # Max 0.6 CPU cores, 512 MiB memory
@@ -96,7 +96,7 @@ kafkaConsumer:
       cpu: 300m
       memory: 256Mi
 
-fullnameOverride: "kioskbot-backend-dev"
+fullnameOverride: "dsl-bot-backend-dev"
 
 # Redis session store (single-pod, no auth in dev)
 redis:

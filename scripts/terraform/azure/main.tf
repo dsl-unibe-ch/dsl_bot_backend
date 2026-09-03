@@ -33,7 +33,7 @@ locals {
   apim_public_ips                 = var.environment == "global" ? [] : try(module.api_management[0].apim_public_ip_addresses, [])
   default_tags = {
     environment = var.environment
-    project     = "kioskbot"
+    project     = "dsl-bot"
     owner       = var.owner
   }
 }

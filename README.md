@@ -93,9 +93,9 @@ Cookie behaviour is controlled by two explicit `.env.*` variables, not hardcoded
 <details>
 <summary>Click to expand</summary>
 
-- The ETL pipeline which takes care of crawling and indexing has been moved to a new repository called the [kioskbot_etl](https://github.com/dsl-unibe-ch/kioskbot_etl).
+- The ETL pipeline which takes care of crawling and indexing has been moved to a new repository called the [dsl_bot_etl](h).
 
-- To ensure that the index is correctly created, the logs must be checked according to the process described in [create-update-crawl-jobs](https://github.com/dsl-unibe-ch/kioskbot_etl/blob/main/README.MD#create-update-crawl-jobs) section of the [kioskbot_etl](https://github.com/dsl-unibe-ch/kioskbot_etl) repository.
+- To ensure that the index is correctly created, the logs must be checked according to the process described in [create-update-crawl-jobs](hhttps://github.com/dsl-unibe-ch/dsl_bot_etl/blob/main/README.MD#create-update-crawl-jobs) section of the [dsl_bot_etl](https://github.com/dsl-unibe-ch/dsl_bot_etl) repository.
 
 - Naming Convention of the Indexes: An index is named after the customer such as `kb-{CUSTOMER_NAME}`. For example, `kb-quality`or `kb-innovation`. 
 
@@ -217,16 +217,18 @@ The reason for this three-level separation is to have some common resources shar
   - Mac:
     ```bash
     brew install tfenv
-    tfenv install 1.13.3
-    tfenv use 1.13.3
+    tfenv install 1.16.0
+    tfenv use 1.16.0
     terraform version
+    brew update && brew install azure-cli
+
     ```
 - Under the folder `scripts/terraform/azure/environments/`, create `dev.tfvars`, `prod.tfvars` and `global.tfvars` using the templates `dev.tfvars.example`, `prod.tfvars.example` and `global.tfvars.example` respectively.
 - Create a new ssh key for the Kubernetes VM
   ```bash
-  ssh-keygen -t rsa -b 2048 -f ~/.ssh/id_rsa_aks -C "Your_Email_Address"
+  ssh-keygen -t rsa -b 4096 -f aks_admin -C "aks-admin"
   ```
-- Copy the public ssh key with `cat ~/.ssh/id_rsa_aks.pub` and assign it to `aks_admin_ssh_public_keys` in `scripts/terraform/azure/environments/dev.tfvars` and `scripts/terraform/azure/environments/prod.tfvars`.
+- Copy the public ssh key with `cat ~/.ssh/aks_admin.pub` and assign it to `aks_admin_ssh_public_keys` in `scripts/terraform/azure/environments/dev.tfvars` and `scripts/terraform/azure/environments/prod.tfvars`.
 - Login: Select the subscription id.
   ```bash
   make az-login

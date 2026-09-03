@@ -101,7 +101,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--container",
-        default=settings.AZURE_CONTAINER_STORAGE_NAME or "kioskbot-logs",
+        default=settings.AZURE_CONTAINER_STORAGE_NAME or "dsl-bot-logs",
         help="Azure Blob container name (default: AZURE_CONTAINER_STORAGE_NAME).",
     )
     parser.add_argument(
