@@ -5,6 +5,10 @@ resource "azurerm_kubernetes_cluster" "this" {
   dns_prefix          = var.dns_prefix
   node_resource_group = var.node_resource_group_name
 
+  # Required by org policy: PaaS services must not expose a public endpoint.
+  private_cluster_enabled = var.private_cluster_enabled
+  private_dns_zone_id     = var.private_dns_zone_id
+
   identity {
     type = "SystemAssigned"
   }

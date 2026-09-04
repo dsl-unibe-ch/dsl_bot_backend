@@ -13,6 +13,8 @@ module "network_aks" {
   subnet_name             = var.aks_subnet_name
   subnet_address_prefix   = var.aks_subnet_address_prefix
   network_security_group_name = var.aks_network_security_group_name
+  route_table_name        = var.aks_route_table_name
+  route_table_resource_group_name = var.aks_route_table_resource_group_name
   allowed_external_ips    = local.apim_public_ips
   api_destination_port    = var.aks_api_destination_port
 }

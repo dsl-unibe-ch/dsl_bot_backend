@@ -29,6 +29,13 @@ resource "azurerm_network_security_group" "this" {
   tags = var.tags
 }
 
+# Org policy "Deny-Subnet-Non-UDR" requires every subnet to have a route table attached.
+# The route table is auto-created by the platform in its own RG within this same subscription.
+data "azurerm_route_table" "this" {
+  name                = var.route_table_name
+  resource_group_name = var.route_table_resource_group_name
+}
+
 resource "azapi_resource" "subnet" {
   type      = "Microsoft.Network/virtualNetworks/subnets@2023-11-01" 
   name      = var.subnet_name
@@ -38,6 +45,9 @@ resource "azapi_resource" "subnet" {
       addressPrefix = var.subnet_address_prefix
       networkSecurityGroup = {
         id = azurerm_network_security_group.this.id
+      }
+      routeTable = {
+        id = data.azurerm_route_table.this.id
       }
     }
   }

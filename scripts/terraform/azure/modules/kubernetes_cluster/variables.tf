@@ -50,3 +50,15 @@ variable "acr_id" {
   description = "Azure Container Registry ID for granting AcrPull permission"
   default     = null
 }
+
+variable "private_cluster_enabled" {
+  description = "Disable the public AKS API server endpoint (required by org policy for Corp landing zones)."
+  type        = bool
+  default     = true
+}
+
+variable "private_dns_zone_id" {
+  description = "Private DNS zone for the AKS API server. 'System' lets Azure manage its own privatelink.<region>.azmk8s.io zone."
+  type        = string
+  default     = "System"
+}
