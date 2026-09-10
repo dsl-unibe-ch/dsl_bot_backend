@@ -52,7 +52,7 @@ aks_admin_ssh_public_keys = [
 ]
 aks_node_pool_name   = "systempool"
 aks_node_count       = 1
-aks_node_vm_size     = "Standard_A2_v2"
+aks_node_vm_size     = "Standard_B4ls_v2"
 aks_node_os_disk_size_gb = 128
 aks_node_os_sku      = "Ubuntu"
 aks_node_resource_group_name = "rg-db-prod-001-node"
@@ -78,8 +78,6 @@ aks_vnet_address_space        = ["10.41.0.0/16"]
 aks_subnet_name               = "snet-aks-db-prod-001"
 aks_subnet_address_prefix     = "10.41.1.0/24"
 aks_network_security_group_name = "nsg-aks-db-prod-001"
-aks_route_table_name          = "route-chatbotservice-peering-switzerlandnorth" # auto-created by the platform in the peering RG within your own subscription
-aks_route_table_resource_group_name = "rg-chatbotservice-peering-switzerlandnorth"
 
 # aks_api_destination_port = "*" # optional parameter to open port(s)
 

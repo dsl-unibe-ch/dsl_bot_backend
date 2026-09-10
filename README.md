@@ -237,6 +237,10 @@ The reason for this three-level separation is to have some common resources shar
   ```bash
   make az-set-subscription
   ```
+- Register the Azure resource providers used by the terraform modules. This is required at least once per subscription (new/empty subscriptions do not have these registered by default, which otherwise causes `MissingSubscriptionRegistration` errors on `apply`).
+  ```bash
+  make az-register-providers
+  ```
 - Create `.env.dev` and/or `.env.prod` files with the environment variables (see section [Configure the environment variables](#configure-the-environment-variables))
 - Replace `"your-azure-subscription_id"` in `{ENV}.tfvars` with the actual subscription ID you are using—this should match the subscription that the command `make az-set-subscription` returned. This ensures Terraform uses the correct Azure subscription for resource creation.
 - API access is routed through APIM; only requests coming from APIM's public outbound IP addresses are allowed to reach the AKS, and requests coming from other IPs get blocked by the NSG. You can optionally use `aks_api_destination_port` to restrict which port(s) are open: `"*"` opens all ports (default), a specific port like `"8000"`, or a port range like `"30000-32767"`.

@@ -243,15 +243,6 @@ variable "aks_network_security_group_name" {
   type    = string
   default = null
 }
-variable "aks_route_table_name" {
-  type    = string
-  default = null
-}
-variable "aks_route_table_resource_group_name" {
-  description = "Resource group of the route table within the Connectivity subscription."
-  type        = string
-  default     = null
-}
 
 variable "aks_api_destination_port" {
   description = "Destination port for the dsl-bot-api service (default: '*' for all ports, or specify e.g., '80' or '30000-32767')"

@@ -376,6 +376,7 @@ help:
 	@echo "Usage:"
 	@echo "  make login                 # az login"
 	@echo "  make set-subscription               # set Azure subscription (needs AZ_SUBSCRIPTION_ID)"
+	@echo "  make az-register-providers # register required resource providers on the subscription"
 	@echo "  make init                  # terraform init"
 	@echo "  make workspace ENV=dev     # select/create workspace"
 	@echo "  make plan ENV=dev          # plan with environments/dev.tfvars"
@@ -436,6 +437,24 @@ az-set-subscription:
 
 az-get-tenant-id:
 	@az account show --query tenantId -o tsv
+
+# Resource providers used by the terraform modules; required once per subscription.
+AZ_REQUIRED_PROVIDERS := Microsoft.Resources Microsoft.Storage Microsoft.ContainerRegistry \
+	Microsoft.KeyVault Microsoft.ContainerService Microsoft.CognitiveServices \
+	Microsoft.Search Microsoft.ApiManagement Microsoft.Network Microsoft.Authorization
+
+az-register-providers:
+	@echo "Registering required resource providers on the current subscription..."
+	@for provider in $(AZ_REQUIRED_PROVIDERS); do \
+		state=$$(az provider show -n $$provider --query registrationState -o tsv 2>/dev/null); \
+		if [ "$$state" = "Registered" ]; then \
+			echo "$$provider already registered"; \
+		else \
+			echo "Registering $$provider..."; \
+			az provider register -n $$provider --wait; \
+		fi; \
+	done
+	@echo "All required resource providers are registered."
 
 terraform-init:
 	$(TF) -chdir=$(TF_DIR) init -upgrade

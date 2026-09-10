@@ -35,7 +35,7 @@ container_registry_tags   = {
 container_registry_resource_group_name = "rg-db-global-001"
 
 # ----- Key Vault --------
-key_vault_name = "kv-db-global-001"
+key_vault_name = "kv-dslbot-global-001"
 key_vault_sku_name = "standard"
 key_vault_tags = {
   "environment" = "global"

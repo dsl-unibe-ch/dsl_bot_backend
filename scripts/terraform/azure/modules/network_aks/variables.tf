@@ -7,8 +7,6 @@ variable "vnet_address_space" { type = list(string) }
 variable "subnet_name" { type = string }
 variable "subnet_address_prefix" { type = string }
 variable "network_security_group_name" { type = string }
-variable "route_table_name" { type = string }
-variable "route_table_resource_group_name" { type = string }
 
 
 variable "tags" {

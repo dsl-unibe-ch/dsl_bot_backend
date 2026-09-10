@@ -4,5 +4,5 @@ resource "azurerm_container_registry" "this" {
   location                      = var.resource_group_location
   sku                           = var.container_registry_sku
   tags                          = var.container_registry_tags
-  public_network_access_enabled = false # Disable public access to comply with UniBE policy.
+  public_network_access_enabled = true
 }

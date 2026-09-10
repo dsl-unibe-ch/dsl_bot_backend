@@ -4,7 +4,7 @@
 import logging
 import tomllib
 from pathlib import Path
-from typing import TYPE_CHECKING, Annotated
+from typing import Annotated
 from uuid import UUID  # noqa: TC003
 
 from fastapi import Cookie, FastAPI, HTTPException, Request, Response
@@ -13,13 +13,17 @@ from fastapi.responses import JSONResponse
 
 from app.agent import session_store
 from app.agent.chatbot_agent import ChatBot
+
+# Runtime imports (not TYPE_CHECKING): FastAPI/Pydantic must resolve these
+# annotations at runtime to build request/response models, but Python 3.14's
+# deferred annotation evaluation (PEP 649) means TYPE_CHECKING-only imports
+# aren't available when that happens.
+from app.agent.feedback import Feedback  # noqa: TC001
+from app.agent.query import QueryInput, QueryOutput  # noqa: TC001
+from app.agent.schemas import FeedbackResponse, StartSessionResponse  # noqa: TC001
 from app.agent.utils import get_customer_name_from_url
 from app.config import settings
 
-if TYPE_CHECKING:
-    from app.agent.feedback import Feedback
-    from app.agent.query import QueryInput, QueryOutput
-    from app.agent.schemas import FeedbackResponse, StartSessionResponse
 logger = logging.getLogger("Bot")
 
 
