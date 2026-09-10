@@ -15,7 +15,7 @@ resource "azurerm_storage_account" "this" {
   blob_properties {
     last_access_time_enabled = true
   }
-  public_network_access_enabled = false # Disable public access to comply with UniBE policy.
+  public_network_access_enabled = true
 }
 
 

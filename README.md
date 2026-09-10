@@ -97,7 +97,7 @@ Cookie behaviour is controlled by two explicit `.env.*` variables, not hardcoded
 
 - To ensure that the index is correctly created, the logs must be checked according to the process described in [create-update-crawl-jobs](hhttps://github.com/dsl-unibe-ch/dsl_bot_etl/blob/main/README.MD#create-update-crawl-jobs) section of the [dsl_bot_etl](https://github.com/dsl-unibe-ch/dsl_bot_etl) repository.
 
-- Naming Convention of the Indexes: An index is named after the customer such as `kb-{CUSTOMER_NAME}`. For example, `kb-quality`or `kb-innovation`. 
+- Naming Convention of the Indexes: An index is named after the customer such as `db-{CUSTOMER_NAME}`. 
 
 The list of customers can be found in `app/agent/utils.py` under the `customer_name_root_url_mapping` dict.
 
@@ -120,7 +120,7 @@ The workbook must contain a `text` column with the document content.
 ### Run
 
 ```bash
-make generate-assessment-dataset CUSTOMER_NAME=quality
+make generate-assessment-dataset CUSTOMER_NAME=bnf
 # or
 make generate-assessment-dataset CUSTOMER_NAME=innovation
 ```
@@ -180,9 +180,7 @@ Run `make download-user-logs` first so the input Excel files exist.
 ### Run
 
 ```bash
-make generate-chatbot-regression-cases CUSTOMER_NAME=quality
-# or
-make generate-chatbot-regression-cases CUSTOMER_NAME=innovation
+make generate-chatbot-regression-cases CUSTOMER_NAME=bnf
 ```
 
 ### What it produces
@@ -892,14 +890,14 @@ make unit-tests
 ```
 Optional: set a customer via `CUSTOMER_NAME` (defaults to `DEFAULT_CUSTOMER` from `.env.*`):
 ```bash
-CUSTOMER_NAME=quality make unit-tests
+CUSTOMER_NAME=bnf make unit-tests
 ```
 
 - Run local regression assertions only (fast, terminal output, no Langfuse):
 ```bash
 make regression-tests
 # or for a specific customer:
-CUSTOMER_NAME=quality make regression-tests
+CUSTOMER_NAME=bnf make regression-tests
 ```
 
 Tests are grouped by marker:
@@ -1129,7 +1127,7 @@ make run-demo
 ```
 - Run the demo for a specific customer:
 ```bash
-make run-demo customer_name=quality
+make run-demo customer_name=bnf
 ```
 
 </details>

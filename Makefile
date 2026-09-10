@@ -13,7 +13,7 @@ lint:
 
 generate-assessment-dataset:
 	@echo $@
-	@CUSTOMER_NAME=$${CUSTOMER_NAME:?Set CUSTOMER_NAME (e.g. make $@ CUSTOMER_NAME=quality)} ; \
+	@CUSTOMER_NAME=$${CUSTOMER_NAME:?Set CUSTOMER_NAME (e.g. make $@ CUSTOMER_NAME=bnf)} ; \
 	ENV=dev PYTHONPATH=$(shell pwd) python scripts/assessment_data/generate_assessment_dataset.py --customer-name $$CUSTOMER_NAME
 
 CUSTOMER_NAME_ARG := $(if $(strip $(customer_name)),--customer_name $(customer_name),)
@@ -816,5 +816,5 @@ download-user-logs:
 
 
 generate-chatbot-regression-cases:
-	@CUSTOMER_NAME=$${CUSTOMER_NAME:?Set CUSTOMER_NAME (e.g. innovation or quality)} ; \
+	@CUSTOMER_NAME=$${CUSTOMER_NAME:?Set CUSTOMER_NAME (e.g. bnf)} ; \
 	ENV=$${ENV:-dev} PYTHONPATH=$(shell pwd) python scripts/assessment_data/generate_chatbot_regression_cases.py --customer-name $$CUSTOMER_NAME
