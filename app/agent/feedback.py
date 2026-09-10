@@ -1,3 +1,4 @@
+# Copyright (c) 2026, University of Bern, Data Science Lab
 """Data model for user feedback."""
 
 import datetime
@@ -5,7 +6,7 @@ import json
 import os
 import tomllib
 from pathlib import Path
-from uuid import UUID
+from uuid import UUID  # noqa: TC003
 from zoneinfo import ZoneInfo
 
 from fastapi import HTTPException
@@ -28,7 +29,7 @@ class Feedback(BaseModel):
     origin: str | None = None
 
     def send_feedback_wrapper(
-        self: "Feedback",
+        self: Feedback,
         session_id: UUID,
         interaction_count: int,
         origin: str | None = None,

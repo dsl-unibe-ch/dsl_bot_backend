@@ -68,7 +68,9 @@ def download_and_split_logs(
         if str(payload.get("environment", "")).lower() != "prod":
             continue
 
-        customer = _safe_customer_name(str(payload.get("customer_name", "unknown_customer")))
+        customer = _safe_customer_name(
+            str(payload.get("customer_name", "unknown_customer"))
+        )
         customer_rows.setdefault(customer, []).append(payload)
         total_prod += 1
 
@@ -99,7 +101,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--container",
-        default=settings.AZURE_CONTAINER_STORAGE_NAME or "kioskbot-logs",
+        default=settings.AZURE_CONTAINER_STORAGE_NAME or "dsl-bot-logs",
         help="Azure Blob container name (default: AZURE_CONTAINER_STORAGE_NAME).",
     )
     parser.add_argument(

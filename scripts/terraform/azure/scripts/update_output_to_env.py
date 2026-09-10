@@ -19,11 +19,7 @@ logger.addHandler(handler)
 
 def escape_env_value(value: str) -> str:
     """Normalize Windows newlines, escape backslashes, quotes, and dollar signs."""
-    return (
-        value.replace("\r", "")
-        .replace("\\", r"\\")
-        .replace("$", r"\$")
-    )
+    return value.replace("\r", "").replace("\\", r"\\").replace("$", r"\$")
 
 
 def read_kv_file(path: str) -> dict:
@@ -78,20 +74,23 @@ def update_env_vars(
                 "\n\nREMINDER!! Update LANGFUSE Keys in .env.%s\n\n",
                 env,
             )
-        if key =="REDIS_PASSWORD":
+        if key == "REDIS_PASSWORD":
             logger.info(
                 "\n\nREMINDER!! Update REDIS_PASSWORD in .env.%s\n\n",
                 env,
             )
         if key == "BACKEND_URL":
-            if key in env_vars and env_vars[key] is not None and len(env_vars[key])>5:
+            if key in env_vars and env_vars[key] is not None and len(env_vars[key]) > 5:
                 updated_env_vars[key] = env_vars[key]
             elif key in global_vars:
                 updated_env_vars[key] = global_vars[key]
             else:
                 updated_env_vars[key] = value
-                logger.warning("Warning: %s assigned a default value, not found in Terraform outputs", key)
-            
+                logger.warning(
+                    "Warning: %s assigned a default value, not found in Terraform outputs",
+                    key,
+                )
+
         elif not key.startswith("AZURE"):
             updated_env_vars[key] = value
         elif key in env_vars:

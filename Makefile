@@ -1,15 +1,15 @@
 PYTHON := $(firstword $(wildcard .venv/bin/python) $(wildcard .venv/Scripts/python.exe) python)
 VERSION=$(shell grep '^version' pyproject.toml | head -1 | cut -d '"' -f2)
-FE_DIR := ../kioskbot_frontend
+FE_DIR := ../dsl_bot_frontend
 FE_REPO := https://github.com/dsl-unibe-ch/kioskbot_frontend.git
 FE_PORT := 5173
 INITIALIZE_AGENT_ORIGIN_URL ?=
 
 lint:
 	@echo $@
-	$(PYTHON) -m ruff format app demo tests scripts
+	$(PYTHON) -m ruff format app demo 
 	@echo $@
-	$(PYTHON) -m ruff check --fix app demo tests scripts
+	$(PYTHON) -m ruff check --fix app demo 
 
 generate-assessment-dataset:
 	@echo $@
@@ -54,39 +54,39 @@ build-image-dev:
 	@ENV=dev; \
 	. ./.env.$${ENV}; \
 	docker buildx build --platform linux/amd64,linux/arm64 \
-	-t $${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER}/kioskbot-backend-api:$(VERSION)-$${ENV} \
+	-t $${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER}/dsl-bot-backend-api:$(VERSION)-$${ENV} \
 	-f Dockerfile . --load
 
 build-image-prod:
 	@ENV=prod; \
 	. ./.env.$${ENV}; \
 	docker buildx build --platform linux/amd64,linux/arm64 \
-	-t $${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER}/kioskbot-backend-api:$(VERSION)-$${ENV} \
+	-t $${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER}/dsl-bot-backend-api:$(VERSION)-$${ENV} \
 	-f Dockerfile . --load
 
 compose-up-dev:
 	@echo $@
 	@ENV=dev; \
 	. ./.env.$${ENV}; \
-	ENV=$${ENV} VERSION=$(VERSION) AZURE_CONTAINER_REGISTRY_LOGIN_SERVER=$${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER} docker compose --project-name kioskbot-backend-$${ENV} up -d
+	ENV=$${ENV} VERSION=$(VERSION) AZURE_CONTAINER_REGISTRY_LOGIN_SERVER=$${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER} docker compose --project-name dsl-bot-backend-$${ENV} up -d
 
 compose-up-prod:
 	@echo $@
 	@ENV=prod; \
 	. ./.env.$${ENV}; \
-	ENV=$${ENV} VERSION=$(VERSION) AZURE_CONTAINER_REGISTRY_LOGIN_SERVER=$${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER} docker compose --project-name kioskbot-backend-$${ENV} up -d
+	ENV=$${ENV} VERSION=$(VERSION) AZURE_CONTAINER_REGISTRY_LOGIN_SERVER=$${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER} docker compose --project-name dsl-bot-backend-$${ENV} up -d
 
 compose-down-dev:
 	@echo $@
 	@ENV=dev; \
 	. ./.env.$${ENV}; \
-	ENV=$${ENV} VERSION=$(VERSION) AZURE_CONTAINER_REGISTRY_LOGIN_SERVER=$${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER} docker compose --project-name kioskbot-backend-$${ENV} down
+	ENV=$${ENV} VERSION=$(VERSION) AZURE_CONTAINER_REGISTRY_LOGIN_SERVER=$${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER} docker compose --project-name dsl-bot-backend-$${ENV} down
 
 compose-down-prod:
 	@echo $@
 	@ENV=prod; \
 	. ./.env.$${ENV}; \
-	ENV=$${ENV} VERSION=$(VERSION) AZURE_CONTAINER_REGISTRY_LOGIN_SERVER=$${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER} docker compose --project-name kioskbot-backend-$${ENV} down
+	ENV=$${ENV} VERSION=$(VERSION) AZURE_CONTAINER_REGISTRY_LOGIN_SERVER=$${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER} docker compose --project-name dsl-bot-backend-$${ENV} down
 
 push-image-dev:
 	@ENV=dev; \
@@ -94,9 +94,9 @@ push-image-dev:
 	read -p "Username: " USERNAME; \
 	read -s -p "Password: " PASSWORD; echo; \
 	echo $$PASSWORD | docker login $${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER} -u $$USERNAME --password-stdin; \
-	if ! docker manifest inspect $${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER}/kioskbot-backend-api:${VERSION}-$${ENV} >/dev/null 2>&1; then \
+	if ! docker manifest inspect $${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER}/dsl-bot-backend-api:${VERSION}-$${ENV} >/dev/null 2>&1; then \
 		echo "Image does not exist in registry, pushing..."; \
-		docker push $${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER}/kioskbot-backend-api:${VERSION}-$${ENV}; \
+		docker push $${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER}/dsl-bot-backend-api:${VERSION}-$${ENV}; \
 	else \
 		echo "Image already exists in registry, skipping push."; \
 	fi
@@ -107,9 +107,9 @@ push-image-prod:
 	read -p "Username: " USERNAME; \
 	read -s -p "Password: " PASSWORD; echo; \
 	echo $$PASSWORD | docker login $${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER} -u $$USERNAME --password-stdin; \
-	if ! docker manifest inspect $${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER}/kioskbot-backend-api:${VERSION}-$${ENV} >/dev/null 2>&1; then \
+	if ! docker manifest inspect $${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER}/dsl-bot-backend-api:${VERSION}-$${ENV} >/dev/null 2>&1; then \
 		echo "Image does not exist in registry, pushing..."; \
-		docker push $${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER}/kioskbot-backend-api:${VERSION}-$${ENV}; \
+		docker push $${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER}/dsl-bot-backend-api:${VERSION}-$${ENV}; \
 	else \
 		echo "Image already exists in registry, skipping push."; \
 	fi
@@ -217,7 +217,7 @@ get-aks-external-ip:
 		echo "ERROR: $$KUBECONFIG_FILE not found. Run 'make kubeconfig-$(ENV)' first." >&2; \
 		exit 1; \
 	fi; \
-	AKS_EXTERNAL_IP=$$(KUBECONFIG="$$KUBECONFIG_FILE" kubectl get svc -n kioskbot-$(ENV) -o jsonpath='{.items[?(@.spec.type=="LoadBalancer")].status.loadBalancer.ingress[0].ip}' 2>/dev/null); \
+	AKS_EXTERNAL_IP=$$(KUBECONFIG="$$KUBECONFIG_FILE" kubectl get svc -n dsl-bot-$(ENV) -o jsonpath='{.items[?(@.spec.type=="LoadBalancer")].status.loadBalancer.ingress[0].ip}' 2>/dev/null); \
 	if [ -z "$$AKS_EXTERNAL_IP" ]; then \
 		echo "ERROR: Could not find external IP. Make sure the service is deployed." >&2; \
 		exit 1; \
@@ -376,6 +376,7 @@ help:
 	@echo "Usage:"
 	@echo "  make login                 # az login"
 	@echo "  make set-subscription               # set Azure subscription (needs AZ_SUBSCRIPTION_ID)"
+	@echo "  make az-register-providers # register required resource providers on the subscription"
 	@echo "  make init                  # terraform init"
 	@echo "  make workspace ENV=dev     # select/create workspace"
 	@echo "  make plan ENV=dev          # plan with environments/dev.tfvars"
@@ -436,6 +437,24 @@ az-set-subscription:
 
 az-get-tenant-id:
 	@az account show --query tenantId -o tsv
+
+# Resource providers used by the terraform modules; required once per subscription.
+AZ_REQUIRED_PROVIDERS := Microsoft.Resources Microsoft.Storage Microsoft.ContainerRegistry \
+	Microsoft.KeyVault Microsoft.ContainerService Microsoft.CognitiveServices \
+	Microsoft.Search Microsoft.ApiManagement Microsoft.Network Microsoft.Authorization
+
+az-register-providers:
+	@echo "Registering required resource providers on the current subscription..."
+	@for provider in $(AZ_REQUIRED_PROVIDERS); do \
+		state=$$(az provider show -n $$provider --query registrationState -o tsv 2>/dev/null); \
+		if [ "$$state" = "Registered" ]; then \
+			echo "$$provider already registered"; \
+		else \
+			echo "Registering $$provider..."; \
+			az provider register -n $$provider --wait; \
+		fi; \
+	done
+	@echo "All required resource providers are registered."
 
 terraform-init:
 	$(TF) -chdir=$(TF_DIR) init -upgrade
@@ -612,18 +631,18 @@ helm-install:
 	. ./.env.$${ENV}; \
 	KUBECONFIG_FILE=$(TF_DIR)/outputs/$${ENV}.kubeconfig; \
 	test -f "$${KUBECONFIG_FILE}" || { echo "ERROR: kubeconfig not found at $${KUBECONFIG_FILE}. Run 'make kubeconfig-$${ENV}' first."; exit 1; }; \
-	IMAGE_REPO="$${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER}/kioskbot-backend-api"; \
+	IMAGE_REPO="$${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER}/dsl-bot-backend-api"; \
 	IMAGE_TAG="$(VERSION)-$${ENV}"; \
 	echo "Installing Helm chart for environment: $${ENV}"; \
 	echo "Using image: $${IMAGE_REPO}:$${IMAGE_TAG}"; \
-	KUBECONFIG="$${KUBECONFIG_FILE}" helm install kioskbot-backend-$${ENV} ./scripts/helm \
+	KUBECONFIG="$${KUBECONFIG_FILE}" helm install dsl-bot-backend-$${ENV} ./scripts/helm \
 		--values ./scripts/helm/values-$${ENV}.yaml \
 		--set api.image.repository="$${IMAGE_REPO}" \
 		--set api.image.tag="$${IMAGE_TAG}" \
 		--set kafkaConsumer.image.repository="$${IMAGE_REPO}" \
 		--set kafkaConsumer.image.tag="$${IMAGE_TAG}" \
 		--create-namespace \
-		--namespace kioskbot-$${ENV}
+		--namespace dsl-bot-$${ENV}
 
 .PHONY: k8s-create-namespace
 k8s-create-namespace:
@@ -631,7 +650,7 @@ k8s-create-namespace:
 	KUBECONFIG_FILE=$(TF_DIR)/outputs/$${ENV}.kubeconfig; \
 	test -f "$${KUBECONFIG_FILE}" || { echo "ERROR: kubeconfig not found at $${KUBECONFIG_FILE}. Run 'make kubeconfig-$${ENV}' first."; exit 1; }; \
 	echo "Creating namespace for environment: $${ENV}"; \
-	KUBECONFIG="$${KUBECONFIG_FILE}" kubectl create namespace kioskbot-$${ENV}
+	KUBECONFIG="$${KUBECONFIG_FILE}" kubectl create namespace dsl-bot-$${ENV}
 
 .PHONY: k8s-create-namespace-dev
 k8s-create-namespace-dev:
@@ -648,9 +667,9 @@ k8s-create-secrets:
 	KUBECONFIG_FILE=$(TF_DIR)/outputs/$${ENV}.kubeconfig; \
 	test -f "$${KUBECONFIG_FILE}" || { echo "ERROR: kubeconfig not found at $${KUBECONFIG_FILE}. Run 'make kubeconfig-$${ENV}' first."; exit 1; }; \
 	echo "Applying secrets for environment: $${ENV}"; \
-	KUBECONFIG="$${KUBECONFIG_FILE}" kubectl create secret generic kioskbot-backend-$${ENV}-secrets \
+	KUBECONFIG="$${KUBECONFIG_FILE}" kubectl create secret generic dsl-bot-backend-$${ENV}-secrets \
 		--from-env-file=.env.$${ENV} \
-		--namespace=kioskbot-$${ENV} \
+		--namespace=dsl-bot-$${ENV} \
 		--dry-run=client -o yaml | \
 	KUBECONFIG="$${KUBECONFIG_FILE}" kubectl apply -f -
 
@@ -682,33 +701,33 @@ helm-upgrade:
 		echo "ERROR: APIM public IP not found. Run 'make terraform-output-$${ENV}' first."; \
 		exit 1; \
 	fi; \
-	IMAGE_REPO="$${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER}/kioskbot-backend-api"; \
+	IMAGE_REPO="$${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER}/dsl-bot-backend-api"; \
 	IMAGE_TAG="$(VERSION)-$${ENV}"; \
 	echo "Upgrading Helm release for environment: $${ENV}"; \
 	echo "Using image: $${IMAGE_REPO}:$${IMAGE_TAG}"; \
 	echo "Allowing APIM IP: $${APIM_IP}/32"; \
 	echo "Syncing Kubernetes secret from .env.$${ENV} ..."; \
-	KUBECONFIG="$${KUBECONFIG_FILE}" kubectl create secret generic kioskbot-backend-$${ENV}-secrets \
+	KUBECONFIG="$${KUBECONFIG_FILE}" kubectl create secret generic dsl-bot-backend-$${ENV}-secrets \
 		--from-env-file=.env.$${ENV} \
-		--namespace kioskbot-$${ENV} \
+		--namespace dsl-bot-$${ENV} \
 		--dry-run=client -o yaml | \
 	KUBECONFIG="$${KUBECONFIG_FILE}" kubectl apply -f -; \
-	KUBECONFIG="$${KUBECONFIG_FILE}" helm upgrade kioskbot-backend-$${ENV} ./scripts/helm \
+	KUBECONFIG="$${KUBECONFIG_FILE}" helm upgrade dsl-bot-backend-$${ENV} ./scripts/helm \
 		--values ./scripts/helm/values-$${ENV}.yaml \
 		--set api.image.repository="$${IMAGE_REPO}" \
 		--set api.image.tag="$${IMAGE_TAG}" \
 		--set api.service.loadBalancerSourceRanges[0]="$${APIM_IP}/32" \
 		--set kafkaConsumer.image.repository="$${IMAGE_REPO}" \
 		--set kafkaConsumer.image.tag="$${IMAGE_TAG}" \
-		--namespace kioskbot-$${ENV} \
+		--namespace dsl-bot-$${ENV} \
 		--wait \
 		--timeout 5m; \
 	echo "Forcing rolling restart of deployments..."; \
-	KUBECONFIG="$${KUBECONFIG_FILE}" kubectl rollout restart deployment/kioskbot-backend-$${ENV}-api -n kioskbot-$${ENV}; \
-	KUBECONFIG="$${KUBECONFIG_FILE}" kubectl rollout restart deployment/kioskbot-backend-$${ENV}-kafka-consumer -n kioskbot-$${ENV}; \
+	KUBECONFIG="$${KUBECONFIG_FILE}" kubectl rollout restart deployment/dsl-bot-backend-$${ENV}-api -n dsl-bot-$${ENV}; \
+	KUBECONFIG="$${KUBECONFIG_FILE}" kubectl rollout restart deployment/dsl-bot-backend-$${ENV}-kafka-consumer -n dsl-bot-$${ENV}; \
 	echo "Waiting for rollout to complete..."; \
-	KUBECONFIG="$${KUBECONFIG_FILE}" kubectl rollout status deployment/kioskbot-backend-$${ENV}-api -n kioskbot-$${ENV} --timeout=5m; \
-	KUBECONFIG="$${KUBECONFIG_FILE}" kubectl rollout status deployment/kioskbot-backend-$${ENV}-kafka-consumer -n kioskbot-$${ENV} --timeout=5m; \
+	KUBECONFIG="$${KUBECONFIG_FILE}" kubectl rollout status deployment/dsl-bot-backend-$${ENV}-api -n dsl-bot-$${ENV} --timeout=5m; \
+	KUBECONFIG="$${KUBECONFIG_FILE}" kubectl rollout status deployment/dsl-bot-backend-$${ENV}-kafka-consumer -n dsl-bot-$${ENV} --timeout=5m; \
 	echo "All deployments ready!"
 
 .PHONY: helm-upgrade-dev
@@ -725,8 +744,8 @@ helm-uninstall:
 	KUBECONFIG_FILE=$(TF_DIR)/outputs/$${ENV}.kubeconfig; \
 	test -f "$${KUBECONFIG_FILE}" || { echo "ERROR: kubeconfig not found at $${KUBECONFIG_FILE}. Run 'make kubeconfig-$${ENV}' first."; exit 1; }; \
 	echo "Uninstalling Helm release for environment: $${ENV}"; \
-	KUBECONFIG="$${KUBECONFIG_FILE}" helm uninstall kioskbot-backend-$${ENV} \
-		--namespace kioskbot-$${ENV}
+	KUBECONFIG="$${KUBECONFIG_FILE}" helm uninstall dsl-bot-backend-$${ENV} \
+		--namespace dsl-bot-$${ENV}
 
 .PHONY: helm-uninstall-dev
 helm-uninstall-dev:

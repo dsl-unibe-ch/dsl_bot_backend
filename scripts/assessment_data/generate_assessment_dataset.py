@@ -1,16 +1,15 @@
-﻿"""Generate answerable Q&A assessment dataset from knowledge base."""
+"""Generate answerable Q&A assessment dataset from knowledge base."""
 
 import argparse
 import json
 import logging
-from pathlib import Path
 
 import pandas as pd
+from langfuse._client.client import Langfuse as LangfuseClient
 from openai import AzureOpenAI
 from pydantic import BaseModel
 
 from app.config import Settings
-from langfuse._client.client import Langfuse as LangfuseClient
 from tests.dataset_config import (
     answerable_questions_source_path,
     generated_answerable_questions_path,
@@ -118,9 +117,16 @@ def generate_answerable_questions(
     all_cases: list[dict] = []
     for i, chunk in enumerate(chunks, 1):
         logger.info("Processing chunk %d/%d (%d chars)...", i, len(chunks), len(chunk))
-        cases = _generate_from_chunk(chunk, client=client, config=config, n_questions=n_per_chunk)
+        cases = _generate_from_chunk(
+            chunk, client=client, config=config, n_questions=n_per_chunk
+        )
         all_cases.extend(cases)
-        logger.info("Chunk %d: got %d questions (total so far: %d)", i, len(cases), len(all_cases))
+        logger.info(
+            "Chunk %d: got %d questions (total so far: %d)",
+            i,
+            len(cases),
+            len(all_cases),
+        )
     return all_cases
 
 

@@ -8,7 +8,7 @@ if TYPE_CHECKING:
     import pytest as _pytest
 
 
-def pytest_configure(config: "_pytest.Config") -> None:
+def pytest_configure(config: _pytest.Config) -> None:
     """Initialise shared store for regression test results."""
     config._regression_results: list[dict] = []  # type: ignore[attr-defined]
 
@@ -61,7 +61,9 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config) -> None:  # no
             f"\nScope accuracy: {scope_acc:.2%}  ({len(scope_pairs)} cases)"
         )
         scope_labels = ["in_scope", "out_of_scope", "unclear"]
-        stats = _precision_recall_f1(scope_labels, list(scope_actual), list(scope_expected))
+        stats = _precision_recall_f1(
+            scope_labels, list(scope_actual), list(scope_expected)
+        )
         header = f"  {'Label':<22} {'Precision':>10} {'Recall':>10} {'F1':>10} {'Support':>10}"
         terminalreporter.write_line(header)
         for label in scope_labels:
@@ -87,7 +89,8 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config) -> None:  # no
     ret_pairs = [
         (r["expected_retrieve"], r["actual_retrieve"])
         for r in results
-        if r.get("expected_retrieve") is not None and r.get("actual_retrieve") is not None
+        if r.get("expected_retrieve") is not None
+        and r.get("actual_retrieve") is not None
     ]
     if ret_pairs:
         ret_acc = sum(e == a for e, a in ret_pairs) / len(ret_pairs)

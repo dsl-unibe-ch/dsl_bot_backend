@@ -1,3 +1,4 @@
+# Copyright (c) 2026, University of Bern, Data Science Lab
 """Configuration settings for the application."""
 
 import os
@@ -9,6 +10,8 @@ env = os.environ["ENV"]
 if not env and env not in ["dev", "prod"]:
     error_message = "ENV environment variable must be either 'dev' or 'prod'."
     raise RuntimeError(error_message)
+
+CUSTOMER_NAME_LEN_LIMIT = 2
 
 
 class Settings(BaseSettings):
@@ -48,12 +51,12 @@ class Settings(BaseSettings):
 
     DEFAULT_CUSTOMER: str
 
-    AGENTIC_MAX_NUM_RETRIEVALS : int
+    AGENTIC_MAX_NUM_RETRIEVALS: int
     AGENTIC_MAX_NUM_ACTIONS: int = 12
-    AGENTIC_MAX_LATENCY : int 
-    AGENTIC_MAX_TOKEN_BUDGET: int 
+    AGENTIC_MAX_LATENCY: int
+    AGENTIC_MAX_TOKEN_BUDGET: int
     AGENTIC_RECURSION_LIMIT: int = 25
-    ENABLE_AGENTIC_SEARCH : bool 
+    ENABLE_AGENTIC_SEARCH: bool
 
     REDIS_HOST: str
     REDIS_PORT: int
@@ -68,7 +71,7 @@ class Settings(BaseSettings):
     LANGFUSE_HOST: str | None = None
 
     @model_validator(mode="after")
-    def normalize_urls(self) -> "Settings":
+    def normalize_urls(self) -> Settings:
         """Normalize URL fields to be None if they are empty or 'None'."""
         for attr in ["DOCS_URL", "REDOC_URL"]:
             value = getattr(self, attr)
@@ -78,7 +81,7 @@ class Settings(BaseSettings):
         if isinstance(default_customer, str):
             default_customer = default_customer.strip()
             if (
-                len(default_customer) >= 2
+                len(default_customer) >= CUSTOMER_NAME_LEN_LIMIT
                 and default_customer[0] == default_customer[-1]
                 and default_customer[0] in ("'", '"')
             ):

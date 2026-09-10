@@ -6,12 +6,11 @@ resource "azurerm_api_management" "apim" {
   publisher_name      = var.publisher_name
   publisher_email     = var.publisher_email
   sku_name = var.apim_sku_name
-  
   tags = var.tags
 }
 
-# Define the Kioskbot API
-resource "azurerm_api_management_api" "kioskbot_api" {
+# Define the DSL Bot API
+resource "azurerm_api_management_api" "bot_api" {
   name                = var.api_name
   resource_group_name = var.resource_group_name
   api_management_name = azurerm_api_management.apim.name
@@ -27,7 +26,7 @@ resource "azurerm_api_management_api" "kioskbot_api" {
 # Operation 1: Health check
 resource "azurerm_api_management_api_operation" "health" {
   operation_id        = "health-check"
-  api_name            = azurerm_api_management_api.kioskbot_api.name
+  api_name            = azurerm_api_management_api.bot_api.name
   api_management_name = azurerm_api_management.apim.name
   resource_group_name = var.resource_group_name
   display_name        = "Health Check"
@@ -43,7 +42,7 @@ resource "azurerm_api_management_api_operation" "health" {
 # Operation 2: Initialize agent
 resource "azurerm_api_management_api_operation" "initialize_agent" {
   operation_id        = "initialize-agent"
-  api_name            = azurerm_api_management_api.kioskbot_api.name
+  api_name            = azurerm_api_management_api.bot_api.name
   api_management_name = azurerm_api_management.apim.name
   resource_group_name = var.resource_group_name
   display_name        = "Initialize Agent"
@@ -59,7 +58,7 @@ resource "azurerm_api_management_api_operation" "initialize_agent" {
 # Operation 3: Invoke agent
 resource "azurerm_api_management_api_operation" "invoke_agent" {
   operation_id        = "invoke-agent"
-  api_name            = azurerm_api_management_api.kioskbot_api.name
+  api_name            = azurerm_api_management_api.bot_api.name
   api_management_name = azurerm_api_management.apim.name
   resource_group_name = var.resource_group_name
   display_name        = "Invoke Agent"
@@ -75,7 +74,7 @@ resource "azurerm_api_management_api_operation" "invoke_agent" {
 # Operation 4: Send feedback
 resource "azurerm_api_management_api_operation" "send_feedback" {
   operation_id        = "send-feedback"
-  api_name            = azurerm_api_management_api.kioskbot_api.name
+  api_name            = azurerm_api_management_api.bot_api.name
   api_management_name = azurerm_api_management.apim.name
   resource_group_name = var.resource_group_name
   display_name        = "Send Feedback"
@@ -90,7 +89,7 @@ resource "azurerm_api_management_api_operation" "send_feedback" {
 
 # Policy 1: Health check - No rate limit (for monitoring)
 resource "azurerm_api_management_api_operation_policy" "health_policy" {
-  api_name            = azurerm_api_management_api.kioskbot_api.name
+  api_name            = azurerm_api_management_api.bot_api.name
   api_management_name = azurerm_api_management.apim.name
   resource_group_name = var.resource_group_name
   operation_id        = azurerm_api_management_api_operation.health.operation_id
@@ -128,7 +127,7 @@ XML
 
 # Policy 2: Initialize agent 
 resource "azurerm_api_management_api_operation_policy" "initialize_policy" {
-  api_name            = azurerm_api_management_api.kioskbot_api.name
+  api_name            = azurerm_api_management_api.bot_api.name
   api_management_name = azurerm_api_management.apim.name
   resource_group_name = var.resource_group_name
   operation_id        = azurerm_api_management_api_operation.initialize_agent.operation_id
@@ -165,7 +164,7 @@ XML
 
 # Policy 3: Invoke agent - STRICT limit (expensive OpenAI calls)
 resource "azurerm_api_management_api_operation_policy" "invoke_policy" {
-  api_name            = azurerm_api_management_api.kioskbot_api.name
+  api_name            = azurerm_api_management_api.bot_api.name
   api_management_name = azurerm_api_management.apim.name
   resource_group_name = var.resource_group_name
   operation_id        = azurerm_api_management_api_operation.invoke_agent.operation_id
@@ -202,7 +201,7 @@ XML
 
 # Policy 4: Send feedback 
 resource "azurerm_api_management_api_operation_policy" "feedback_policy" {
-  api_name            = azurerm_api_management_api.kioskbot_api.name
+  api_name            = azurerm_api_management_api.bot_api.name
   api_management_name = azurerm_api_management.apim.name
   resource_group_name = var.resource_group_name
   operation_id        = azurerm_api_management_api_operation.send_feedback.operation_id

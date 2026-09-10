@@ -1,7 +1,8 @@
+# Copyright (c) 2026, University of Bern, Data Science Lab
 """Redis-backed session store for cross-pod chat history persistence."""
 
 import json
-from uuid import UUID
+from uuid import UUID  # noqa: TC003
 
 import redis
 from langchain_core.messages import AIMessage, HumanMessage
@@ -70,15 +71,19 @@ def save_session(
         chat_history: List of HumanMessage / AIMessage objects.
         interaction_count: Number of completed interactions so far.
     """
-    payload = json.dumps({
-        "customer_name": customer_name,
-        "index_name": index_name,
-        "interaction_count": interaction_count,
-        "chat_history": _serialize_history(chat_history),
-    })
+    payload = json.dumps(
+        {
+            "customer_name": customer_name,
+            "index_name": index_name,
+            "interaction_count": interaction_count,
+            "chat_history": _serialize_history(chat_history),
+        }
+    )
     key = f"session:{session_id}"
     get_redis().setex(key, settings.REDIS_SESSION_TTL_SECONDS, payload)
-    logger.debug("Session %s saved to Redis (%d messages)", session_id, len(chat_history))
+    logger.debug(
+        "Session %s saved to Redis (%d messages)", session_id, len(chat_history)
+    )
 
 
 def load_session(session_id: UUID) -> dict | None:
@@ -96,5 +101,9 @@ def load_session(session_id: UUID) -> dict | None:
     data["chat_history"] = _deserialize_history(data["chat_history"])
     # Refresh TTL on access so active sessions don't expire mid-conversation.
     get_redis().expire(key, settings.REDIS_SESSION_TTL_SECONDS)
-    logger.debug("Session %s loaded from Redis (%d messages)", session_id, len(data["chat_history"]))
+    logger.debug(
+        "Session %s loaded from Redis (%d messages)",
+        session_id,
+        len(data["chat_history"]),
+    )
     return data

@@ -4,7 +4,7 @@
 
 - Docker
 
-- Install Python 3.12.11
+- Install Python 3.14.7
 
 - To assess the performance of the RAG Agent, create an account on [Langfuse](https://cloud.langfuse.com/), create a project and generate a new key
 
@@ -17,12 +17,12 @@
 - Install `uv`: 
 
 ```bash
-pip install uv==0.8.14
+pip install uv==0.12.9
 ```
 
 - Create virtual environment: 
 ```bash
-uv venv .venv --python 3.12.11
+uv venv .venv --python 3.14.7
 ```
 
 - Activate with: 
@@ -93,9 +93,9 @@ Cookie behaviour is controlled by two explicit `.env.*` variables, not hardcoded
 <details>
 <summary>Click to expand</summary>
 
-- The ETL pipeline which takes care of crawling and indexing has been moved to a new repository called the [kioskbot_etl](https://github.com/dsl-unibe-ch/kioskbot_etl).
+- The ETL pipeline which takes care of crawling and indexing has been moved to a new repository called the [dsl_bot_etl](h).
 
-- To ensure that the index is correctly created, the logs must be checked according to the process described in [create-update-crawl-jobs](https://github.com/dsl-unibe-ch/kioskbot_etl/blob/main/README.MD#create-update-crawl-jobs) section of the [kioskbot_etl](https://github.com/dsl-unibe-ch/kioskbot_etl) repository.
+- To ensure that the index is correctly created, the logs must be checked according to the process described in [create-update-crawl-jobs](hhttps://github.com/dsl-unibe-ch/dsl_bot_etl/blob/main/README.MD#create-update-crawl-jobs) section of the [dsl_bot_etl](https://github.com/dsl-unibe-ch/dsl_bot_etl) repository.
 
 - Naming Convention of the Indexes: An index is named after the customer such as `kb-{CUSTOMER_NAME}`. For example, `kb-quality`or `kb-innovation`. 
 
@@ -217,16 +217,18 @@ The reason for this three-level separation is to have some common resources shar
   - Mac:
     ```bash
     brew install tfenv
-    tfenv install 1.13.3
-    tfenv use 1.13.3
+    tfenv install 1.16.0
+    tfenv use 1.16.0
     terraform version
+    brew update && brew install azure-cli
+
     ```
 - Under the folder `scripts/terraform/azure/environments/`, create `dev.tfvars`, `prod.tfvars` and `global.tfvars` using the templates `dev.tfvars.example`, `prod.tfvars.example` and `global.tfvars.example` respectively.
 - Create a new ssh key for the Kubernetes VM
   ```bash
-  ssh-keygen -t rsa -b 2048 -f ~/.ssh/id_rsa_aks -C "Your_Email_Address"
+  ssh-keygen -t rsa -b 4096 -f aks_admin -C "aks-admin"
   ```
-- Copy the public ssh key with `cat ~/.ssh/id_rsa_aks.pub` and assign it to `aks_admin_ssh_public_keys` in `scripts/terraform/azure/environments/dev.tfvars` and `scripts/terraform/azure/environments/prod.tfvars`.
+- Copy the public ssh key with `cat ~/.ssh/aks_admin.pub` and assign it to `aks_admin_ssh_public_keys` in `scripts/terraform/azure/environments/dev.tfvars` and `scripts/terraform/azure/environments/prod.tfvars`.
 - Login: Select the subscription id.
   ```bash
   make az-login
@@ -234,6 +236,10 @@ The reason for this three-level separation is to have some common resources shar
 - Set subscription: The subscription selected while login in is set again explicitly.
   ```bash
   make az-set-subscription
+  ```
+- Register the Azure resource providers used by the terraform modules. This is required at least once per subscription (new/empty subscriptions do not have these registered by default, which otherwise causes `MissingSubscriptionRegistration` errors on `apply`).
+  ```bash
+  make az-register-providers
   ```
 - Create `.env.dev` and/or `.env.prod` files with the environment variables (see section [Configure the environment variables](#configure-the-environment-variables))
 - Replace `"your-azure-subscription_id"` in `{ENV}.tfvars` with the actual subscription ID you are using—this should match the subscription that the command `make az-set-subscription` returned. This ensures Terraform uses the correct Azure subscription for resource creation.
@@ -568,9 +574,6 @@ Template Files + Values Files → Helm Renders → Final YAML → Kubernetes API
 
     > **Note:** After deployment, Kafka may take 2-3 minutes to fully initialize. During this time, API and consumer pods may show `CrashLoopBackOff` or `Error` status while waiting for Kafka to become available. This is expected behavior and the pods will automatically recover once Kafka is ready.
 
-4. **Create API Management Resource**
-
-    After deployment, go to the section [ First Time Only Deployment Dev ](#first_time_only_deployment_dev) or  [ First Time Only Deployment Prod ](#first_time_only_deployment_prod) respectively, to finish provisioning the API Management Resource. 
 
 ### Updating the Deployment with a new version of the app
 

@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import json
 import os
-from datetime import datetime
+from collections.abc import Mapping
+from datetime import UTC, datetime
 
 import pytest
 from langchain_openai import AzureChatOpenAI
@@ -18,6 +19,8 @@ from tests.dataset_config import langfuse_regression_dataset_name
 CLASSIFIER_PROMPT_NAME = os.getenv(
     "LANGFUSE_ROUTING_PROMPT_NAME", "routing-language-scope-classifier"
 )
+EXP_THRESHOLD = 0.9
+EXP_SCOPE_ACCURACY = 0.7
 
 
 def _resolved_customer_name() -> str:
@@ -74,7 +77,8 @@ def test_regression_experiment(judge_model: AzureChatOpenAI) -> None:
     if not dataset.items:
         pytest.skip(f"Langfuse dataset '{dataset_name}' is empty.")
 
-    def task(*, item, **_kwargs) -> dict:  # type: ignore[misc]
+    def task(*,
+             item, **_kwargs) -> dict:  # type: ignore[misc]
         user_message = item.input["message"]
         history = item.input.get("history") or []
         output = invoke_agent(user_message, customer_name=customer, history=history)
@@ -94,7 +98,10 @@ def test_regression_experiment(judge_model: AzureChatOpenAI) -> None:
             "classification": classification,
         }
 
-    def evaluator_scope(*, output, expected_output, **_kwargs) -> Evaluation:  # type: ignore[misc]
+    def evaluator_scope(*,
+                        output: object,
+                        expected_output: Mapping[str, object] | None,
+                        **_kwargs: object) -> Evaluation:  # type: ignore[misc]
         expected = (expected_output or {}).get("scope_label")
         actual = output["classification"].get("scope_label")
         return Evaluation(
@@ -103,7 +110,10 @@ def test_regression_experiment(judge_model: AzureChatOpenAI) -> None:
             comment=f"expected={expected}, actual={actual}",
         )
 
-    def evaluator_language(*, output, expected_output, **_kwargs) -> Evaluation:  # type: ignore[misc]
+    def evaluator_language(*,
+                           output: object,
+                           expected_output: Mapping[str, object] | None,
+                           **_kwargs: object) -> Evaluation:  # type: ignore[misc]
         expected = bool((expected_output or {}).get("same_language", True))
         actual = output["classification"].get("same_language")
         return Evaluation(
@@ -112,20 +122,27 @@ def test_regression_experiment(judge_model: AzureChatOpenAI) -> None:
             comment=f"expected={expected}, actual={actual}",
         )
 
-    def evaluator_retrieval(*, output, expected_output, **_kwargs) -> list[Evaluation]:  # type: ignore[misc]
+    def evaluator_retrieval(
+        *,
+        output: object,
+        expected_output: Mapping[str, object] | None,
+        **_kwargs: object,
+    ) -> list[Evaluation]:  # type: ignore[misc]
         if "should_retrieve" not in (expected_output or {}):
             return []
         if (expected_output or {}).get("scope_label") == "unclear":
             return []
         expected = bool(expected_output["should_retrieve"])
         actual = output["sources_count"] > 0
-        return [Evaluation(
-            name="retrieval_correct",
-            value=1 if actual == expected else 0,
-            comment=f"expected={expected}, actual={actual}",
-        )]
+        return [
+            Evaluation(
+                name="retrieval_correct",
+                value=1 if actual == expected else 0,
+                comment=f"expected={expected}, actual={actual}",
+            )
+        ]
 
-    run_name = f"pytest-{datetime.now().strftime('%Y-%m-%dT%H-%M-%S')}"
+    run_name = f"pytest-{datetime.now(UTC).strftime('%Y-%m-%dT%H-%M-%S')}"
     result = langfuse.run_experiment(
         name=dataset_name,
         run_name=run_name,
@@ -137,27 +154,27 @@ def test_regression_experiment(judge_model: AzureChatOpenAI) -> None:
     scope_scores: list[float] = [
         float(e.value)  # type: ignore[arg-type]
         for ir in result.item_results
-        for e in ir.evaluations if e.name == "scope_correct"
+        for e in ir.evaluations
+        if e.name == "scope_correct"
     ]
     language_scores: list[float] = [
         float(e.value)  # type: ignore[arg-type]
         for ir in result.item_results
-        for e in ir.evaluations if e.name == "language_correct"
+        for e in ir.evaluations
+        if e.name == "language_correct"
     ]
 
     failures = []
     if scope_scores:
         scope_accuracy = sum(scope_scores) / len(scope_scores)
-        if scope_accuracy < 0.7:
-            failures.append(f"Scope accuracy {scope_accuracy:.1%} < 70% threshold")
+        if scope_accuracy < EXP_SCOPE_ACCURACY:
+            failures.append(f"Scope accuracy {scope_accuracy:.1%} lower than threshold")
     if language_scores:
         lang_accuracy = sum(language_scores) / len(language_scores)
-        if lang_accuracy < 0.9:
-            failures.append(f"Language accuracy {lang_accuracy:.1%} < 90% threshold")
-
-    if result.dataset_run_url:
-        print(f"\nLangfuse experiment: {result.dataset_run_url}")
+        if lang_accuracy < EXP_THRESHOLD:
+            failures.append(
+                f"Language accuracy {lang_accuracy:.1%} lower than threshold"
+            )
 
     if failures:
         pytest.fail("\n".join(failures), pytrace=False)
-

@@ -4,7 +4,7 @@ resource "azurerm_search_service" "this" {
   resource_group_name = var.resource_group_name
   location            = var.resource_group_location
   sku = var.search_service_sku
-
+  public_network_access_enabled = false # Disable public access to comply with UniBE policy.
   # Capacity
   replica_count   = var.search_service_replica_count   # 1..12 (depends on SKU)
   partition_count = var.search_service_partition_count # 1..12 (depends on SKU)

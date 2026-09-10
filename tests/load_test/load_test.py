@@ -21,7 +21,7 @@ class KioskbotUser(HttpUser):
         1, 3
     )  # random wait time between tasks (invoke_agent and send_feedback)
 
-    def on_start(self: "KioskbotUser") -> None:
+    def on_start(self: KioskbotUser) -> None:
         """This method is called when a simulated user starts.
 
         It initializes a new chatbot session by calling the root endpoint.
@@ -39,7 +39,7 @@ class KioskbotUser(HttpUser):
             self.session_id = None
 
     @task(3)
-    def rag_agent(self: "KioskbotUser") -> None:
+    def rag_agent(self: KioskbotUser) -> None:
         """This task simulates asking the chatbot a question.
 
         It will be chosen three times as often as send_feedback.
@@ -61,7 +61,7 @@ class KioskbotUser(HttpUser):
             )
 
     @task(1)
-    def send_feedback(self: "KioskbotUser") -> None:
+    def send_feedback(self: KioskbotUser) -> None:
         """This task simulates sending feedback for a chatbot session.
 
         It will be chosen one time for every three times invoke_agent is chosen.

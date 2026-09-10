@@ -83,11 +83,15 @@ def app_page(
     _install_initialize_agent_origin_override(page, initialize_agent_origin_url)
     with (
         page.expect_request(
-            lambda r: _is_outgoing_request_valid_get(r, INITIALIZE_AGENT_ENDPOINT_MATCH),
+            lambda r: _is_outgoing_request_valid_get(
+                r, INITIALIZE_AGENT_ENDPOINT_MATCH
+            ),
             timeout=60_000,
         ) as request_info_root,
         page.expect_response(
-            lambda r: _is_incoming_response_valid_get(r, INITIALIZE_AGENT_ENDPOINT_MATCH),
+            lambda r: _is_incoming_response_valid_get(
+                r, INITIALIZE_AGENT_ENDPOINT_MATCH
+            ),
             timeout=60_000,
         ) as response_info_root,
     ):
@@ -120,10 +124,20 @@ def _path(url: str) -> str:
 def _override_query_origin(url: str, origin: str) -> str:
     """Return URL with an explicit origin query parameter."""
     parts = urlsplit(url)
-    query_params = [(k, v) for k, v in parse_qsl(parts.query, keep_blank_values=True) if k != "origin"]
+    query_params = [
+        (k, v)
+        for k, v in parse_qsl(parts.query, keep_blank_values=True)
+        if k != "origin"
+    ]
     query_params.append(("origin", origin))
     return urlunsplit(
-        (parts.scheme, parts.netloc, parts.path, urlencode(query_params, doseq=True), parts.fragment)
+        (
+            parts.scheme,
+            parts.netloc,
+            parts.path,
+            urlencode(query_params, doseq=True),
+            parts.fragment,
+        )
     )
 
 
@@ -253,7 +267,7 @@ def _save_frontend_snapshot(
             sent_body = _parse_request_json(request)
         except Exception:
             sent_body = {"error": "Could not parse request body"}
-    
+
     record = {
         "request": {
             "url": request.url,

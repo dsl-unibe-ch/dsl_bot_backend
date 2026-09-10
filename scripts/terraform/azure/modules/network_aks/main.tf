@@ -14,7 +14,7 @@ resource "azurerm_network_security_group" "this" {
   dynamic "security_rule" {
     for_each = { for idx, ip in var.allowed_external_ips : idx => ip }
     content {
-      name                       = "AllowKioskbotApiInbound-${security_rule.key}"
+      name                       = "AllowBotApiInbound-${security_rule.key}"
       priority                   = 100 + security_rule.key
       direction                  = "Inbound"
       access                     = "Allow"
@@ -29,6 +29,7 @@ resource "azurerm_network_security_group" "this" {
   tags = var.tags
 }
 
+
 resource "azapi_resource" "subnet" {
   type      = "Microsoft.Network/virtualNetworks/subnets@2023-11-01" 
   name      = var.subnet_name
@@ -42,4 +43,7 @@ resource "azapi_resource" "subnet" {
     }
   }
 }
+
+
+
 

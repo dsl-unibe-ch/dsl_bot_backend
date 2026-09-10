@@ -1,6 +1,6 @@
 apiVersion: apps/v1 # kubernetes API version for Deployment resources
 kind: Deployment # resource type
-metadata: # metadata for the Deployment resource (Azure portal -> AKS cluster -> Workloads -> Deployments -> kioskbot-backend-{ENV}-api)
+metadata: # metadata for the Deployment resource (Azure portal -> AKS cluster -> Workloads -> Deployments -> dsl-bot-backend-{ENV}-api)
   name: {{ .Values.fullnameOverride }}-api
   labels:
     helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version }}

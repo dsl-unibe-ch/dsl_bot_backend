@@ -1,3 +1,4 @@
+# Copyright (c) 2026, University of Bern, Data Science Lab
 """Schemas for the query integration."""
 
 from pydantic import BaseModel

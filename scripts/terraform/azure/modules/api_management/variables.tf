@@ -30,7 +30,7 @@ variable "publisher_email" {
 
 variable "backend_url" {
   type        = string
-  description = "Backend AKS service URL (e.g., http://kioskbot-api.default.svc.cluster.local:80)"
+  description = "Backend AKS service URL (e.g., http://bot-api.default.svc.cluster.local:80)"
 }
 
 variable "api_name" {

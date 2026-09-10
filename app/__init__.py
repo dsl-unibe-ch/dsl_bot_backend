@@ -1,3 +1,4 @@
+# Copyright (c) 2026, University of Bern, Data Science Lab
 """Top-level package for the chatbot backend.
 
 Provides sub-packages:

@@ -24,16 +24,16 @@ output "apim_public_ip_addresses" {
 }
 
 output "api_id" {
-  value       = azurerm_api_management_api.kioskbot_api.id
-  description = "ID of the Kioskbot API"
+  value       = azurerm_api_management_api.bot_api.id
+  description = "ID of the Bot API"
 }
 
 output "api_path" {
-  value       = azurerm_api_management_api.kioskbot_api.path
-  description = "Path of the Kioskbot API"
+  value       = azurerm_api_management_api.bot_api.path
+  description = "Path of the Bot API"
 }
 
 output "full_api_url" {
-  value       = "${azurerm_api_management.apim.gateway_url}/${azurerm_api_management_api.kioskbot_api.path}"
+  value       = "${azurerm_api_management.apim.gateway_url}/${azurerm_api_management_api.bot_api.path}"
   description = "Full API URL (Gateway URL + API path)"
 }

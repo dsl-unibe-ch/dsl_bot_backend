@@ -1,23 +1,26 @@
+# Copyright (c) 2026, University of Bern, Data Science Lab
 """Custom logging utilities for the Kioskbot backend."""
 
 import json
 import logging
+from typing import TYPE_CHECKING
 
-from kafka import KafkaProducer
+if TYPE_CHECKING:
+    from kafka import KafkaProducer
 
 
 class KafkaLoggingHandler(logging.Handler):
     """Custom logging handler that sends log records to a Kafka topic."""
 
     def __init__(
-        self: "KafkaLoggingHandler", producer: KafkaProducer, topic: str
+        self: KafkaLoggingHandler, producer: KafkaProducer, topic: str
     ) -> None:
         """Initialize the KafkaLoggingHandler with a Kafka producer and topic."""
         super().__init__()
         self.producer = producer
         self.topic = topic
 
-    def emit(self: "KafkaLoggingHandler", record: logging.LogRecord) -> None:
+    def emit(self: KafkaLoggingHandler, record: logging.LogRecord) -> None:
         """Send the log record to the Kafka topic.
 
         This method defines exactly how to process and send each log record. It is a required method for any custom logging handler in Python's logging module. Specifically, it converts the log record to a dictionary, JSON-encodes it, and sends it to Kafka.
@@ -35,7 +38,7 @@ class KafkaLoggingHandler(logging.Handler):
         }
         self.producer.send(self.topic, value=json.dumps(log_entry).encode("utf-8"))
 
-    def close(self: "KafkaLoggingHandler") -> None:
+    def close(self: KafkaLoggingHandler) -> None:
         """Close the Kafka producer."""
         if hasattr(self, "producer") and self.producer is not None:
             self.producer.close()

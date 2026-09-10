@@ -106,9 +106,7 @@ def main() -> None:
         variable_name="AZURE_CONTAINER_STORAGE_SECRETS_NAME", files=files
     )
     if not connection_string or connection_string.startswith("Value not found"):
-        msg = (
-            "AZURE_STORAGE_ACCOUNT_PRIMARY_CONNECTION_STRING is missing in env file"
-        )
+        msg = "AZURE_STORAGE_ACCOUNT_PRIMARY_CONNECTION_STRING is missing in env file"
         logger.error(msg)
         raise ValueError(msg)
     if not container_name or container_name.startswith("Value not found"):
