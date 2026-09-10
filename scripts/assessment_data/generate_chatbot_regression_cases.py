@@ -40,56 +40,15 @@ AnswerabilityLabel = Literal["answerable_from_docs", "unanswerable_from_docs"]
 ExpectedActionLabel = Literal["answer", "clarify", "defer_or_decline"]
 
 fallback_email_address_list = {
-    "innovation": ["innovationoffice@unibe.ch", "ideenlabor@unibe.ch"],
-    "quality": ["info.qualitaet@unibe.ch", "lehrevaluation@unibe.ch"],
+    "bnf": ["info.bnf@unibe.ch"],
 }
 
 domain_descriptions = {
-    "innovation": """Innovation Office
-                        Your first point of contact for questions related to innovation and entrepreneurship.
+    "bnf": """ Als Nationales Qualifizierungsprogramm hat BNF über 25 Jahre Erfahrung in der Beratung von stellensuchenden Akademiker*innen.  
 
-                        Contact
-                        Innovation Office
-                        Vice-Rectorate Research and Innovation
-                        University of Bern
-                        Hochschulstrasse 6
-                        Office 259
-                        3012 Bern
-                        General inquiries:
-                        E-Mail-Address
-                        innovationoffice@unibe.ch
-                        Sébastien Hug
-                        Phone
-                        +41 31 684 48 97
-                        E-Mail-Address
-                        sebastien.hug@unibe.ch
-                        The Innovation Office on LinkedIn
-                        As part of a dynamic culture of innovation, the Innovation Office supports students, researchers and clinicians in translating ideas, research and inventions into innovations. It thus strengthens the University’s role of creating value through knowledge for the benefit of society and economy. 
-                        For Ideenlabor (Ideas Lab) related questions the address is ideenlabor@unibe.ch, VonRoll A002, Fabrikstrasse 8, 3012 Bern 
-                        Services include advise and feedback on:
-                        - Early ideas and entrepreneurial projects
-                        - Innovation funding (Innosuisse, BRIDGE and Eurostars/EUREKA)
-                        - Development of business model and market analysis, preparation of pitches, etc. (via personalized workshops)
-                        - Establishment and founding of startups or innovation collaborations 
-                        - Innovation impact: identify the impact areas (social, environmental, economic, or specific SDGs) of your innovation and how they can be measured and communicated
-                        """,
-    "quality": """ Office for Quality Assurance and Development (QAD Office):
-                        The University of Bern pursues quality management as a participatory culture that permeates all areas of the university at the university-wide level.
-                        It has a university commission, a department for quality assurance and development, the Accreditation Working Group (AKKRED) and faculty quality commissions. It is responsible for institutional accreditation, ensures the implementation of the quality strategy and networks and accompanies stakeholders in quality-related matters.
-                        Services
-                        The Department of Quality Assurance and Development (QSE Department) supports university members in quality assurance and development (QSE), promotes the university's quality culture and helps with the development and implementation of QSE measures with a range of evaluation tools and processes:
+BNF unterstützt Personen mit Hochschulabschluss darin, sich (neu) zu orientieren, ihren beruflichen Fokus zu finden und ihre Netzwerkstrategien zu entwickeln: durch individuelle Beratung, Vernetzung in einem BNF-Projekt sowie durch Fach- und Bewerbungskurse. 
 
-                        Course evaluations and evaluation of performance assessments
-                        Study Program Evaluations
-                        Research Evaluations
-                        Evaluation of the strategic centers
-                        Evaluation of the Central Division
-                        Graduate Study
-                        Internal control circuit
-                        Institutional accreditation
-                        Commission for Quality Assurance and Development
-                        Accreditation Working Group (AKKRED)
-                        Advice and support for further evaluation projects. """,
+Der Erfolg von BNF zeigt sich in der hohen Stellenantrittsquote von rund 70%.""",
 }
 
 

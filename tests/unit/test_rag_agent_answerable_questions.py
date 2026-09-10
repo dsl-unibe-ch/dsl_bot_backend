@@ -15,17 +15,10 @@ from tests.conftest import invoke_agent
 from tests.dataset_config import langfuse_answerable_dataset_name
 
 _CUSTOMER_GUIDELINES: dict[str, str] = {
-    "quality": (
-        "- If the question is not related to Quality Evaluation (e.g., IT, HR, holidays),"
+    "bnf": (
+        "- If the question is not related to BNF Nationales Qualifizierungsprogramm  (e.g., IT, HR, holidays),"
         " apologize and offer to help with something else.\n"
-        "    - For any Quality Evaluation inquiries requiring further assistance,"
-        " refer the user to: info.qualitaet@unibe.ch."
-    ),
-    "innovation": (
-        "- If the question is not related to Innovation Office services (e.g., IT, HR, holidays),"
-        " apologize and offer to help with something else.\n"
-        "    - For any Innovation Office inquiries requiring further assistance,"
-        " refer the user to: innovationoffice@unibe.ch."
+        " refer the user to: info.bnf@unibe.ch"
     ),
 }
 
