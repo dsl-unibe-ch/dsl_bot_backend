@@ -247,3 +247,5 @@ scripts/crawler/jobs/
 uv.lock
 .tmp/
 docs/
+
+cookies.txt

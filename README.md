@@ -574,9 +574,6 @@ Template Files + Values Files → Helm Renders → Final YAML → Kubernetes API
 
     > **Note:** After deployment, Kafka may take 2-3 minutes to fully initialize. During this time, API and consumer pods may show `CrashLoopBackOff` or `Error` status while waiting for Kafka to become available. This is expected behavior and the pods will automatically recover once Kafka is ready.
 
-4. **Create API Management Resource**
-
-    After deployment, go to the section [ First Time Only Deployment Dev ](#first_time_only_deployment_dev) or  [ First Time Only Deployment Prod ](#first_time_only_deployment_prod) respectively, to finish provisioning the API Management Resource. 
 
 ### Updating the Deployment with a new version of the app
 
