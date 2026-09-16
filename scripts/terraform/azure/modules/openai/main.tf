@@ -6,7 +6,7 @@ resource "azurerm_cognitive_account" "openai" {
   resource_group_name = var.resource_group_name
   kind                = var.cognitive_model_account_kind
   sku_name            = var.cognitive_model_account_sku_name
-  public_network_access_enabled = false # Disable public access to comply with UniBE policy.
+  public_network_access_enabled = true 
   identity {
     type = "SystemAssigned"
   }

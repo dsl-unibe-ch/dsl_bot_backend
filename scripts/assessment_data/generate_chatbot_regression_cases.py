@@ -210,7 +210,7 @@ Selection rules:
 Return only valid structured data matching the response schema.
 
 Here are relevant KB excerpts for reference when inferring answerability and expected behavior:
-{kb_context}
+{context}
 """
 
 
@@ -241,7 +241,7 @@ def embed_query(
     return response.data[0].embedding
 
 
-def fetch_kb_context_for_rows(
+def fetch_context_for_rows(
     *,
     embedding_client: AzureOpenAI,
     search_client: SearchClient,
@@ -299,9 +299,9 @@ def fetch_kb_context_for_rows(
 
 
 def infer_answerability_from_kb(
-    *,
+    *,      
     query: str,
-    kb_corpus: str,
+    corpus: str,
 ) -> AnswerabilityLabel:
     """Infer answerability by token overlap against the full KB export."""
     answerability_prompt = f"""
@@ -309,9 +309,9 @@ def infer_answerability_from_kb(
     If the query is in-scope but the KB does not contain the answer, label it as "unanswerable_from_docs". 
     If the KB contains relevant information to answer the query, label it as "answerable_from_docs".
     The KB corpus is as follows:
-    {kb_corpus}
+    {corpus}
     """
-    if query.strip() and kb_corpus:
+    if query.strip() and corpus:
         return "answerable_from_docs"
     return "unanswerable_from_docs"
 
@@ -406,7 +406,7 @@ def generate_cases_for_batch(
     max_cases_per_batch: int,
 ) -> list[RegressionCase]:
     """Generate regression cases for one batch of logs."""
-    kb_context = fetch_kb_context_for_rows(
+    context = fetch_context_for_rows(
         embedding_client=client,
         search_client=search_client,
         config=config,
@@ -417,7 +417,7 @@ def generate_cases_for_batch(
         domain_description=domain_description,
         fallback_email_addresses=fallback_email_addresses,
         case_id_prefix=case_id_prefix,
-        kb_context=kb_context,
+        context=context,
     )
 
     user_payload = {

@@ -97,7 +97,7 @@ Cookie behaviour is controlled by two explicit `.env.*` variables, not hardcoded
 
 - To ensure that the index is correctly created, the logs must be checked according to the process described in [create-update-crawl-jobs](hhttps://github.com/dsl-unibe-ch/dsl_bot_etl/blob/main/README.MD#create-update-crawl-jobs) section of the [dsl_bot_etl](https://github.com/dsl-unibe-ch/dsl_bot_etl) repository.
 
-- Naming Convention of the Indexes: An index is named after the customer such as `db-{CUSTOMER_NAME}`. 
+- Naming Convention of the Indexes: An index is named after the customer such as `index_{CUSTOMER_NAME}`. 
 
 The list of customers can be found in `app/agent/utils.py` under the `customer_name_root_url_mapping` dict.
 
@@ -1151,14 +1151,14 @@ make compose-up-dev
 curl -s -c cookies.txt http://127.0.0.1:8000/initialize-agent | jq .
 ```
 
-- Start a session with origin (e.g. innovation office):
+- Start a session with origin (e.g. bnf):
 ```bash
-curl -s -c cookies.txt "http://127.0.0.1:8000/initialize-agent?origin=https://www.unibe.ch/universitaet/organisation/leitung_und_zentralbereich/vizerektorat_forschung_und_innovation/innovation_office/index_ger.html" | jq .
+curl -s -c cookies.txt "http://127.0.0.1:8000/initialize-agent?origin=https://www.bnf.unibe.ch/.html" | jq .
 ```
 
 - Interact with the Agent (cookie is sent automatically via `-b cookies.txt`):
 ```bash
-curl -s -b cookies.txt -X POST "http://127.0.0.1:8000/invoke-agent" -H "Content-Type: application/json" -d '{"text":"What is the email address of the QSE Department?"}' | jq .
+curl -s -b cookies.txt -X POST "http://127.0.0.1:8000/invoke-agent" -H "Content-Type: application/json" -d '{"text":"What is the email address of the BNF?"}' | jq .
 ```
 
 ```bash
