@@ -55,7 +55,7 @@ class ChatBot:
             message = "customer_name is required and must be non-empty."
             raise ValueError(message)
         self.customer_name = customer_name
-        self.index_name = f"index-{customer_name}"
+        self.index_name = f"index_{customer_name}"
         search_credential = AzureKeyCredential(
             settings.AZURE_SEARCH_SERVICE_PRIMARY_ADMIN_KEY
         )

@@ -40,7 +40,7 @@ search_service_name = "ss-db-dev-001"
 search_service_sku = "basic"
 search_service_replica_count = 1
 search_service_partition_count = 1
-search_index_name = "index-bnf"
+search_index_name = "index_bnf"
 
 
 # ----- AKS cluster -----
