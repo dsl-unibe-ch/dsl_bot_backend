@@ -20,7 +20,7 @@ CUSTOMER_NAME_ARG := $(if $(strip $(customer_name)),--customer_name $(customer_n
 
 run-demo: build-image-dev compose-down-dev compose-up-dev
 	@echo $@
-	@ENV=dev PYTHONPATH=$(shell pwd) python demo/demo.py $(CUSTOMER_NAME_ARG)
+	@ENV=dev PYTHONPATH=$(shell pwd) REDIS_HOST=localhost python demo/demo.py $(CUSTOMER_NAME_ARG)
 
 show-last-trace:
 	@echo $@

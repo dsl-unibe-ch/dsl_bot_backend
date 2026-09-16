@@ -37,7 +37,9 @@ def main() -> None:
             text=query, session_id=start_session_response.session_id
         )
 
-        query_response = chatbot.invoke_agent_wrapper(query_input)
+        query_response = chatbot.invoke_agent_wrapper(
+            query_input, start_session_response.session_id
+        )
         print(f"Output: {query_response['output']}")  # noqa: T201
 
     my_feedback = Feedback(

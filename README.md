@@ -97,7 +97,7 @@ Cookie behaviour is controlled by two explicit `.env.*` variables, not hardcoded
 
 - To ensure that the index is correctly created, the logs must be checked according to the process described in [create-update-crawl-jobs](hhttps://github.com/dsl-unibe-ch/dsl_bot_etl/blob/main/README.MD#create-update-crawl-jobs) section of the [dsl_bot_etl](https://github.com/dsl-unibe-ch/dsl_bot_etl) repository.
 
-- Naming Convention of the Indexes: An index is named after the customer such as `index-{CUSTOMER_NAME}`. 
+- Naming Convention of the Indexes: An index is named after the customer such as `index_{CUSTOMER_NAME}`. 
 
 The list of customers can be found in `app/agent/utils.py` under the `customer_name_root_url_mapping` dict.
 
