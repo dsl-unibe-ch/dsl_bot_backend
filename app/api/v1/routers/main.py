@@ -162,8 +162,8 @@ def send_feedback(
     index_name = state["index_name"]
     origin = feedback.origin
     resolved_customer = get_customer_name_from_url(origin) if origin else None
-    if not resolved_customer and index_name and index_name.startswith("kb-"):
-        resolved_customer = index_name.removeprefix("kb-")
+    if not resolved_customer and index_name and index_name.startswith("index-"):
+        resolved_customer = index_name.removeprefix("index-")
     return feedback.send_feedback_wrapper(
         session_id,
         interaction_count,

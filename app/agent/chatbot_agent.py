@@ -55,7 +55,7 @@ class ChatBot:
             message = "customer_name is required and must be non-empty."
             raise ValueError(message)
         self.customer_name = customer_name
-        self.index_name = f"kb-{customer_name}"
+        self.index_name = f"index-{customer_name}"
         search_credential = AzureKeyCredential(
             settings.AZURE_SEARCH_SERVICE_PRIMARY_ADMIN_KEY
         )
@@ -114,7 +114,7 @@ class ChatBot:
             model=self.chat_client,
             tools=self.tools,
             system_prompt=_build_agentic_system_prompt(self.customer_name),
-            name="kioskbot_agent",
+            name="dsl_bot_agent",
         )
         self.max_num_retrievals = settings.AGENTIC_MAX_NUM_RETRIEVALS
         self.max_agent_actions = settings.AGENTIC_MAX_NUM_ACTIONS
