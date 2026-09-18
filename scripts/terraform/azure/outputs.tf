@@ -118,6 +118,11 @@ output "BACKEND_URL" {
   description = "Frontend/Public URL - This is the URL your frontend application should use"
 }
 
+output "FRONTEND_URL" {
+  value       = var.apim_frontend_url
+  description = "Allowed frontend origin (CORS) configured for this environment"
+}
+
 output "APIM_NAME" {
   value       = try(module.api_management[0].apim_name, null)
   description = "Name of the API Management instance"
