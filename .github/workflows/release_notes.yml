@@ -55,7 +55,7 @@ jobs:
             PREV_DATE=$(git log -1 --format=%ai "$PREV_TAG") # get the date of the previous tag
             echo "Previous tag date: $PREV_DATE"
 
-            gh pr list --state merged --search "merged:>$PREV_DATE" --json headRefName,mergedAt > prs.json || echo "[]" > prs.json # get the list of merged PRs which were merged after the previous release with GitHub Pull Requests workflow and save it to `prs.json`
+            gh pr list --state merged --search "merged:>$PREV_DATE" --json headRefName,mergedAt > prs.json || echo "[]" > prs.json # get the list of merged PRs which were merged after the previous release with GitHub Pull Requests workflow and save them to `prs.json`
 
             jq -r '.[].headRefName' prs.json \
               | grep -oiE 'DSLBOT-[0-9]+' \
@@ -95,13 +95,15 @@ jobs:
           if [ -s jira_ids.txt ]; then # if jira_ids.txt is not empty
             while IFS= read -r ID; do # for each Jira ID in jira_ids.txt
 
-              TITLE=$(curl -s \
+              ISSUE=$(curl -s \
                 -u "$JIRA_USER:$JIRA_API_TOKEN" \
                 -H "Accept: application/json" \
-                -X GET "$API_BASE_URL/rest/api/2/issue/$ID" \
-                | jq -r '.fields.summary') # fetch the title of the Jira ticket using the scoped Jira API token
+                -X GET "$API_BASE_URL/rest/api/2/issue/$ID")
 
-              echo "- [$ID]($baseURL/browse/$ID) $TITLE" >> release_notes.md # append link + title to release_notes.md
+              SUMMARY=$(echo "$ISSUE" | jq -r '.fields.summary')
+              ASSIGNEE=$(echo "$ISSUE" | jq -r '.fields.assignee.displayName // "Unassigned"')
+
+              echo "- [$ID]($baseURL/browse/$ID) $SUMMARY — Assignee: $ASSIGNEE" >> release_notes.md
 
             done < jira_ids.txt # read from jira_ids.txt
 
