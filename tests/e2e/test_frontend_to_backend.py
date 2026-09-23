@@ -18,8 +18,8 @@ from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 import pytest
 from playwright.sync_api import Page, Request, Response, expect
 
-from app.agent.utils import get_customer_name_from_url
 from app.config import settings
+from app.customer_config import get_customer_config, resolve_customer_id
 
 BAD_REQUEST_CODE = 400
 INVOKE_AGENT_ENDPOINT_MATCH = re.compile(r"/invoke-agent(?:\?|$)")
@@ -73,13 +73,8 @@ def app_page(
     initialize_agent_origin_url: str,
 ) -> Page:
     """Navigates to the frontend, handles the disclaimer, and returns the page."""
-    if not settings.FRONTEND_URL:
-        pytest.skip("FRONTEND_URL not set")
-    resolved_customer = (
-        get_customer_name_from_url(initialize_agent_origin_url)
-        if initialize_agent_origin_url
-        else None
-    )
+    resolved_customer = resolve_customer_id(initialize_agent_origin_url)
+    frontend_url = get_customer_config(resolved_customer).frontend_url
     _install_initialize_agent_origin_override(page, initialize_agent_origin_url)
     with (
         page.expect_request(
@@ -95,7 +90,7 @@ def app_page(
             timeout=60_000,
         ) as response_info_root,
     ):
-        page.goto(url=settings.FRONTEND_URL)
+        page.goto(url=frontend_url)
     request_root = request_info_root.value
     response_root = response_info_root.value
     status, ok, body_json, body_text = _read_response(response_root)
@@ -107,8 +102,7 @@ def app_page(
         pytest.fail(
             f"GET / returned {status}: {detail}. "
             f"Supplied origin URL from test: {initialize_agent_origin_url or '<none>'}. "
-            f"Resolved customer via get_customer_name_from_url: "
-            f"{resolved_customer or '<none>'}."
+            f"Resolved customer: {resolved_customer}."
         )
     page.wait_for_load_state("networkidle")
 
@@ -417,7 +411,8 @@ def test_backend_root_contract(page: Page) -> None:
     """Contract check for backend root."""
     if not settings.BACKEND_URL:
         pytest.skip("BACKEND_URL not set")
-    page.goto(settings.FRONTEND_URL)
+    frontend_url = get_customer_config(settings.FALLBACK_CUSTOMER_ID).frontend_url
+    page.goto(frontend_url)
     page.wait_for_load_state("domcontentloaded")
     backend_url = settings.BACKEND_URL.rstrip("/")
     request = page.context.request.get(backend_url + "/initialize-agent")

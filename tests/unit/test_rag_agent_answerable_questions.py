@@ -76,7 +76,7 @@ _PROMPT_TEMPLATE = """You are an expert data labeler evaluating model outputs fo
 @pytest.fixture(scope="session")
 def prompt() -> str:
     """Construct the customer-specific prompt for the correctness evaluator."""
-    customer = os.environ.get("CUSTOMER_NAME", "").strip() or settings.DEFAULT_CUSTOMER
+    customer = os.environ.get("CUSTOMER_NAME", "").strip() or settings.FALLBACK_CUSTOMER_ID
     guidelines = _CUSTOMER_GUIDELINES.get(customer, _CUSTOMER_GUIDELINES["quality"])
     return _PROMPT_TEMPLATE.format(customer_guidelines=guidelines)
 
@@ -88,7 +88,7 @@ def test_correctness_experiment(
     prompt: str,  # noqa: ARG001
 ) -> None:
     """Run answerable-question correctness as a Langfuse experiment."""
-    customer = os.environ.get("CUSTOMER_NAME", "").strip() or settings.DEFAULT_CUSTOMER
+    customer = os.environ.get("CUSTOMER_NAME", "").strip() or settings.FALLBACK_CUSTOMER_ID
     dataset_name = langfuse_answerable_dataset_name(customer)
     langfuse = get_langfuse_client()
 

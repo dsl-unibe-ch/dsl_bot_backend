@@ -25,7 +25,7 @@ EXP_SCOPE_ACCURACY = 0.7
 
 def _resolved_customer_name() -> str:
     return (
-        os.environ.get("CUSTOMER_NAME", "").strip() or settings.DEFAULT_CUSTOMER
+        os.environ.get("CUSTOMER_NAME", "").strip() or settings.FALLBACK_CUSTOMER_ID
     ).strip()
 
 
