@@ -1,9 +1,15 @@
 PYTHON := $(firstword $(wildcard .venv/bin/python) $(wildcard .venv/Scripts/python.exe) python)
 VERSION=$(shell grep '^version' pyproject.toml | head -1 | cut -d '"' -f2)
-FE_DIR := ../dsl_bot_frontend
-FE_REPO := https://github.com/dsl-unibe-ch/kioskbot_frontend.git
+FE_DIR := .tmp/e2e-frontend
+FE_REPO := https://github.com/dsl-unibe-ch/dsl_bot_frontend
+FE_BRANCH ?= main
 FE_PORT := 5173
-INITIALIZE_AGENT_ORIGIN_URL ?=
+E2E_CUSTOMER_ID ?= bnf
+INITIALIZE_AGENT_ORIGIN_URL = $(shell ENV=$(ENV) PYTHONPATH=$(CURDIR) $(PYTHON) -c "from app.customer_config import get_customer_config; print(get_customer_config('$(E2E_CUSTOMER_ID)').root_urls[0])")
+INTERACTIVE_LOGIN ?= true
+E2E_LOGIN_TIMEOUT_SECONDS ?= 60
+INTERACTIVE_LOGIN_ARGS := $(if $(filter true 1 yes,$(INTERACTIVE_LOGIN)),--headed -s --interactive-login --login-timeout-seconds $(E2E_LOGIN_TIMEOUT_SECONDS),)
+E2E_LOCAL_FRONTEND_URL = $(shell ENV=$(ENV) PYTHONPATH=$(CURDIR) $(PYTHON) -c "from app.config import settings; from app.customer_config import get_customer_config; print(get_customer_config(settings.FALLBACK_CUSTOMER_ID).frontend_url)")
 
 lint:
 	@echo $@
@@ -122,17 +128,14 @@ unit-tests: build-image-dev compose-down-dev compose-up-dev
 # ---- E2E Testing with Local FE and BE ----
 .PHONY: setup-fe-local setup-be-local e2e-local2local stop-fe-local
 
-# currently we are using the main branch of the frontend repository
-setup-fe-local:
+.PHONY: clone-fe
+clone-fe:
+	@echo "Cloning frontend branch $(FE_BRANCH) for E2E testing..."
+	@rm -rf "$(FE_DIR)"
+	@git clone --depth 1 --branch "$(FE_BRANCH)" "$(FE_REPO)" "$(FE_DIR)"
+
+setup-fe-local: clone-fe
 	@echo "Setting up Frontend for local E2E testing..."
-	@if [ ! -d "$(FE_DIR)" ]; then \
-		echo "Cloning frontend repository (main branch)..."; \
-		git clone -b main $(FE_REPO) $(FE_DIR); \
-	else \
-		echo "Frontend repository already exists at $(FE_DIR)"; \
-		echo "Pulling latest changes from main branch..."; \
-		cd $(FE_DIR) && git fetch origin && git checkout main && git pull origin main || echo "Warning: Could not pull latest changes from main branch"; \
-	fi
 	@echo "Installing frontend dependencies..."
 	@cd $(FE_DIR) && pnpm install
 	@echo "Configuring PUBLIC_API environment variable..."
@@ -150,12 +153,9 @@ setup-be-local:
 	@echo "Installing Chromium for Playwright..."
 	@$(PYTHON) -m playwright install chromium
 	@echo "Configuring .env.$(ENV) for local testing..."
-	@grep -v '^FRONTEND_URL=' .env.$(ENV) > .env.$(ENV).tmp || true
-	@grep -v '^BACKEND_URL=' .env.$(ENV).tmp > .env.$(ENV).tmp2 || true
-	@echo "FRONTEND_URL=http://localhost:$(FE_PORT)" >> .env.$(ENV).tmp2
-	@echo "BACKEND_URL=http://localhost:8000" >> .env.$(ENV).tmp2
-	@mv .env.$(ENV).tmp2 .env.$(ENV)
-	@rm -f .env.$(ENV).tmp
+	@grep -v '^BACKEND_URL=' .env.$(ENV) > .env.$(ENV).tmp || true
+	@echo "BACKEND_URL=http://localhost:8000" >> .env.$(ENV).tmp
+	@mv .env.$(ENV).tmp .env.$(ENV)
 	@echo "Backend E2E setup complete!"
 
 stop-fe-local:
@@ -170,7 +170,11 @@ stop-fe-local:
 		fi; \
 		rm -f .fe-server.pid; \
 	fi
-	@pkill -f "vite.*:$(FE_PORT)" 2>/dev/null || true
+	@FE_PIDS=$$(lsof -ti tcp:$(FE_PORT) 2>/dev/null); \
+	if [ -n "$$FE_PIDS" ]; then \
+		echo "Killing processes listening on port $(FE_PORT): $$FE_PIDS"; \
+		kill $$FE_PIDS 2>/dev/null || true; \
+	fi
 	@echo "Frontend server stopped."
 
 e2e-local2local: setup-be-local setup-fe-local build-image-$(ENV) compose-down-$(ENV) compose-up-$(ENV)
@@ -181,7 +185,7 @@ e2e-local2local: setup-be-local setup-fe-local build-image-$(ENV) compose-down-$
 	@echo "Stopping any existing frontend servers..."
 	@$(MAKE) stop-fe-local
 	@echo "STEP 1/2: Starting frontend server in background..."
-	@(cd $(FE_DIR) && pnpm dev -- --port $(FE_PORT) --strictPort > $(shell pwd)/.fe-server.log 2>&1 & echo $$! > $(shell pwd)/.fe-server.pid)
+	@(cd $(FE_DIR) && pnpm dev --port $(FE_PORT) --strictPort > $(shell pwd)/.fe-server.log 2>&1 & echo $$! > $(shell pwd)/.fe-server.pid)
 	@echo "Waiting for frontend server to be ready..."
 	@timeout=60; \
 	while ! curl -s http://localhost:$(FE_PORT) > /dev/null 2>&1; do \
@@ -197,7 +201,7 @@ e2e-local2local: setup-be-local setup-fe-local build-image-$(ENV) compose-down-$
 	done
 	@echo "Frontend server is ready!"
 	@echo "STEP 2/2: Running E2E tests against local FE and local BE..."
-	@KAFKA_LOGGING_ENABLED=false ENV=$(ENV) PYTHONPATH=$(shell pwd) pytest -v tests/e2e/ $(if $(strip $(INITIALIZE_AGENT_ORIGIN_URL)),--origin "$(INITIALIZE_AGENT_ORIGIN_URL)",) || \
+	@KAFKA_LOGGING_ENABLED=false ENV=$(ENV) PYTHONPATH=$(shell pwd) $(PYTHON) -m pytest -v tests/e2e/ $(INTERACTIVE_LOGIN_ARGS) --frontend-url "$(E2E_LOCAL_FRONTEND_URL)" $(if $(strip $(INITIALIZE_AGENT_ORIGIN_URL)),--origin "$(INITIALIZE_AGENT_ORIGIN_URL)",) || \
 		(echo "Tests failed, cleaning up..."; $(MAKE) stop-fe-local; exit 1)
 	@echo "Tests completed successfully!"
 	@$(MAKE) stop-fe-local
@@ -242,16 +246,8 @@ update-apim-backend-url:
 	echo "apim_backend_url = \"$$AKS_BACKEND_URL\"" >> "$$TFVARS_FILE.tmp"; \
 	mv "$$TFVARS_FILE.tmp" "$$TFVARS_FILE"
 
-setup-fe-remote:
+setup-fe-remote: clone-fe
 	@echo "Setting up Frontend for remote backend testing ($(ENV))..."
-	@if [ ! -d "$(FE_DIR)" ]; then \
-		echo "Cloning frontend repository (main branch)..."; \
-		git clone -b main $(FE_REPO) $(FE_DIR); \
-	else \
-		echo "Frontend repository already exists at $(FE_DIR)"; \
-		echo "Pulling latest changes from main branch..."; \
-		cd $(FE_DIR) && git fetch origin && git checkout main && git pull origin main || echo "Warning: Could not pull latest changes from main branch"; \
-	fi
 	@echo "Installing frontend dependencies..."
 	@cd $(FE_DIR) && pnpm install
 	@BACKEND_URL_REMOTE=$$(grep -E '^BACKEND_URL=' .env.$(ENV) | cut -d'=' -f2- | tr -d '"' | sed 's:/*$$::'); \
@@ -265,10 +261,6 @@ setup-fe-remote:
 		mv "$(FE_DIR)/.env.tmp" "$(FE_DIR)/.env"; \
 	fi; \
 	echo "PUBLIC_API=$$BACKEND_URL_REMOTE" >> "$(FE_DIR)/.env"
-	@echo "Configuring backend .env.$(ENV) with FRONTEND_URL..."
-	@grep -v '^FRONTEND_URL=' .env.$(ENV) > .env.$(ENV).tmp || true
-	@echo "FRONTEND_URL=http://localhost:$(FE_PORT)" >> .env.$(ENV).tmp
-	@mv .env.$(ENV).tmp .env.$(ENV)
 	@echo "Frontend setup for remote backend testing is complete!"
 
 e2e-local2remote:
@@ -283,7 +275,7 @@ e2e-local2remote:
 	@echo "Stopping any existing frontend servers..."
 	@$(MAKE) stop-fe-local
 	@echo "Starting frontend server in background..."
-	@(cd $(FE_DIR) && pnpm dev -- --port $(FE_PORT) --strictPort > $(shell pwd)/.fe-server.log 2>&1 & echo $$! > $(shell pwd)/.fe-server.pid)
+	@(cd $(FE_DIR) && pnpm dev --port $(FE_PORT) --strictPort > $(shell pwd)/.fe-server.log 2>&1 & echo $$! > $(shell pwd)/.fe-server.pid)
 	@echo "Waiting for frontend server to be ready..."
 	@timeout=60; \
 	while ! curl -s http://localhost:$(FE_PORT) > /dev/null 2>&1; do \
@@ -298,12 +290,11 @@ e2e-local2remote:
 		sleep 1; \
 	done
 	@echo "Frontend server is ready!"
-	@FRONTEND_URL_VAL=$$(grep -E '^FRONTEND_URL=' .env.$(ENV) | cut -d'=' -f2- | tr -d '"'); \
-	BACKEND_URL_VAL=$$(grep -E '^BACKEND_URL=' .env.$(ENV) | cut -d'=' -f2- | tr -d '"'); \
-	echo "Using FRONTEND_URL=$$FRONTEND_URL_VAL"; \
+	@BACKEND_URL_VAL=$$(grep -E '^BACKEND_URL=' .env.$(ENV) | cut -d'=' -f2- | tr -d '"'); \
+	echo "Using frontend URL from the customer registry"; \
 	echo "Using BACKEND_URL=$$BACKEND_URL_VAL"
 	@echo "Running E2E tests with local FE and remote BE..."
-	@KAFKA_LOGGING_ENABLED=false ENV=$(ENV) PYTHONPATH=$(shell pwd) pytest -v tests/e2e/ || \
+	@KAFKA_LOGGING_ENABLED=false ENV=$(ENV) PYTHONPATH=$(shell pwd) $(PYTHON) -m pytest -v tests/e2e/ $(INTERACTIVE_LOGIN_ARGS) --frontend-url "$(E2E_LOCAL_FRONTEND_URL)" $(if $(strip $(INITIALIZE_AGENT_ORIGIN_URL)),--origin "$(INITIALIZE_AGENT_ORIGIN_URL)",) || \
 		(echo "Tests failed, cleaning up..."; $(MAKE) stop-fe-local; exit 1)
 	@$(MAKE) stop-fe-local
 	@rm -f .fe-server.log
@@ -330,14 +321,11 @@ e2e-remote2remote:
 	fi; \
 	echo "Frontend URL: $(FRONTEND_URL)"; \
 	echo "Backend URL: $$BACKEND_URL"; \
-	grep -v '^FRONTEND_URL=' .env.$(ENV) > .env.$(ENV).tmp || true; \
-	grep -v '^BACKEND_URL=' .env.$(ENV).tmp > .env.$(ENV).tmp2 || true; \
-	echo "FRONTEND_URL=$(FRONTEND_URL)" >> .env.$(ENV).tmp2; \
-	echo "BACKEND_URL=$$BACKEND_URL" >> .env.$(ENV).tmp2; \
-	mv .env.$(ENV).tmp2 .env.$(ENV); \
-	rm -f .env.$(ENV).tmp
+	grep -v '^BACKEND_URL=' .env.$(ENV) > .env.$(ENV).tmp || true; \
+	echo "BACKEND_URL=$$BACKEND_URL" >> .env.$(ENV).tmp; \
+	mv .env.$(ENV).tmp .env.$(ENV)
 	@echo "Step 2/2: Running E2E tests against remote FE and remote BE..."
-	@KAFKA_LOGGING_ENABLED=false ENV=$(ENV) PYTHONPATH=$(shell pwd) pytest -v tests/e2e/ || \
+	@KAFKA_LOGGING_ENABLED=false ENV=$(ENV) PYTHONPATH=$(shell pwd) $(PYTHON) -m pytest -v tests/e2e/ $(INTERACTIVE_LOGIN_ARGS) --origin "$(FRONTEND_URL)" || \
 		(echo "Tests failed!"; exit 1)
 	@echo ""
 	@echo "========================================"
@@ -398,7 +386,7 @@ help:
 	@echo "  make fmt validate          # housekeeping"
 	@echo "  make clean                 # remove local tf state/cache"
 	@echo "\nE2E Testing (Local FE + Local BE):"
-	@echo "  make e2e-local2local [ENV=dev|prod] [INITIALIZE_AGENT_ORIGIN_URL=<url>]  # Run complete E2E test"
+	@echo "  make e2e-local2local ENV=dev E2E_CUSTOMER_ID=bnf  # Human-assisted login and E2E test"
 	@echo "  make setup-fe-local        # Setup frontend for E2E testing"
 	@echo "  make setup-be-local        # Setup backend for E2E testing"
 	@echo "  make stop-fe-local         # Stop frontend development server"

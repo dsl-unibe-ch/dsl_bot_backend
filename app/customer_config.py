@@ -72,6 +72,8 @@ def get_customer_config(customer_id: str) -> CustomerConfig:
 def get_customer_id_from_url(url: str) -> str | None:
     """Resolve a customer_id whose registered root URL is a substring of `url`."""
     for config in _load_all_customer_configs().values():
+        if config.frontend_url in url:
+            return config.customer_id
         for root_url in config.root_urls:
             if root_url in url:
                 return config.customer_id

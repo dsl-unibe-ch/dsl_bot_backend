@@ -33,6 +33,24 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         default="",
         help="Optional origin URL appended to initialize-agent during E2E tests.",
     )
+    parser.addoption(
+        "--frontend-url",
+        action="store",
+        default="",
+        help="Frontend server to open; customer identity still comes from --origin.",
+    )
+    parser.addoption(
+        "--interactive-login",
+        action="store_true",
+        help="Open the Microsoft login flow and wait for a human to authenticate.",
+    )
+    parser.addoption(
+        "--login-timeout-seconds",
+        action="store",
+        type=int,
+        default=300,
+        help="Maximum time to wait for interactive login.",
+    )
 
 
 def load_questions_groundtruth_answers() -> dict:

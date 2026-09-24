@@ -67,15 +67,32 @@ def initialize_agent_origin_url(request: pytest.FixtureRequest) -> str:
 
 
 @pytest.fixture
+def e2e_frontend_url(request: pytest.FixtureRequest) -> str:
+    """Return an explicit frontend test server URL when one was supplied."""
+    return str(request.config.getoption("frontend_url") or "").strip()
+
+
+@pytest.fixture
+def interactive_login(request: pytest.FixtureRequest) -> tuple[bool, int]:
+    """Return interactive-login state and timeout in milliseconds."""
+    enabled = bool(request.config.getoption("interactive_login"))
+    timeout_ms = int(request.config.getoption("login_timeout_seconds")) * 1000
+    return enabled, timeout_ms
+
+
+@pytest.fixture
 def app_page(
     page: Page,
     accept_disclaimer: Callable[[], None],
     initialize_agent_origin_url: str,
+    e2e_frontend_url: str,
+    interactive_login: tuple[bool, int],
 ) -> Page:
     """Navigates to the frontend, handles the disclaimer, and returns the page."""
     resolved_customer = resolve_customer_id(initialize_agent_origin_url)
-    frontend_url = get_customer_config(resolved_customer).frontend_url
-    _install_initialize_agent_origin_override(page, initialize_agent_origin_url)
+    customer_config = get_customer_config(resolved_customer)
+    frontend_url = e2e_frontend_url or customer_config.frontend_url
+    page_url = _with_customer_origin(frontend_url, initialize_agent_origin_url)
     with (
         page.expect_request(
             lambda r: _is_outgoing_request_valid_get(
@@ -90,7 +107,7 @@ def app_page(
             timeout=60_000,
         ) as response_info_root,
     ):
-        page.goto(url=frontend_url)
+        page.goto(url=page_url)
     request_root = request_info_root.value
     response_root = response_info_root.value
     status, ok, body_json, body_text = _read_response(response_root)
@@ -107,6 +124,31 @@ def app_page(
     page.wait_for_load_state("networkidle")
 
     accept_disclaimer()
+    chat_input = page.get_by_placeholder("Nachricht eingeben...")
+    login_button = page.get_by_role("button", name="Mit Microsoft anmelden")
+    unavailable = page.get_by_text(
+        re.compile(r"Der Chatbot ist derzeit nicht verfügbar", re.IGNORECASE)
+    )
+    if unavailable.is_visible():
+        pytest.fail(
+            f"Frontend does not support resolved customer '{resolved_customer}'. "
+            "Its customer registry must contain the same customer before login or "
+            "chat E2E tests can run."
+        )
+    if customer_config.login_required and not chat_input.is_visible():
+        expect(login_button).to_be_visible(timeout=10_000)
+        enabled, timeout_ms = interactive_login
+        if not enabled:
+            pytest.skip(
+                "Customer requires Microsoft login; rerun with --interactive-login "
+                "and --headed."
+            )
+        login_button.click()
+        print("Complete Microsoft login in the browser to continue the E2E test.")
+        expect(chat_input).to_be_visible(timeout=timeout_ms)
+        accept_disclaimer()
+    else:
+        expect(chat_input).to_be_visible(timeout=10_000)
     return page
 
 
@@ -115,15 +157,17 @@ def _path(url: str) -> str:
     return urlsplit(url).path or "/"
 
 
-def _override_query_origin(url: str, origin: str) -> str:
-    """Return URL with an explicit origin query parameter."""
+def _with_customer_origin(url: str, origin: str) -> str:
+    """Return a frontend URL with the customer-origin query parameter."""
+    if not origin:
+        return url
     parts = urlsplit(url)
     query_params = [
         (k, v)
         for k, v in parse_qsl(parts.query, keep_blank_values=True)
-        if k != "origin"
+        if k != "url"
     ]
-    query_params.append(("origin", origin))
+    query_params.append(("url", origin))
     return urlunsplit(
         (
             parts.scheme,
@@ -133,17 +177,6 @@ def _override_query_origin(url: str, origin: str) -> str:
             parts.fragment,
         )
     )
-
-
-def _install_initialize_agent_origin_override(page: Page, origin_url: str) -> None:
-    """Ensure initialize-agent requests include the provided origin URL."""
-    if not origin_url:
-        return
-
-    def _rewrite(route, request) -> None:
-        route.continue_(url=_override_query_origin(request.url, origin_url))
-
-    page.route("**/initialize-agent*", _rewrite)
 
 
 def _is_outgoing_request_valid_post(
@@ -311,8 +344,10 @@ def _send_one_message_and_wait(
     2. Send a chat message and press submit button.
     If backend throws error, extracts details.
     """
-    app_page.locator("textarea[data-slot=textarea]").fill(message_text)
-    submit_button = app_page.locator("button[data-slot='button']")
+    chat_input = app_page.get_by_placeholder("Nachricht eingeben...")
+    chat_input.fill(message_text)
+    chat_form = app_page.locator("form", has=chat_input)
+    submit_button = chat_form.locator("button[type='submit']")
     expect(submit_button).to_be_visible(timeout=10_000)
 
     with (
