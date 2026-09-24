@@ -23,6 +23,7 @@ from app.agent.query import QueryInput, QueryOutput  # noqa: TC001
 from app.agent.schemas import FeedbackResponse, StartSessionResponse  # noqa: TC001
 from app.agent.utils import get_customer_name_from_url
 from app.config import settings
+from app.customer_config import all_frontend_urls, resolve_customer_id
 
 logger = logging.getLogger("Bot")
 
@@ -43,7 +44,7 @@ app = FastAPI(
 )
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[settings.FRONTEND_URL] if settings.FRONTEND_URL else [],
+    allow_origins=all_frontend_urls(),
     allow_credentials=settings.ALLOWED_CREDENTIALS,
     allow_methods=settings.ALLOWED_METHODS,
     allow_headers=settings.ALLOWED_HEADERS,
@@ -83,12 +84,7 @@ def initialize_agent(
     Returns:
         StartSessionResponse: An object containing the generated session_id and customer_name.
     """  # noqa: E501
-    if origin:
-        customer_name = get_customer_name_from_url(origin)
-        if not customer_name:
-            customer_name = settings.DEFAULT_CUSTOMER
-    else:
-        customer_name = settings.DEFAULT_CUSTOMER
+    customer_name = resolve_customer_id(origin)
     chatbot = ChatBot(customer_name=customer_name)
     result = chatbot.initialize_agent_wrapper()
     response.set_cookie(

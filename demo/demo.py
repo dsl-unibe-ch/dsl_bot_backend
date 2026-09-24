@@ -18,12 +18,12 @@ def main() -> None:
         "--customer_name",
         type=str,
         required=False,
-        default=settings.DEFAULT_CUSTOMER,
-        help="Optional customer name. Defaults to DEFAULT_CUSTOMER.",
+        default=settings.FALLBACK_CUSTOMER_ID,
+        help="Optional customer name. Defaults to FALLBACK_CUSTOMER_ID.",
     )
     args = arg_parser.parse_args()
     if not args.customer_name:
-        args.customer_name = settings.DEFAULT_CUSTOMER
+        args.customer_name = settings.FALLBACK_CUSTOMER_ID
     chatbot = ChatBot(customer_name=args.customer_name)
     start_session_response = chatbot.initialize_agent_wrapper()
 

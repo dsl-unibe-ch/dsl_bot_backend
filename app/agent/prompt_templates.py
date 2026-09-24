@@ -3,11 +3,7 @@
 
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 
-from app.agent.utils import (
-    customer_full_name_dict,
-    customer_name_contact_dict,
-    customer_prompt_mapping,
-)
+from app.customer_config import get_customer_config
 
 CUSTOMER_NAME_MIN_LENGTH = 2
 
@@ -32,12 +28,13 @@ def _build_system_prompt(customer_name: str) -> str:
     """Build the system prompt for the chatbot."""
     normalized_customer_name = _normalize_customer_name(customer_name)
     try:
-        customer_full_name = customer_full_name_dict[normalized_customer_name]
-        contact_email = customer_name_contact_dict[normalized_customer_name]
-        customer_prompt = customer_prompt_mapping[normalized_customer_name]
-    except KeyError as exc:
+        customer_config = get_customer_config(normalized_customer_name)
+    except ValueError as exc:
         message = f"Unsupported customer_name '{normalized_customer_name}'."
         raise ValueError(message) from exc
+    customer_full_name = customer_config.full_name
+    contact_email = customer_config.contact_email
+    customer_prompt = customer_config.prompt
 
     return f"""You are a helpful and fact-based assistant designed for answering user questions in the {customer_full_name} at the University of Bern.
 
@@ -62,12 +59,13 @@ def _build_agentic_system_prompt(customer_name: str) -> str:
     """Build the system prompt for the agentic retrieval loop."""
     normalized_customer_name = _normalize_customer_name(customer_name)
     try:
-        customer_full_name = customer_full_name_dict[normalized_customer_name]
-        contact_email = customer_name_contact_dict[normalized_customer_name]
-        customer_prompt = customer_prompt_mapping[normalized_customer_name]
-    except KeyError as exc:
+        customer_config = get_customer_config(normalized_customer_name)
+    except ValueError as exc:
         message = f"Unsupported customer_name '{normalized_customer_name}'."
         raise ValueError(message) from exc
+    customer_full_name = customer_config.full_name
+    contact_email = customer_config.contact_email
+    customer_prompt = customer_config.prompt
 
     return f"""You are a helpful and fact-based assistant for {customer_full_name} at the University of Bern.
 

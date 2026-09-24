@@ -19,6 +19,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from tqdm import tqdm
 
 from app.config import Settings
+from app.customer_config import get_customer_config
 from tests.dataset_config import (
     langfuse_regression_dataset_name,
     prod_logs_path,
@@ -214,11 +215,12 @@ Here are relevant KB excerpts for reference when inferring answerability and exp
 """
 
 
-def _get_index_name(config: Settings, customer_name: str) -> str:
+def _get_index_name(config: Settings, customer_name: str) -> str:  # noqa: ARG001
     """Resolve the Azure AI Search index name for the selected customer."""
-    if customer_name == config.DEFAULT_CUSTOMER:
-        return config.AZURE_DEFAULT_AI_SEARCH_INDEX_NAME
-    return f"kb-{customer_name}"
+    try:
+        return get_customer_config(customer_name).index_name
+    except ValueError:
+        return f"kb-{customer_name}"
 
 
 def make_search_client(*, config: Settings, customer_name: str) -> SearchClient:
