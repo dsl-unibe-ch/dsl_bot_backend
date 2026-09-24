@@ -1,6 +1,6 @@
 [project]
 name = "dsl_bot"
-version = "0.1.6"
+version = "0.1.7"
 description = "Backend for DSL Bot-as-a-Service project"
 readme = "README.md"
 requires-python = "==3.14.7"
