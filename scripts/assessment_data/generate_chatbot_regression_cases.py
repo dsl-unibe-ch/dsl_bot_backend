@@ -218,7 +218,7 @@ Here are relevant KB excerpts for reference when inferring answerability and exp
 def _get_index_name(config: Settings, customer_name: str) -> str:  # noqa: ARG001
     """Resolve the Azure AI Search index name for the selected customer."""
     try:
-        return get_customer_config(customer_name).index_name
+        return get_customer_config(customer_name).SEARCH_INDEX_NAME
     except ValueError:
         return f"kb-{customer_name}"
 

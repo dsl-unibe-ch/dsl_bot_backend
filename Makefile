@@ -5,11 +5,11 @@ FE_REPO := https://github.com/dsl-unibe-ch/dsl_bot_frontend
 FE_BRANCH ?= main
 FE_PORT := 5173
 E2E_CUSTOMER_ID ?= bnf
-INITIALIZE_AGENT_ORIGIN_URL = $(shell ENV=$(ENV) PYTHONPATH=$(CURDIR) $(PYTHON) -c "from app.customer_config import get_customer_config; print(get_customer_config('$(E2E_CUSTOMER_ID)').root_urls[0])")
+INITIALIZE_AGENT_ORIGIN_URL = $(shell ENV=$(ENV) PYTHONPATH=$(CURDIR) $(PYTHON) -c "from app.customer_config import get_customer_config; print(get_customer_config('$(E2E_CUSTOMER_ID)').CUSTOMER_ROOT_URLS[0])")
 INTERACTIVE_LOGIN ?= true
 E2E_LOGIN_TIMEOUT_SECONDS ?= 60
 INTERACTIVE_LOGIN_ARGS := $(if $(filter true 1 yes,$(INTERACTIVE_LOGIN)),--headed -s --interactive-login --login-timeout-seconds $(E2E_LOGIN_TIMEOUT_SECONDS),)
-E2E_LOCAL_FRONTEND_URL = $(shell ENV=$(ENV) PYTHONPATH=$(CURDIR) $(PYTHON) -c "from app.config import settings; from app.customer_config import get_customer_config; print(get_customer_config(settings.FALLBACK_CUSTOMER_ID).frontend_url)")
+E2E_LOCAL_FRONTEND_URL = $(shell ENV=$(ENV) PYTHONPATH=$(CURDIR) $(PYTHON) -c "from app.config import settings; from app.customer_config import get_customer_config; print(get_customer_config(settings.FALLBACK_CUSTOMER_ID).FRONTEND_ORIGIN)")
 
 lint:
 	@echo $@
@@ -22,7 +22,7 @@ generate-assessment-dataset:
 	@CUSTOMER_NAME=$${CUSTOMER_NAME:?Set CUSTOMER_NAME (e.g. make $@ CUSTOMER_NAME=bnf)} ; \
 	ENV=dev PYTHONPATH=$(shell pwd) python scripts/assessment_data/generate_assessment_dataset.py --customer-name $$CUSTOMER_NAME
 
-CUSTOMER_NAME_ARG := $(if $(strip $(customer_name)),--customer_name $(customer_name),)
+CUSTOMER_NAME_ARG := $(if $(strip $(CUSTOMER_NAME)),--customer_name $(CUSTOMER_NAME),$(if $(strip $(customer_name)),--customer_name $(customer_name),))
 
 run-demo: build-image-dev compose-down-dev compose-up-dev
 	@echo $@
