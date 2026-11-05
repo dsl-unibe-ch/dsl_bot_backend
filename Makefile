@@ -10,12 +10,20 @@ INTERACTIVE_LOGIN ?= true
 E2E_LOGIN_TIMEOUT_SECONDS ?= 60
 INTERACTIVE_LOGIN_ARGS := $(if $(filter true 1 yes,$(INTERACTIVE_LOGIN)),--headed -s --interactive-login --login-timeout-seconds $(E2E_LOGIN_TIMEOUT_SECONDS),)
 E2E_LOCAL_FRONTEND_URL = $(shell ENV=$(ENV) PYTHONPATH=$(CURDIR) $(PYTHON) -c "from app.config import settings; from app.customer_config import get_customer_config; print(get_customer_config(settings.FALLBACK_CUSTOMER_ID).FRONTEND_ORIGIN)")
+CUSTOMER_REGISTRY_DIR ?= customer_config
+FALLBACK_CUSTOMER_ID ?= default
 
 lint:
 	@echo $@
 	$(PYTHON) -m ruff format app demo 
 	@echo $@
 	$(PYTHON) -m ruff check --fix app demo 
+
+.PHONY: validate-customer-registry
+validate-customer-registry:
+	@PYTHONPATH=$(CURDIR) $(PYTHON) -m scripts.validate_customer_registry \
+		--config-dir "$(CUSTOMER_REGISTRY_DIR)" \
+		--fallback-customer-id "$(FALLBACK_CUSTOMER_ID)"
 
 generate-assessment-dataset:
 	@echo $@
