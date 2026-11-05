@@ -170,7 +170,7 @@ def main() -> None:
     parser.add_argument(
         "--customer-name",
         required=True,
-        help="Customer name, e.g. quality or innovation",
+        help="Customer name",
     )
     args = parser.parse_args()
     customer_name = args.customer_name

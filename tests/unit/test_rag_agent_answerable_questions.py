@@ -77,7 +77,7 @@ _PROMPT_TEMPLATE = """You are an expert data labeler evaluating model outputs fo
 def prompt() -> str:
     """Construct the customer-specific prompt for the correctness evaluator."""
     customer = os.environ.get("CUSTOMER_NAME", "").strip() or settings.FALLBACK_CUSTOMER_ID
-    guidelines = _CUSTOMER_GUIDELINES.get(customer, _CUSTOMER_GUIDELINES["quality"])
+    guidelines = _CUSTOMER_GUIDELINES.get(customer)
     return _PROMPT_TEMPLATE.format(customer_guidelines=guidelines)
 
 

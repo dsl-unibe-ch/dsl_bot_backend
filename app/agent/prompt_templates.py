@@ -5,36 +5,17 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 
 from app.customer_config import get_customer_config
 
-CUSTOMER_NAME_MIN_LENGTH = 2
-
-
-def _normalize_customer_name(customer_name: str) -> str:
-    """Normalize customer name, remove leading or trailing whitespace or quotes."""
-    normalized = customer_name.strip()
-    if (
-        len(normalized) >= CUSTOMER_NAME_MIN_LENGTH
-        and normalized[0] == normalized[-1]
-        and normalized[0]
-        in (
-            '"',
-            "'",
-        )
-    ):
-        normalized = normalized[1:-1].strip()
-    return normalized
-
 
 def _build_system_prompt(customer_name: str) -> str:
     """Build the system prompt for the chatbot."""
-    normalized_customer_name = _normalize_customer_name(customer_name)
     try:
-        customer_config = get_customer_config(normalized_customer_name)
+        customer_config = get_customer_config(customer_name)
     except ValueError as exc:
-        message = f"Unsupported customer_name '{normalized_customer_name}'."
+        message = f"Unsupported customer_name '{customer_name}'."
         raise ValueError(message) from exc
-    customer_full_name = customer_config.full_name
-    contact_email = customer_config.contact_email
-    customer_prompt = customer_config.prompt
+    customer_full_name = customer_config.CUSTOMER_FULL_NAME
+    contact_email = customer_config.CUSTOMER_CONTACT_EMAIL
+    customer_prompt = customer_config.BACKEND_PROMPT
 
     return f"""You are a helpful and fact-based assistant designed for answering user questions in the {customer_full_name} at the University of Bern.
 
@@ -57,15 +38,14 @@ def _build_system_prompt(customer_name: str) -> str:
 
 def _build_agentic_system_prompt(customer_name: str) -> str:
     """Build the system prompt for the agentic retrieval loop."""
-    normalized_customer_name = _normalize_customer_name(customer_name)
     try:
-        customer_config = get_customer_config(normalized_customer_name)
+        customer_config = get_customer_config(customer_name)
     except ValueError as exc:
-        message = f"Unsupported customer_name '{normalized_customer_name}'."
+        message = f"Unsupported customer_name '{customer_name}'."
         raise ValueError(message) from exc
-    customer_full_name = customer_config.full_name
-    contact_email = customer_config.contact_email
-    customer_prompt = customer_config.prompt
+    customer_full_name = customer_config.CUSTOMER_FULL_NAME
+    contact_email = customer_config.CUSTOMER_CONTACT_EMAIL
+    customer_prompt = customer_config.BACKEND_PROMPT
 
     return f"""You are a helpful and fact-based assistant for {customer_full_name} at the University of Bern.
 

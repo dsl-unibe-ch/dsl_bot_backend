@@ -88,6 +88,23 @@ Cookie behaviour is controlled by two explicit `.env.*` variables, not hardcoded
 
 </details>
 
+## Validate the customer registry
+
+Validate every local customer file, including duplicate IDs, filename matching,
+fallback existence, and unique frontend origins and search index names:
+
+```bash
+make validate-customer-registry
+```
+
+To validate a registry snapshot from another location:
+
+```bash
+make validate-customer-registry \
+  CUSTOMER_REGISTRY_DIR=/path/to/customer_config \
+  FALLBACK_CUSTOMER_ID=default
+```
+
 
 ## ETL pipeline for Azure Search
 <details>

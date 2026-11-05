@@ -91,7 +91,10 @@ def app_page(
     """Navigates to the frontend, handles the disclaimer, and returns the page."""
     resolved_customer = resolve_customer_id(initialize_agent_origin_url)
     customer_config = get_customer_config(resolved_customer)
-    frontend_url = e2e_frontend_url or customer_config.frontend_url
+    configured_frontend_origin = customer_config.FRONTEND_ORIGIN
+    if not e2e_frontend_url and configured_frontend_origin is None:
+        pytest.fail(f"Customer '{resolved_customer}' has no FRONTEND_ORIGIN.")
+    frontend_url = e2e_frontend_url or str(configured_frontend_origin)
     page_url = _with_customer_origin(frontend_url, initialize_agent_origin_url)
     with (
         page.expect_request(
@@ -135,7 +138,7 @@ def app_page(
             "Its customer registry must contain the same customer before login or "
             "chat E2E tests can run."
         )
-    if customer_config.login_required and not chat_input.is_visible():
+    if customer_config.FRONTEND_LOGIN_REQUIRED and not chat_input.is_visible():
         expect(login_button).to_be_visible(timeout=10_000)
         enabled, timeout_ms = interactive_login
         if not enabled:
@@ -446,8 +449,10 @@ def test_backend_root_contract(page: Page) -> None:
     """Contract check for backend root."""
     if not settings.BACKEND_URL:
         pytest.skip("BACKEND_URL not set")
-    frontend_url = get_customer_config(settings.FALLBACK_CUSTOMER_ID).frontend_url
-    page.goto(frontend_url)
+    frontend_url = get_customer_config(settings.FALLBACK_CUSTOMER_ID).FRONTEND_ORIGIN
+    if frontend_url is None:
+        pytest.skip("Fallback customer has no FRONTEND_ORIGIN")
+    page.goto(str(frontend_url))
     page.wait_for_load_state("domcontentloaded")
     backend_url = settings.BACKEND_URL.rstrip("/")
     request = page.context.request.get(backend_url + "/initialize-agent")

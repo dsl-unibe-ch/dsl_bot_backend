@@ -57,7 +57,10 @@ class ChatBot:
             raise ValueError(message)
         self.customer_name = customer_name
         customer_config = get_customer_config(customer_name)
-        self.index_name = customer_config.index_name
+        self.index_name = customer_config.SEARCH_INDEX_NAME
+        if self.index_name is None:
+            message = "SEARCH_INDEX_NAME is required at runtime"
+            raise ValueError(message)
         search_credential = AzureKeyCredential(
             settings.AZURE_SEARCH_SERVICE_PRIMARY_ADMIN_KEY
         )
@@ -88,7 +91,7 @@ class ChatBot:
         self.language_alignment_chain = language_alignment_prompt | self.chat_client
         self.chat_history = []
         self.interaction_count = 0
-        self.enable_agentic_search = customer_config.enable_agentic_search
+        self.enable_agentic_search = customer_config.BACKEND_ENABLE_AGENTIC_SEARCH
         self.current_retrieval_count = 0
         self.current_agent_action_count = 0
         self._agentic_trace: list[AgenticTrace] = []
@@ -118,11 +121,11 @@ class ChatBot:
             system_prompt=_build_agentic_system_prompt(self.customer_name),
             name="dsl_bot_agent",
         )
-        self.max_num_retrievals = customer_config.agentic_max_num_retrievals
-        self.max_agent_actions = customer_config.agentic_max_num_actions
-        self.max_latency = customer_config.agentic_max_latency
-        self.max_token_budget = customer_config.agentic_max_token_budget
-        self.recursion_limit = customer_config.agentic_recursion_limit
+        self.max_num_retrievals = customer_config.BACKEND_AGENTIC_MAX_NUM_RETRIEVALS
+        self.max_agent_actions = customer_config.BACKEND_AGENTIC_MAX_NUM_ACTIONS
+        self.max_latency = customer_config.BACKEND_AGENTIC_MAX_LATENCY
+        self.max_token_budget = customer_config.BACKEND_AGENTIC_MAX_TOKEN_BUDGET
+        self.recursion_limit = customer_config.BACKEND_AGENTIC_RECURSION_LIMIT
 
     def _reset_agentic_trace(self: ChatBot, query_text: str) -> None:
         """Reset and start a new per-request trace timeline."""
