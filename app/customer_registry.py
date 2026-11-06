@@ -1,5 +1,5 @@
 # Copyright (c) 2026, University of Bern, Data Science Lab
-"""Versioned customer registry contract and cross-file validation."""
+"""Customer registry contract and cross-file validation."""
 
 from __future__ import annotations
 
@@ -11,6 +11,7 @@ from dotenv import dotenv_values
 from pydantic import BaseModel, ConfigDict, Field, HttpUrl, Json
 
 if TYPE_CHECKING:
+    from collections.abc import Iterable, Mapping
     from pathlib import Path
 
 
@@ -56,24 +57,44 @@ def load_customer_registry(
     *,
     fallback_customer_id: str,
 ) -> dict[str, CustomerRegistryEntry]:
-    """Load every registry file and enforce all cross-customer rules."""
+    """Load every local registry file and enforce all cross-customer rules."""
     if not config_dir.is_dir():
         message = f"Customer config directory not found: {config_dir}"
         raise FileNotFoundError(message)
 
+    env_files = sorted(config_dir.glob("*.env"))
+    if not env_files:
+        message = f"No customer config files found in {config_dir}"
+        raise FileNotFoundError(message)
+    entries = (
+        (env_file.stem, env_file.name, dict(dotenv_values(env_file, interpolate=False)))
+        for env_file in env_files
+    )
+    return validate_customer_registry(
+        entries,
+        fallback_customer_id=fallback_customer_id,
+    )
+
+
+def validate_customer_registry(
+    entries: Iterable[tuple[str, str, Mapping[str, str | None]]],
+    *,
+    fallback_customer_id: str,
+) -> dict[str, CustomerRegistryEntry]:
+    """Validate parsed entries and all cross-customer registry rules."""
     configs: dict[str, CustomerRegistryEntry] = {}
     frontend_origins: dict[str, str] = {}
     index_names: dict[str, str] = {}
-    for env_file in sorted(config_dir.glob("*.env")):
-        config = load_customer_registry_file(env_file)
+    for expected_customer_id, source, values in entries:
+        config = load_customer_registry_values(source, values)
         customer_id = config.CUSTOMER_ID
         if customer_id in configs:
             message = f"Duplicate CUSTOMER_ID '{customer_id}'"
             raise ValueError(message)
-        if env_file.stem != customer_id:
+        if expected_customer_id != customer_id:
             message = (
-                f"Invalid customer registry entry '{customer_id}': filename "
-                f"'{env_file.name}' must be '{customer_id}.env'"
+                f"Invalid customer registry entry '{customer_id}' in {source}: "
+                f"expected CUSTOMER_ID '{expected_customer_id}'"
             )
             raise ValueError(message)
         configs[customer_id] = config
@@ -93,13 +114,10 @@ def load_customer_registry(
                 "SEARCH_INDEX_NAME",
             )
 
-    if not configs:
-        message = f"No customer config files found in {config_dir}"
-        raise FileNotFoundError(message)
     if fallback_customer_id not in configs:
         message = (
             f"FALLBACK_CUSTOMER_ID '{fallback_customer_id}' does not exist in "
-            f"{config_dir}"
+            "the customer registry"
         )
         raise ValueError(message)
     return configs
@@ -108,11 +126,18 @@ def load_customer_registry(
 def load_customer_registry_file(path: Path) -> CustomerRegistryEntry:
     """Load one dotenv file and add customer/file context to schema errors."""
     raw_config = dict(dotenv_values(path, interpolate=False))
+    return load_customer_registry_values(path.name, raw_config)
+
+
+def load_customer_registry_values(
+    source: str, values: Mapping[str, str | None]
+) -> CustomerRegistryEntry:
+    """Validate one parsed registry entry and include its source in errors."""
     try:
-        return CustomerRegistryEntry.model_validate(raw_config)
+        return CustomerRegistryEntry.model_validate(values)
     except ValueError as exc:
-        customer = raw_config.get("CUSTOMER_ID", path.stem)
-        message = f"Invalid customer registry entry '{customer}' in {path.name}: {exc}"
+        customer = values.get("CUSTOMER_ID", "unknown")
+        message = f"Invalid customer registry entry '{customer}' in {source}: {exc}"
         raise ValueError(message) from exc
 
 

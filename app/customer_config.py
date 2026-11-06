@@ -6,8 +6,16 @@ from __future__ import annotations
 import functools
 from pathlib import Path
 
+from azure.identity import DefaultAzureCredential
+from azure.storage.blob import BlobServiceClient
+
 from app.config import settings
-from app.customer_registry import CustomerRegistryEntry, load_customer_registry
+from app.customer_registry import CustomerRegistryEntry
+from app.customer_registry_provider import (
+    AzureBlobCustomerRegistryProvider,
+    CustomerRegistryProvider,
+    LocalCustomerRegistryProvider,
+)
 
 # app/customer_config.py -> app/ -> repo (or container) root
 CUSTOMER_CONFIG_DIR = Path(__file__).resolve().parents[1] / "customer_config"
@@ -16,11 +24,31 @@ CUSTOMER_CONFIG_DIR = Path(__file__).resolve().parents[1] / "customer_config"
 CustomerConfig = CustomerRegistryEntry
 
 
+def _create_registry_provider() -> CustomerRegistryProvider:
+    """Create the explicitly configured customer registry provider."""
+    if settings.CUSTOMER_REGISTRY_PROVIDER == "local":
+        return LocalCustomerRegistryProvider(CUSTOMER_CONFIG_DIR)
+    if settings.AZURE_CUSTOMER_REGISTRY_ACCOUNT_URL is None:
+        message = (
+            "AZURE_CUSTOMER_REGISTRY_ACCOUNT_URL is required when "
+            "CUSTOMER_REGISTRY_PROVIDER=azure"
+        )
+        raise ValueError(message)
+    service_client = BlobServiceClient(
+        account_url=settings.AZURE_CUSTOMER_REGISTRY_ACCOUNT_URL,
+        credential=DefaultAzureCredential(),
+    )
+    return AzureBlobCustomerRegistryProvider(
+        service_client=service_client,
+        manifest_container=settings.AZURE_CUSTOMER_REGISTRY_MANIFEST_CONTAINER,
+        customer_container_prefix=settings.AZURE_CUSTOMER_REGISTRY_CONTAINER_PREFIX,
+    )
+
+
 @functools.lru_cache(maxsize=1)
 def _load_all_customer_configs() -> dict[str, CustomerConfig]:
     """Load and cache every validated registry entry, keyed by customer ID."""
-    return load_customer_registry(
-        CUSTOMER_CONFIG_DIR,
+    return _create_registry_provider().load(
         fallback_customer_id=settings.FALLBACK_CUSTOMER_ID,
     )
 

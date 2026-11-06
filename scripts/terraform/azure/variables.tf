@@ -122,6 +122,16 @@ variable "storage_account_containers" {
   default = [] 
 }
 
+variable "customer_registry_manifest_container" {
+  type    = string
+  default = "customer-registry"
+}
+
+variable "customer_registry_container_prefix" {
+  type    = string
+  default = "customer-registry-"
+}
+
 variable "storage_account_tags" {
   description = "Tags to apply."
   type        = map(string)

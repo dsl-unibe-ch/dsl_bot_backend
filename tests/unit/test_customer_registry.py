@@ -1,4 +1,4 @@
-"""Focused tests for the versioned customer registry contract."""
+"""Focused tests for the customer registry contract."""
 
 from __future__ import annotations
 
@@ -54,7 +54,7 @@ def test_loads_valid_registry(tmp_path: Path) -> None:
 @pytest.mark.parametrize(
     ("field", "value", "message"),
     [
-        ("CUSTOMER_ID", "Alpha", "CUSTOMER_ID must match"),
+        ("CUSTOMER_ID", "Alpha", "String should match pattern"),
         ("CUSTOMER_ROOT_URLS", "[]", "at least 1 item"),
         ("FRONTEND_ORIGIN", "not-a-url", "valid URL"),
     ],
@@ -95,7 +95,7 @@ def test_rejects_duplicate_customer_id(tmp_path: Path) -> None:
 def test_rejects_filename_mismatch(tmp_path: Path) -> None:
     _write_entry(tmp_path / "wrong.env", _entry())
 
-    with pytest.raises(ValueError, match="wrong.env.*alpha.env"):
+    with pytest.raises(ValueError, match="wrong.env.*expected CUSTOMER_ID 'wrong'"):
         _load(tmp_path)
 
 
@@ -130,5 +130,5 @@ def test_rejects_missing_active_field(tmp_path: Path) -> None:
     del values["BACKEND_PROMPT"]
     _write_entry(tmp_path / "alpha.env", values)
 
-    with pytest.raises(ValueError, match="active.*BACKEND_PROMPT"):
+    with pytest.raises(ValueError, match="BACKEND_PROMPT"):
         _load(tmp_path)

@@ -4,6 +4,8 @@ resource "azurerm_kubernetes_cluster" "this" {
   resource_group_name = var.resource_group_name
   dns_prefix          = var.dns_prefix
   node_resource_group = var.node_resource_group_name
+  oidc_issuer_enabled = true
+  workload_identity_enabled = true
 
   identity {
     type = "SystemAssigned"

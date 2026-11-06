@@ -2,6 +2,7 @@
 """Configuration settings for the application."""
 
 import os
+from typing import Literal
 
 from pydantic import AliasChoices, ConfigDict, Field, model_validator
 from pydantic_settings import BaseSettings
@@ -48,6 +49,10 @@ class Settings(BaseSettings):
     FALLBACK_CUSTOMER_ID: str = Field(
         validation_alias=AliasChoices("FALLBACK_CUSTOMER_ID")
     )
+    CUSTOMER_REGISTRY_PROVIDER: Literal["local", "azure"] = "local"
+    AZURE_CUSTOMER_REGISTRY_ACCOUNT_URL: str | None = None
+    AZURE_CUSTOMER_REGISTRY_MANIFEST_CONTAINER: str = "customer-registry"
+    AZURE_CUSTOMER_REGISTRY_CONTAINER_PREFIX: str = "customer-registry-"
 
     REDIS_HOST: str
     REDIS_PORT: int

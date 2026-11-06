@@ -31,6 +31,13 @@ locals {
   image_tag                       = var.environment == "global" ? "" : var.image_tag_override
   tenant_id_effective             = data.azurerm_client_config.current.tenant_id
   apim_public_ips                 = var.environment == "global" ? [] : try(module.api_management[0].apim_public_ip_addresses, [])
+  customer_registry_customer_ids = toset([
+    for config_file in fileset("${path.root}/../../../customer_config", "*.env") : trimsuffix(config_file, ".env")
+  ])
+  customer_registry_containers = concat(
+    [var.customer_registry_manifest_container],
+    [for customer_id in local.customer_registry_customer_ids : "${var.customer_registry_container_prefix}${customer_id}"]
+  )
   default_tags = {
     environment = var.environment
     project     = "dsl-bot"
@@ -90,8 +97,18 @@ module "azurerm_storage_account" {
   storage_account_kind         = var.storage_account_kind
   storage_account_tier         = var.storage_account_tier
   storage_account_replication_type = var.storage_account_replication_type
-  storage_account_containers   = var.storage_account_containers
+  storage_account_containers   = concat(var.storage_account_containers, local.customer_registry_containers)
   storage_account_tags         = var.storage_account_tags
+}
+
+resource "azurerm_role_assignment" "customer_registry_uploader" {
+  for_each = var.environment == "global" ? toset(local.customer_registry_containers) : toset([])
+
+  scope                = "${azurerm_resource_group.rg.id}/providers/Microsoft.Storage/storageAccounts/${var.storage_account_name}/blobServices/default/containers/${each.value}"
+  role_definition_name = "Storage Blob Data Contributor"
+  principal_id         = data.azurerm_client_config.current.object_id
+
+  depends_on = [module.azurerm_storage_account]
 }
 
 data "azurerm_storage_account" "sa" {
@@ -149,6 +166,31 @@ module "kubernetes_cluster" {
   
   # Grant AKS access to pull images from ACR
   acr_id = data.azurerm_container_registry.acr[0].id
+}
+
+resource "azurerm_user_assigned_identity" "customer_registry" {
+  count               = var.environment == "global" ? 0 : 1
+  name                = "id-dsl-bot-${var.environment}-api"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+  tags                = local.default_tags
+}
+
+resource "azurerm_federated_identity_credential" "customer_registry" {
+  count                     = var.environment == "global" ? 0 : 1
+  name                      = "dsl-bot-${var.environment}-api"
+  user_assigned_identity_id = azurerm_user_assigned_identity.customer_registry[0].id
+  audience                  = ["api://AzureADTokenExchange"]
+  issuer                    = module.kubernetes_cluster[0].OIDC_ISSUER_URL
+  subject                   = "system:serviceaccount:dsl-bot-${var.environment}:dsl-bot-backend-${var.environment}-api"
+}
+
+resource "azurerm_role_assignment" "customer_registry_reader" {
+  for_each = var.environment == "global" ? toset([]) : toset(local.customer_registry_containers)
+
+  scope                = "${data.azurerm_storage_account.sa[0].id}/blobServices/default/containers/${each.value}"
+  role_definition_name = "Storage Blob Data Reader"
+  principal_id         = azurerm_user_assigned_identity.customer_registry[0].principal_id
 }
 
 # --- Key Vault ---
