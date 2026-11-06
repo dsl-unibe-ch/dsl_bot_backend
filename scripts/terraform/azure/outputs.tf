@@ -102,6 +102,14 @@ output "AKS_CLUSTER_NAME" {
   value = try(module.kubernetes_cluster[0].AZURE_AKS_NAME, null)
 }
 
+output "CUSTOMER_REGISTRY_IDENTITY_CLIENT_ID" {
+  value = try(azurerm_user_assigned_identity.customer_registry[0].client_id, null)
+}
+
+output "AZURE_CUSTOMER_REGISTRY_ACCOUNT_URL" {
+  value = "https://${var.storage_account_name}.blob.core.windows.net"
+}
+
 #----- API Management (APIM) --------------
 output "APIM_GATEWAY_URL" {
   value       = try(module.api_management[0].apim_gateway_url, null)

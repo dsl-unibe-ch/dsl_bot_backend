@@ -105,6 +105,116 @@ make validate-customer-registry \
   FALLBACK_CUSTOMER_ID=default
 ```
 
+### Azure customer registry
+
+Local development uses `CUSTOMER_REGISTRY_PROVIDER=local` by default and reads
+the files in `customer_config/`. Kubernetes sets the provider to `azure` and
+uses Managed Identity to read the same dotenv content from Azure Blob Storage.
+Azure mode has no local fallback: an unavailable or invalid registry prevents
+the API from starting.
+
+The global Terraform workspace creates the manifest container and one container
+per customer. The dev and prod workspaces create the API workload identities
+and container-scoped reader roles. Terraform derives customer IDs from the
+filenames in `customer_config/`, so adding a validated `<customer_id>.env` file
+also declares its container.
+
+## Onboard a new customer
+
+This is the complete backend registry workflow. It assumes the shared Azure
+infrastructure and Kubernetes environments have already been deployed; see
+[Terraform](#terraform) and [Helm](#helm) for initial setup instead of repeating
+those instructions here.
+
+### 1. Create and validate the customer file
+
+Create `customer_config/<customer_id>.env`, using an existing customer file as
+the field reference. The filename stem must equal `CUSTOMER_ID`.
+
+The referenced Azure AI Search index must already exist. Validate the complete
+registry before provisioning anything:
+
+```bash
+make validate-customer-registry
+```
+
+### 2. Create the Azure container
+
+Terraform discovers the new filename and plans a new customer container. Apply
+the global workspace first:
+
+```bash
+make terraform-plan-global
+make terraform-apply-global
+```
+
+Review the plan and confirm it creates
+`customer-registry-<customer_id>` and its uploader role assignment.
+
+### 3. Grant the APIs read access
+
+The API identities have container-scoped access. Plan and apply every deployed
+environment before publishing the new manifest:
+
+```bash
+make terraform-plan-dev
+make terraform-apply-dev
+
+make terraform-plan-prod
+make terraform-apply-prod
+```
+
+Each plan should add one `Storage Blob Data Reader` assignment for the new
+container. Skip an environment only when it is not deployed.
+
+### 4. Upload the registry
+
+Authenticate as the same Azure identity that applied the global workspace,
+then upload. The Make target reads the storage account URL from the global
+Terraform output:
+
+```bash
+make upload-customer-registry
+```
+
+The command validates the local registry, uploads each customer file as
+`config.env`, and publishes `customers.json` last. It deliberately does not
+create containers.
+
+Both the Terraform apply and upload are required. Terraform owns container and
+RBAC lifecycle; the upload command owns registry content. Keeping those roles
+separate prevents an application script from creating unmanaged infrastructure.
+
+### 5. Restart the API deployments
+
+Once the Azure registry implementation itself has been deployed, onboarding a
+customer does **not** require a new application version, container image build,
+image push, or Helm upgrade. The customer configuration is external data in
+Blob Storage, not part of the running image.
+
+The registry is loaded only at process startup. Restart each deployed API after
+the upload so the existing application version reads the updated manifest:
+
+```bash
+KUBECONFIG=scripts/terraform/azure/outputs/dev.kubeconfig \
+  kubectl rollout restart deployment/dsl-bot-backend-dev-api -n dsl-bot-dev
+
+KUBECONFIG=scripts/terraform/azure/outputs/prod.kubeconfig \
+  kubectl rollout restart deployment/dsl-bot-backend-prod-api -n dsl-bot-prod
+```
+
+Confirm each rollout succeeds before considering onboarding complete:
+
+```bash
+KUBECONFIG=scripts/terraform/azure/outputs/dev.kubeconfig \
+  kubectl rollout status deployment/dsl-bot-backend-dev-api \
+  -n dsl-bot-dev --timeout=5m
+
+KUBECONFIG=scripts/terraform/azure/outputs/prod.kubeconfig \
+  kubectl rollout status deployment/dsl-bot-backend-prod-api \
+  -n dsl-bot-prod --timeout=5m
+```
+
 
 ## ETL pipeline for Azure Search
 <details>
@@ -1167,6 +1277,9 @@ make compose-up-dev
 ```bash
 curl -s -c cookies.txt http://127.0.0.1:8000/initialize-agent | jq .
 ```
+
+curl -s -c cookies.txt "https://apim-db-dev-001.azure-api.net/api/initialize-agent?origin=https://www.bnf.unibe.ch/.html" | jq .
+curl -s -b cookies.txt -X POST "https://apim-db-dev-001.azure-api.net/api/invoke-agent" -H "Content-Type: application/json" -d '{"text":"What is the email address of the BNF?"}' | jq .
 
 - Start a session with origin (e.g. bnf):
 ```bash

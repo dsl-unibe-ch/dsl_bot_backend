@@ -12,6 +12,8 @@ INTERACTIVE_LOGIN_ARGS := $(if $(filter true 1 yes,$(INTERACTIVE_LOGIN)),--heade
 E2E_LOCAL_FRONTEND_URL = $(shell ENV=$(ENV) PYTHONPATH=$(CURDIR) $(PYTHON) -c "from app.config import settings; from app.customer_config import get_customer_config; print(get_customer_config(settings.FALLBACK_CUSTOMER_ID).FRONTEND_ORIGIN)")
 CUSTOMER_REGISTRY_DIR ?= customer_config
 FALLBACK_CUSTOMER_ID ?= default
+CUSTOMER_REGISTRY_MANIFEST_CONTAINER ?= customer-registry
+CUSTOMER_REGISTRY_CONTAINER_PREFIX ?= customer-registry-
 
 lint:
 	@echo $@
@@ -24,6 +26,19 @@ validate-customer-registry:
 	@PYTHONPATH=$(CURDIR) $(PYTHON) -m scripts.validate_customer_registry \
 		--config-dir "$(CUSTOMER_REGISTRY_DIR)" \
 		--fallback-customer-id "$(FALLBACK_CUSTOMER_ID)"
+
+.PHONY: upload-customer-registry
+upload-customer-registry:
+	@$(TF) -chdir=$(TF_DIR) workspace select global >/dev/null 2>&1 || \
+		{ echo "ERROR: Terraform workspace 'global' not found"; exit 1; }; \
+	REGISTRY_ACCOUNT_URL="$$( $(TF) -chdir=$(TF_DIR) output -raw AZURE_CUSTOMER_REGISTRY_ACCOUNT_URL 2>/dev/null )"; \
+	test -n "$$REGISTRY_ACCOUNT_URL" || { echo "ERROR: customer registry account URL output not found"; exit 1; }; \
+	PYTHONPATH=$(CURDIR) $(PYTHON) -m scripts.upload_customer_registry \
+		--account-url "$$REGISTRY_ACCOUNT_URL" \
+		--config-dir "$(CUSTOMER_REGISTRY_DIR)" \
+		--fallback-customer-id "$(FALLBACK_CUSTOMER_ID)" \
+		--manifest-container "$(CUSTOMER_REGISTRY_MANIFEST_CONTAINER)" \
+		--customer-container-prefix "$(CUSTOMER_REGISTRY_CONTAINER_PREFIX)"
 
 generate-assessment-dataset:
 	@echo $@
@@ -627,6 +642,10 @@ helm-install:
 	. ./.env.$${ENV}; \
 	KUBECONFIG_FILE=$(TF_DIR)/outputs/$${ENV}.kubeconfig; \
 	test -f "$${KUBECONFIG_FILE}" || { echo "ERROR: kubeconfig not found at $${KUBECONFIG_FILE}. Run 'make kubeconfig-$${ENV}' first."; exit 1; }; \
+	REGISTRY_CLIENT_ID="$$( $(TF) -chdir=$(TF_DIR) output -raw CUSTOMER_REGISTRY_IDENTITY_CLIENT_ID 2>/dev/null )"; \
+	REGISTRY_ACCOUNT_URL="$$( $(TF) -chdir=$(TF_DIR) output -raw AZURE_CUSTOMER_REGISTRY_ACCOUNT_URL 2>/dev/null )"; \
+	test -n "$${REGISTRY_CLIENT_ID}" || { echo "ERROR: customer registry identity output not found"; exit 1; }; \
+	test -n "$${REGISTRY_ACCOUNT_URL}" || { echo "ERROR: customer registry account URL output not found"; exit 1; }; \
 	IMAGE_REPO="$${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER}/dsl-bot-backend-api"; \
 	IMAGE_TAG="$(VERSION)-$${ENV}"; \
 	echo "Installing Helm chart for environment: $${ENV}"; \
@@ -635,6 +654,8 @@ helm-install:
 		--values ./scripts/helm/values-$${ENV}.yaml \
 		--set api.image.repository="$${IMAGE_REPO}" \
 		--set api.image.tag="$${IMAGE_TAG}" \
+		--set-string workloadIdentity.clientId="$${REGISTRY_CLIENT_ID}" \
+		--set-string customerRegistry.accountUrl="$${REGISTRY_ACCOUNT_URL}" \
 		--set kafkaConsumer.image.repository="$${IMAGE_REPO}" \
 		--set kafkaConsumer.image.tag="$${IMAGE_TAG}" \
 		--create-namespace \
@@ -692,6 +713,10 @@ helm-upgrade:
 	. ./.env.$${ENV}; \
 	KUBECONFIG_FILE=$(TF_DIR)/outputs/$${ENV}.kubeconfig; \
 	test -f "$${KUBECONFIG_FILE}" || { echo "ERROR: kubeconfig not found at $${KUBECONFIG_FILE}. Run 'make kubeconfig-$${ENV}' first."; exit 1; }; \
+	REGISTRY_CLIENT_ID="$$( $(TF) -chdir=$(TF_DIR) output -raw CUSTOMER_REGISTRY_IDENTITY_CLIENT_ID 2>/dev/null )"; \
+	REGISTRY_ACCOUNT_URL="$$( $(TF) -chdir=$(TF_DIR) output -raw AZURE_CUSTOMER_REGISTRY_ACCOUNT_URL 2>/dev/null )"; \
+	test -n "$${REGISTRY_CLIENT_ID}" || { echo "ERROR: customer registry identity output not found"; exit 1; }; \
+	test -n "$${REGISTRY_ACCOUNT_URL}" || { echo "ERROR: customer registry account URL output not found"; exit 1; }; \
 	APIM_IP="$$( $(TF) -chdir=$(TF_DIR) output -json apim_public_ip_addresses 2>/dev/null | jq -r '.[0] // empty' )"; \
 	if [ -z "$${APIM_IP}" ]; then \
 		echo "ERROR: APIM public IP not found. Run 'make terraform-output-$${ENV}' first."; \
@@ -713,6 +738,8 @@ helm-upgrade:
 		--set api.image.repository="$${IMAGE_REPO}" \
 		--set api.image.tag="$${IMAGE_TAG}" \
 		--set api.service.loadBalancerSourceRanges[0]="$${APIM_IP}/32" \
+		--set-string workloadIdentity.clientId="$${REGISTRY_CLIENT_ID}" \
+		--set-string customerRegistry.accountUrl="$${REGISTRY_ACCOUNT_URL}" \
 		--set kafkaConsumer.image.repository="$${IMAGE_REPO}" \
 		--set kafkaConsumer.image.tag="$${IMAGE_TAG}" \
 		--namespace dsl-bot-$${ENV} \

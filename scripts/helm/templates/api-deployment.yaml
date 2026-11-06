@@ -29,7 +29,9 @@ spec: # deployment specification section
         app.kubernetes.io/name: {{ .Values.labels.appName }}
         app.kubernetes.io/instance: {{ .Values.labels.instance }}
         app.kubernetes.io/component: api
+        azure.workload.identity/use: "true"
     spec: # pod specification section that defines what runs inside the pods
+      serviceAccountName: {{ .Values.fullnameOverride }}-api
       containers: # list of containers in the pod
       - name: api # this pod has one container named "api"
         image: "{{ .Values.api.image.repository }}:{{ .Values.api.image.tag }}" # container image to run
@@ -59,6 +61,10 @@ spec: # deployment specification section
           value: {{ .Values.environment }}
         - name: KAFKA_BOOTSTRAP_SERVERS # sets Kafka bootstrap servers for the API to connect to Kafka
           value: {{ .Values.api.env.kafkaBootstrapServers }}
+        - name: CUSTOMER_REGISTRY_PROVIDER
+          value: azure
+        - name: AZURE_CUSTOMER_REGISTRY_ACCOUNT_URL
+          value: {{ required "customerRegistry.accountUrl is required" .Values.customerRegistry.accountUrl | quote }}
         - name: REDIS_HOST
           value: {{ .Values.redis.env.redisHost }}
         - name: REDIS_PORT

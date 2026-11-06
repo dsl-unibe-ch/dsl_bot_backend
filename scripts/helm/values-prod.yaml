@@ -10,6 +10,12 @@ labels:
   appName: dsl-bot-backend
   instance: dsl-bot-backend-prod
 
+workloadIdentity:
+  clientId: ""
+
+customerRegistry:
+  accountUrl: ""
+
 # Kafka configuration
 kafka:
   image:
