@@ -45,6 +45,10 @@ generate-assessment-dataset:
 	@CUSTOMER_NAME=$${CUSTOMER_NAME:?Set CUSTOMER_NAME (e.g. make $@ CUSTOMER_NAME=bnf)} ; \
 	ENV=dev PYTHONPATH=$(shell pwd) python scripts/assessment_data/generate_AI_assessment_dataset.py --customer-name $$CUSTOMER_NAME
 
+.PHONY: upload-human-annotations
+upload-human-annotations:
+	$(PYTHON) scripts/assessment_data/upload_human_annotations_to_langfuse.py $(ARGS)
+
 CUSTOMER_NAME_ARG := $(if $(strip $(CUSTOMER_NAME)),--customer_name $(CUSTOMER_NAME),$(if $(strip $(customer_name)),--customer_name $(customer_name),))
 
 run-demo: build-image-dev compose-down-dev compose-up-dev

@@ -269,7 +269,7 @@ If the combined text exceeds the model's context window it is automatically spli
 <details>
 <summary>Click to expand</summary>
 
-Extracts questions and expected answers from Excel, saves a local JSON file, and uploads to Langfuse.
+Extracts questions and expected answers from the content testing Excel, saves a local JSON file, and uploads to Langfuse.
 
 ### Prerequisites
 
@@ -279,23 +279,18 @@ Extracts questions and expected answers from Excel, saves a local JSON file, and
 
 ### Run
 
-With the virtual environment activated, run from the repository root:
-
 ```bash
-python scripts/assessment_data/upload_human_annotations_to_langfuse.py
+make upload-human-annotations
 ```
 
-Use `--input` or `--remaining-ids-file` to specify different input files.
+Use `--input path/to/file.xlsx --remaining-ids-file path/to/ids.txt"` to specify different input files.
 
 ### What it produces
 
 - **Local JSON:** `tests/data/langfuse_datasets/human_annotations.json`
 - **Langfuse dataset:** `human_annotated_dataset`
 
-- Running the script saves the JSON and uploads it to Langfuse.
-- Running it again updates the same questions rather than creating duplicates.
 - Adding a question ID to the exclusion file stops future uploads of that question. If it was uploaded before, it stays in Langfuse until removed separately.
-- The Excel and generated files stay local and are not pushed to GitHub.
 
 </details>
 

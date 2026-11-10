@@ -1,17 +1,5 @@
 # Copyright (c) 2026, University of Bern, Data Science Lab
 """Extract human-annotated Excel cases, save JSON, and upload to Langfuse.
-
-Running this script uploads to human_annotated_dataset by default. The local
-JSON uses the assessment dataset's existing field names. Langfuse items store
-question and question_id in input, groundtruth_answer in expected_output, and
-question_id in metadata. supporting_sentences is a placeholder, not source evidence.
-The manually reviewed human_annotations_remaining_ids.txt file controls which
-questions are excluded. It must be provided locally, like the source workbook.
-The script reads this file without overwriting it or judging answer wording.
-Excluding an ID skips its upload; it does not remove an item already in Langfuse.
-
-Run from the repository root:
-    python scripts/assessment_data/upload_human_annotations_to_langfuse.py
 """
 
 from __future__ import annotations
@@ -23,10 +11,10 @@ import os
 from pathlib import Path
 from uuid import NAMESPACE_URL, uuid5
 
+import pandas as pd
 from dotenv import dotenv_values
 from langfuse import Langfuse
 from langfuse.api import NotFoundError
-from openpyxl import load_workbook
 
 LOGGER = logging.getLogger(__name__)
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -39,46 +27,26 @@ DEFAULT_DATASET_NAME = "human_annotated_dataset"
 REQUIRED_COLUMNS = ("Question/Prompt", "Question ID", "Expected Answer")
 
 
-def extract_cases(source: Path) -> list[dict[str, object]]:
-    """Read the Content Testing template, preserving text and validating rows."""
-    sheet_name = "Content Testing"
-    workbook = load_workbook(source, read_only=True, data_only=True)
-    try:
-        rows = workbook[sheet_name].iter_rows(values_only=True)
-        headers = [str(value).strip() for value in next(rows, ())]
-        indices = [headers.index(column) for column in REQUIRED_COLUMNS]
-        cases: list[dict[str, object]] = []
-        seen_ids: set[str] = set()
-        for row_number, row in enumerate(rows, start=2):
-            # Ignore empty/formatted rows, but never silently drop partial cases.
-            if all(value is None or value == "" for value in row):
-                continue
-            question, question_id, answer = (row[index] for index in indices)
-            if any(
-                value is None or not str(value).strip()
-                for value in (question, question_id, answer)
-            ):
-                message = (
-                    f"Excel row {row_number}: missing question, ID or expected answer."
-                )
-                raise ValueError(message)
-            if str(question_id) in seen_ids:
-                message = (
-                    f"Excel row {row_number}: duplicate Question ID {question_id!r}."
-                )
-                raise ValueError(message)
-            seen_ids.add(str(question_id))
-            cases.append(
-                {
-                    "question": question,
-                    "question_id": question_id,
-                    "groundtruth_answer": answer,
-                    "supporting_sentences": ["na"],
-                },
-            )
-        return cases
-    finally:
-        workbook.close()
+def extract_cases(
+    source: Path,
+    sheet_name: str = "Content Testing",
+) -> list[dict[str, object]]:
+    """Read the template and remove incomplete rows and duplicate question IDs."""
+    df = pd.read_excel(source, sheet_name=sheet_name, dtype=object)
+    df = df[list(REQUIRED_COLUMNS)]
+    df = df.dropna()
+    df = df.drop_duplicates(subset=["Question ID"])
+    df = df.rename(
+        columns={
+            "Question/Prompt": "question",
+            "Question ID": "question_id",
+            "Expected Answer": "groundtruth_answer",
+        },
+    )
+    cases = df.to_dict(orient="records")
+    for case in cases:
+        case["supporting_sentences"] = ["na"]
+    return cases
 
 
 def upload_to_langfuse(cases: list[dict[str, object]], dataset_name: str) -> None:
