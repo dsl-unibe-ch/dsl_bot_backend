@@ -5,11 +5,15 @@ FE_REPO := https://github.com/dsl-unibe-ch/dsl_bot_frontend
 FE_BRANCH ?= main
 FE_PORT := 5173
 E2E_CUSTOMER_ID ?= bnf
-INITIALIZE_AGENT_ORIGIN_URL = $(shell ENV=$(ENV) PYTHONPATH=$(CURDIR) $(PYTHON) -c "from app.customer_config import get_customer_config; print(get_customer_config('$(E2E_CUSTOMER_ID)').root_urls[0])")
+INITIALIZE_AGENT_ORIGIN_URL = $(shell ENV=$(ENV) PYTHONPATH=$(CURDIR) $(PYTHON) -c "from app.customer_config import get_customer_config; print(get_customer_config('$(E2E_CUSTOMER_ID)').CUSTOMER_ROOT_URLS[0])")
 INTERACTIVE_LOGIN ?= true
 E2E_LOGIN_TIMEOUT_SECONDS ?= 60
 INTERACTIVE_LOGIN_ARGS := $(if $(filter true 1 yes,$(INTERACTIVE_LOGIN)),--headed -s --interactive-login --login-timeout-seconds $(E2E_LOGIN_TIMEOUT_SECONDS),)
-E2E_LOCAL_FRONTEND_URL = $(shell ENV=$(ENV) PYTHONPATH=$(CURDIR) $(PYTHON) -c "from app.config import settings; from app.customer_config import get_customer_config; print(get_customer_config(settings.FALLBACK_CUSTOMER_ID).frontend_url)")
+E2E_LOCAL_FRONTEND_URL = $(shell ENV=$(ENV) PYTHONPATH=$(CURDIR) $(PYTHON) -c "from app.config import settings; from app.customer_config import get_customer_config; print(get_customer_config(settings.FALLBACK_CUSTOMER_ID).FRONTEND_ORIGIN)")
+CUSTOMER_REGISTRY_DIR ?= customer_config
+FALLBACK_CUSTOMER_ID ?= default
+CUSTOMER_REGISTRY_MANIFEST_CONTAINER ?= customer-registry
+CUSTOMER_REGISTRY_CONTAINER_PREFIX ?= customer-registry-
 
 lint:
 	@echo $@
@@ -17,12 +21,31 @@ lint:
 	@echo $@
 	$(PYTHON) -m ruff check --fix app demo 
 
+.PHONY: validate-customer-registry
+validate-customer-registry:
+	@PYTHONPATH=$(CURDIR) $(PYTHON) -m scripts.validate_customer_registry \
+		--config-dir "$(CUSTOMER_REGISTRY_DIR)" \
+		--fallback-customer-id "$(FALLBACK_CUSTOMER_ID)"
+
+.PHONY: upload-customer-registry
+upload-customer-registry:
+	@$(TF) -chdir=$(TF_DIR) workspace select global >/dev/null 2>&1 || \
+		{ echo "ERROR: Terraform workspace 'global' not found"; exit 1; }; \
+	REGISTRY_ACCOUNT_URL="$$( $(TF) -chdir=$(TF_DIR) output -raw AZURE_CUSTOMER_REGISTRY_ACCOUNT_URL 2>/dev/null )"; \
+	test -n "$$REGISTRY_ACCOUNT_URL" || { echo "ERROR: customer registry account URL output not found"; exit 1; }; \
+	PYTHONPATH=$(CURDIR) $(PYTHON) -m scripts.upload_customer_registry \
+		--account-url "$$REGISTRY_ACCOUNT_URL" \
+		--config-dir "$(CUSTOMER_REGISTRY_DIR)" \
+		--fallback-customer-id "$(FALLBACK_CUSTOMER_ID)" \
+		--manifest-container "$(CUSTOMER_REGISTRY_MANIFEST_CONTAINER)" \
+		--customer-container-prefix "$(CUSTOMER_REGISTRY_CONTAINER_PREFIX)"
+
 generate-assessment-dataset:
 	@echo $@
 	@CUSTOMER_NAME=$${CUSTOMER_NAME:?Set CUSTOMER_NAME (e.g. make $@ CUSTOMER_NAME=bnf)} ; \
 	ENV=dev PYTHONPATH=$(shell pwd) python scripts/assessment_data/generate_AI_assessment_dataset.py --customer-name $$CUSTOMER_NAME
 
-CUSTOMER_NAME_ARG := $(if $(strip $(customer_name)),--customer_name $(customer_name),)
+CUSTOMER_NAME_ARG := $(if $(strip $(CUSTOMER_NAME)),--customer_name $(CUSTOMER_NAME),$(if $(strip $(customer_name)),--customer_name $(customer_name),))
 
 run-demo: build-image-dev compose-down-dev compose-up-dev
 	@echo $@
@@ -619,6 +642,10 @@ helm-install:
 	. ./.env.$${ENV}; \
 	KUBECONFIG_FILE=$(TF_DIR)/outputs/$${ENV}.kubeconfig; \
 	test -f "$${KUBECONFIG_FILE}" || { echo "ERROR: kubeconfig not found at $${KUBECONFIG_FILE}. Run 'make kubeconfig-$${ENV}' first."; exit 1; }; \
+	REGISTRY_CLIENT_ID="$$( $(TF) -chdir=$(TF_DIR) output -raw CUSTOMER_REGISTRY_IDENTITY_CLIENT_ID 2>/dev/null )"; \
+	REGISTRY_ACCOUNT_URL="$$( $(TF) -chdir=$(TF_DIR) output -raw AZURE_CUSTOMER_REGISTRY_ACCOUNT_URL 2>/dev/null )"; \
+	test -n "$${REGISTRY_CLIENT_ID}" || { echo "ERROR: customer registry identity output not found"; exit 1; }; \
+	test -n "$${REGISTRY_ACCOUNT_URL}" || { echo "ERROR: customer registry account URL output not found"; exit 1; }; \
 	IMAGE_REPO="$${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER}/dsl-bot-backend-api"; \
 	IMAGE_TAG="$(VERSION)-$${ENV}"; \
 	echo "Installing Helm chart for environment: $${ENV}"; \
@@ -627,6 +654,8 @@ helm-install:
 		--values ./scripts/helm/values-$${ENV}.yaml \
 		--set api.image.repository="$${IMAGE_REPO}" \
 		--set api.image.tag="$${IMAGE_TAG}" \
+		--set-string workloadIdentity.clientId="$${REGISTRY_CLIENT_ID}" \
+		--set-string customerRegistry.accountUrl="$${REGISTRY_ACCOUNT_URL}" \
 		--set kafkaConsumer.image.repository="$${IMAGE_REPO}" \
 		--set kafkaConsumer.image.tag="$${IMAGE_TAG}" \
 		--create-namespace \
@@ -684,6 +713,10 @@ helm-upgrade:
 	. ./.env.$${ENV}; \
 	KUBECONFIG_FILE=$(TF_DIR)/outputs/$${ENV}.kubeconfig; \
 	test -f "$${KUBECONFIG_FILE}" || { echo "ERROR: kubeconfig not found at $${KUBECONFIG_FILE}. Run 'make kubeconfig-$${ENV}' first."; exit 1; }; \
+	REGISTRY_CLIENT_ID="$$( $(TF) -chdir=$(TF_DIR) output -raw CUSTOMER_REGISTRY_IDENTITY_CLIENT_ID 2>/dev/null )"; \
+	REGISTRY_ACCOUNT_URL="$$( $(TF) -chdir=$(TF_DIR) output -raw AZURE_CUSTOMER_REGISTRY_ACCOUNT_URL 2>/dev/null )"; \
+	test -n "$${REGISTRY_CLIENT_ID}" || { echo "ERROR: customer registry identity output not found"; exit 1; }; \
+	test -n "$${REGISTRY_ACCOUNT_URL}" || { echo "ERROR: customer registry account URL output not found"; exit 1; }; \
 	APIM_IP="$$( $(TF) -chdir=$(TF_DIR) output -json apim_public_ip_addresses 2>/dev/null | jq -r '.[0] // empty' )"; \
 	if [ -z "$${APIM_IP}" ]; then \
 		echo "ERROR: APIM public IP not found. Run 'make terraform-output-$${ENV}' first."; \
@@ -705,6 +738,8 @@ helm-upgrade:
 		--set api.image.repository="$${IMAGE_REPO}" \
 		--set api.image.tag="$${IMAGE_TAG}" \
 		--set api.service.loadBalancerSourceRanges[0]="$${APIM_IP}/32" \
+		--set-string workloadIdentity.clientId="$${REGISTRY_CLIENT_ID}" \
+		--set-string customerRegistry.accountUrl="$${REGISTRY_ACCOUNT_URL}" \
 		--set kafkaConsumer.image.repository="$${IMAGE_REPO}" \
 		--set kafkaConsumer.image.tag="$${IMAGE_TAG}" \
 		--namespace dsl-bot-$${ENV} \

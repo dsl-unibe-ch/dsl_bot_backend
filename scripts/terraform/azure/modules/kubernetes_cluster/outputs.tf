@@ -4,3 +4,7 @@ output "KUBE_CONFIG_RAW" {
 }
 
 output "AZURE_AKS_NAME" { value = azurerm_kubernetes_cluster.this.name }
+
+output "OIDC_ISSUER_URL" {
+  value = azurerm_kubernetes_cluster.this.oidc_issuer_url
+}

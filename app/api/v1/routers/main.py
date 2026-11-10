@@ -23,7 +23,11 @@ from app.agent.query import QueryInput, QueryOutput  # noqa: TC001
 from app.agent.schemas import FeedbackResponse, StartSessionResponse  # noqa: TC001
 from app.agent.utils import get_customer_name_from_url
 from app.config import settings
-from app.customer_config import all_frontend_urls, resolve_customer_id
+from app.customer_config import (
+    all_frontend_urls,
+    get_customer_id_from_index_name,
+    resolve_customer_id,
+)
 
 logger = logging.getLogger("Bot")
 
@@ -158,8 +162,8 @@ def send_feedback(
     index_name = state["index_name"]
     origin = feedback.origin
     resolved_customer = get_customer_name_from_url(origin) if origin else None
-    if not resolved_customer and index_name and index_name.startswith("index_"):
-        resolved_customer = index_name.removeprefix("index_")
+    if not resolved_customer and index_name:
+        resolved_customer = get_customer_id_from_index_name(index_name)
     return feedback.send_feedback_wrapper(
         session_id,
         interaction_count,
