@@ -249,3 +249,7 @@ uv.lock
 docs/
 
 cookies.txt
+
+# Human-annotated datasets stay local or in Langfuse Cloud
+/tests/data/raw/Content Testing_Chatbot.xlsx
+/tests/data/langfuse_datasets/

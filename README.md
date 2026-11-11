@@ -264,6 +264,36 @@ If the combined text exceeds the model's context window it is automatically spli
 
 </details>
 
+## Upload human-annotated assessment dataset
+
+<details>
+<summary>Click to expand</summary>
+
+Extracts questions and expected answers from the content testing Excel, saves a local JSON file, and uploads to Langfuse.
+
+### Prerequisites
+
+- Use the Content Testing Excel template and place the file at `tests/data/raw/Content Testing_Chatbot.xlsx`.
+- List question IDs to exclude in `tests/data/langfuse_datasets/human_annotations_remaining_ids.txt`, one per line. Remove an ID once its reference answer is ready. 
+- Configure `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_API_KEY` (secret key), and `LANGFUSE_HOST` in `.env.dev`.
+
+### Run
+
+```bash
+make upload-human-annotations
+```
+
+Use `ARGS='--input "path/to/file.xlsx" --remaining-ids-file "path/to/ids.txt"'` to specify different input files.
+
+### What it produces
+
+- **Local JSON:** `tests/data/langfuse_datasets/human_annotations.json`
+- **Langfuse dataset:** `human_annotated_dataset`
+
+- Adding a question ID to the exclusion file stops future uploads of that question. If it was uploaded before, it stays in Langfuse until removed separately.
+
+</details>
+
 ## Download production user logs
 
 <details>

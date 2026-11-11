@@ -11,7 +11,7 @@ from pathlib import Path
 # Directories
 TESTS_DATA_DIR = Path("tests/data")
 RAW_DIR = TESTS_DATA_DIR / "raw"
-PROCESSED_DIR = TESTS_DATA_DIR / "processed"
+PROCESSED_DIR = TESTS_DATA_DIR / "langfuse_datasets"
 DOWNLOADED_PROD_LOGS_DIR = TESTS_DATA_DIR / "downloaded_prod_logs"
 
 # Source workbook for the assessment dataset generator
