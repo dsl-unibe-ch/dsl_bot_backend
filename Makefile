@@ -49,7 +49,7 @@ generate-assessment-dataset:
 upload-human-annotations:
 	@echo $@
 	@CUSTOMER_NAME=$${CUSTOMER_NAME:?Set CUSTOMER_NAME (e.g. make $@ CUSTOMER_NAME=bnf)} ; \
-	ENV=dev PYTHONPATH=$(shell pwd) python scripts/assessment_data/upload_human_annotations_to_langfuse.py --customer-name $$CUSTOMER_NAME $(ARGS)
+	ENV=dev PYTHONPATH=$(shell pwd) python scripts/assessment_data/upload_human_annotations_to_langfuse.py --customer-name $$CUSTOMER_NAME
 
 CUSTOMER_NAME_ARG := $(if $(strip $(CUSTOMER_NAME)),--customer_name $(CUSTOMER_NAME),$(if $(strip $(customer_name)),--customer_name $(customer_name),))
 

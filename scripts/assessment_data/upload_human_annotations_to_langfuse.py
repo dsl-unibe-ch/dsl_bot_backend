@@ -16,11 +16,13 @@ from dotenv import dotenv_values
 from langfuse import Langfuse
 from langfuse.api import NotFoundError
 
-from tests.dataset_config import human_annotations_source_path
+from tests.dataset_config import (
+    generated_human_annotations_path,
+    human_annotations_source_path,
+)
 
 LOGGER = logging.getLogger(__name__)
 REPO_ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_OUTPUT = REPO_ROOT / "tests/data/langfuse_datasets/human_annotations.json"
 DEFAULT_DATASET_NAME = "human_annotated_dataset"
 REQUIRED_COLUMNS = ("Question/Prompt", "Question ID", "Expected Answer")
 
@@ -29,13 +31,9 @@ def extract_cases(
     source: Path,
     sheet_name: str = "Content Testing",
 ) -> list[dict[str, object]]:
-    """Use Bot Answer for category 0, then remove incomplete and duplicate rows."""
+    """Read reviewed answers and remove incomplete rows and duplicate IDs."""
     df = pd.read_excel(source, sheet_name=sheet_name, dtype=object)
     df.columns = df.columns.str.strip()
-    df["Expected Answer"] = df["Expected Answer"].mask(
-        pd.to_numeric(df["Answer Defect Category"], errors="coerce").eq(0),
-        df["Bot Answer"],
-    )
     df = df[list(REQUIRED_COLUMNS)]
     df = df.dropna()
     df = df.drop_duplicates(subset=["Question ID"])
@@ -103,30 +101,18 @@ def main() -> None:
         required=True,
         help="Customer name",
     )
-    parser.add_argument("--input", type=Path)
-    parser.add_argument("--remaining-ids-file", type=Path)
     args = parser.parse_args()
     customer_name = args.customer_name
     logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
-    source_path = args.input or human_annotations_source_path(customer_name)
+    source_path = human_annotations_source_path(customer_name)
+    output_path = generated_human_annotations_path(customer_name)
 
-    remaining_ids = set()
-    if args.remaining_ids_file:
-        remaining_ids = {
-            line.strip()
-            for line in args.remaining_ids_file.read_text(encoding="utf-8").splitlines()
-            if line.strip()
-        }
-    cases = [
-        case
-        for case in extract_cases(source_path)
-        if str(case["question_id"]) not in remaining_ids
-    ]
-    DEFAULT_OUTPUT.parent.mkdir(parents=True, exist_ok=True)
-    with DEFAULT_OUTPUT.open("w", encoding="utf-8") as output:
+    cases = extract_cases(source_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    with output_path.open("w", encoding="utf-8") as output:
         json.dump(cases, output, ensure_ascii=False, indent=2, allow_nan=False)
         output.write("\n")
-    LOGGER.info("Wrote %d cases to %s.", len(cases), DEFAULT_OUTPUT)
+    LOGGER.info("Wrote %d cases to %s.", len(cases), output_path)
     if cases:
         upload_to_langfuse(cases, DEFAULT_DATASET_NAME)
     else:

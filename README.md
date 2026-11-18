@@ -269,28 +269,24 @@ If the combined text exceeds the model's context window it is automatically spli
 <details>
 <summary>Click to expand</summary>
 
-Extracts questions and expected answers from the content testing Excel, saves a local JSON file, and uploads to Langfuse.
+Manually curate the original Content Testing Excel first, then save the reviewed file as `processed_content_testing_chatbot.xlsx` in `tests/data/<CUSTOMER_NAME>/`.
 
 ### Prerequisites
 
-- Use the Content Testing Excel template and place the file at `tests/data/<CUSTOMER_NAME>/Content Testing_Chatbot.xlsx`.
-- Optionally, supply `--remaining-ids-file` with manually reviewed IDs whose expected answers contain feedback or unfinished answers, one per line. Without it, no IDs are excluded; incomplete rows and duplicate IDs are still removed.
+- Place the reviewed Content Testing Excel at `tests/data/<CUSTOMER_NAME>/processed_content_testing_chatbot.xlsx`.
 - Configure `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_API_KEY` (secret key), and `LANGFUSE_HOST` in `.env.dev`.
 
 ### Run
 
+e.g. for BNF run
 ```bash
 make upload-human-annotations CUSTOMER_NAME=bnf
 ```
 
-Use `ARGS='--input "path/to/file.xlsx" --remaining-ids-file "path/to/ids.txt"'` to specify different input files.
-
 ### What it produces
 
-- **Local JSON:** `tests/data/langfuse_datasets/human_annotations.json`
+- **Local JSON:** `tests/data/<CUSTOMER_NAME>/langfuse_datasets/human_annotations.json`
 - **Langfuse dataset:** `human_annotated_dataset`
-
-- Adding a question ID to the exclusion file stops future uploads of that question. If it was uploaded before, it stays in Langfuse until removed separately.
 
 </details>
 
