@@ -11,7 +11,7 @@ from pathlib import Path
 # Directories
 TESTS_DATA_DIR = Path("tests/data")
 RAW_DIR = TESTS_DATA_DIR / "raw"
-PROCESSED_DIR = TESTS_DATA_DIR / "langfuse_datasets"
+PROCESSED_DIR = TESTS_DATA_DIR / "processed"
 DOWNLOADED_PROD_LOGS_DIR = TESTS_DATA_DIR / "downloaded_prod_logs"
 
 # Source workbook for the assessment dataset generator
@@ -77,7 +77,9 @@ def answerable_questions_source_path(customer_name: str) -> Path:
 
 def human_annotations_source_path(customer_name: str) -> Path:
     """Return the reviewed source workbook for human-annotated questions."""
-    return TESTS_DATA_DIR / customer_name / "curated_content_testing_chatbot.xlsx"
+    return (
+        TESTS_DATA_DIR / customer_name / "processed" / "curated_content_testing_chatbot.xlsx"
+    )
 
 
 def generated_human_annotations_path(customer_name: str) -> Path:

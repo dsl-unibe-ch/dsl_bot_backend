@@ -269,11 +269,11 @@ If the combined text exceeds the model's context window it is automatically spli
 <details>
 <summary>Click to expand</summary>
 
-Manually curate the original Content Testing Excel first, then save the reviewed file as `curated_content_testing_chatbot.xlsx` in `tests/data/<CUSTOMER_NAME>/`.
+Keep the original Content Testing Excel in `tests/data/<CUSTOMER_NAME>/raw/`. Manually curate it, then save the reviewed file as `curated_content_testing_chatbot.xlsx` in `tests/data/<CUSTOMER_NAME>/processed/`.
 
 ### Prerequisites
 
-- Place the reviewed Content Testing Excel at `tests/data/<CUSTOMER_NAME>/curated_content_testing_chatbot.xlsx`.
+- Place the reviewed Content Testing Excel at `tests/data/<CUSTOMER_NAME>/processed/curated_content_testing_chatbot.xlsx`.
 - Configure `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_API_KEY` (secret key), and `LANGFUSE_HOST` in `.env.dev`.
 
 ### Run
