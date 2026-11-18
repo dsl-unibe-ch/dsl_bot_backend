@@ -29,8 +29,13 @@ def extract_cases(
     source: Path,
     sheet_name: str = "Content Testing",
 ) -> list[dict[str, object]]:
-    """Read the template and remove incomplete rows and duplicate question IDs."""
+    """Use Bot Answer for category 0, then remove incomplete and duplicate rows."""
     df = pd.read_excel(source, sheet_name=sheet_name, dtype=object)
+    df.columns = df.columns.str.strip()
+    df["Expected Answer"] = df["Expected Answer"].mask(
+        pd.to_numeric(df["Answer Defect Category"], errors="coerce").eq(0),
+        df["Bot Answer"],
+    )
     df = df[list(REQUIRED_COLUMNS)]
     df = df.dropna()
     df = df.drop_duplicates(subset=["Question ID"])
