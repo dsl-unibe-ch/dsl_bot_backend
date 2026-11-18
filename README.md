@@ -264,6 +264,32 @@ If the combined text exceeds the model's context window it is automatically spli
 
 </details>
 
+## Upload human-annotated assessment dataset
+
+<details>
+<summary>Click to expand</summary>
+
+Keep the original Content Testing Excel in `tests/data/<CUSTOMER_NAME>/`. Manually curate it, then save the reviewed file as `curated_content_testing_chatbot.xlsx` in `tests/data/<CUSTOMER_NAME>/`.
+
+### Prerequisites
+
+- Place the reviewed Content Testing Excel at `tests/data/<CUSTOMER_NAME>/curated_content_testing_chatbot.xlsx`.
+- Configure `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_API_KEY` (secret key), and `LANGFUSE_HOST` in `.env.dev`.
+
+### Run
+
+e.g. for BNF run
+```bash
+make upload-human-annotations CUSTOMER_NAME=bnf
+```
+
+### What it produces
+
+- **Local JSON:** `tests/data/<CUSTOMER_NAME>/human_annotations.json`
+- **Langfuse dataset:** `human_annotated_dataset`
+
+</details>
+
 ## Download production user logs
 
 <details>
