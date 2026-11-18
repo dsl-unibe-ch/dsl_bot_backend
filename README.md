@@ -273,14 +273,14 @@ Extracts questions and expected answers from the content testing Excel, saves a 
 
 ### Prerequisites
 
-- Use the Content Testing Excel template and place the file at `tests/data/raw/Content Testing_Chatbot.xlsx`.
-- List question IDs to exclude in `tests/data/langfuse_datasets/human_annotations_remaining_ids.txt`, one per line. Remove an ID once its reference answer is ready. 
+- Use the Content Testing Excel template and place the file at `tests/data/<CUSTOMER_NAME>/Content Testing_Chatbot.xlsx`.
+- Optionally, supply `--remaining-ids-file` with manually reviewed IDs whose expected answers contain feedback or unfinished answers, one per line. Without it, no IDs are excluded; incomplete rows and duplicate IDs are still removed.
 - Configure `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_API_KEY` (secret key), and `LANGFUSE_HOST` in `.env.dev`.
 
 ### Run
 
 ```bash
-make upload-human-annotations
+make upload-human-annotations CUSTOMER_NAME=bnf
 ```
 
 Use `ARGS='--input "path/to/file.xlsx" --remaining-ids-file "path/to/ids.txt"'` to specify different input files.

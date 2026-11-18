@@ -16,13 +16,11 @@ from dotenv import dotenv_values
 from langfuse import Langfuse
 from langfuse.api import NotFoundError
 
+from tests.dataset_config import human_annotations_source_path
+
 LOGGER = logging.getLogger(__name__)
 REPO_ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_INPUT = REPO_ROOT / "tests/data/raw/Content Testing_Chatbot.xlsx"
 DEFAULT_OUTPUT = REPO_ROOT / "tests/data/langfuse_datasets/human_annotations.json"
-DEFAULT_REMAINING_IDS = (
-    REPO_ROOT / "tests/data/langfuse_datasets/human_annotations_remaining_ids.txt"
-)
 DEFAULT_DATASET_NAME = "human_annotated_dataset"
 REQUIRED_COLUMNS = ("Question/Prompt", "Question ID", "Expected Answer")
 
@@ -65,7 +63,7 @@ def upload_to_langfuse(cases: list[dict[str, object]], dataset_name: str) -> Non
         except NotFoundError:
             client.create_dataset(
                 name=dataset_name,
-                description="Human-annotated BNF questions and expected answers.",
+                description="Human-annotated questions and expected answers.",
             )
         for case in cases:
             item_id = str(
@@ -95,21 +93,28 @@ def upload_to_langfuse(cases: list[dict[str, object]], dataset_name: str) -> Non
 def main() -> None:
     """Convert the workbook and upload its cases without generating answers."""
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--input", type=Path, default=DEFAULT_INPUT)
     parser.add_argument(
-        "--remaining-ids-file", type=Path, default=DEFAULT_REMAINING_IDS
+        "--customer-name",
+        required=True,
+        help="Customer name",
     )
+    parser.add_argument("--input", type=Path)
+    parser.add_argument("--remaining-ids-file", type=Path)
     args = parser.parse_args()
+    customer_name = args.customer_name
     logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
+    source_path = args.input or human_annotations_source_path(customer_name)
 
-    remaining_ids = {
-        line.strip()
-        for line in args.remaining_ids_file.read_text(encoding="utf-8").splitlines()
-        if line.strip()
-    }
+    remaining_ids = set()
+    if args.remaining_ids_file:
+        remaining_ids = {
+            line.strip()
+            for line in args.remaining_ids_file.read_text(encoding="utf-8").splitlines()
+            if line.strip()
+        }
     cases = [
         case
-        for case in extract_cases(args.input)
+        for case in extract_cases(source_path)
         if str(case["question_id"]) not in remaining_ids
     ]
     DEFAULT_OUTPUT.parent.mkdir(parents=True, exist_ok=True)

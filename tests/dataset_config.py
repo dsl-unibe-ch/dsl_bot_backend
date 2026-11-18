@@ -75,6 +75,11 @@ def answerable_questions_source_path(customer_name: str) -> Path:
     return TESTS_DATA_DIR / customer_name / "processed_data.xlsx"
 
 
+def human_annotations_source_path(customer_name: str) -> Path:
+    """Return the source workbook for human-annotated questions."""
+    return TESTS_DATA_DIR / customer_name / "Content Testing_Chatbot.xlsx"
+
+
 def generated_answerable_questions_path(customer_name: str) -> Path:
     """Return the JSONL path for generated answerable questions."""
     return TESTS_DATA_DIR / customer_name / "generated_answerable_questions.jsonl"
