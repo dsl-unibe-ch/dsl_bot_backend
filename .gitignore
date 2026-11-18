@@ -252,7 +252,7 @@ cookies.txt
 
 # Human-annotated datasets stay local or in Langfuse Cloud
 /tests/data/raw/Content Testing_Chatbot.xlsx
-/tests/data/*/raw/Content Testing_Chatbot.xlsx
-/tests/data/*/processed/curated_content_testing_chatbot.xlsx
+/tests/data/*/Content Testing_Chatbot.xlsx
+/tests/data/*/curated_content_testing_chatbot.xlsx
 /tests/data/langfuse_datasets/
-/tests/data/*/langfuse_datasets/
+/tests/data/*/human_annotations.json

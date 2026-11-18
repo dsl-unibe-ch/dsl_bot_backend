@@ -77,16 +77,12 @@ def answerable_questions_source_path(customer_name: str) -> Path:
 
 def human_annotations_source_path(customer_name: str) -> Path:
     """Return the reviewed source workbook for human-annotated questions."""
-    return (
-        TESTS_DATA_DIR / customer_name / "processed" / "curated_content_testing_chatbot.xlsx"
-    )
+    return TESTS_DATA_DIR / customer_name / "curated_content_testing_chatbot.xlsx"
 
 
 def generated_human_annotations_path(customer_name: str) -> Path:
     """Return the JSON path for reviewed human-annotated questions."""
-    return (
-        TESTS_DATA_DIR / customer_name / "langfuse_datasets" / "human_annotations.json"
-    )
+    return TESTS_DATA_DIR / customer_name / "human_annotations.json"
 
 
 def generated_answerable_questions_path(customer_name: str) -> Path:
